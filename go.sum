@@ -1,0 +1,4 @@
+github.com/holoplot/go-evdev v0.0.0-20230626094006-70c9462cc0f2 h1:bxudnRpvfq2PMYEYN7VGj03+MXG4EobVUmONigCx1yA=
+github.com/holoplot/go-evdev v0.0.0-20230626094006-70c9462cc0f2/go.mod h1:iHAf8OIncO2gcQ8XOjS7CMJ2aPbX2Bs0wl5pZyanEqk=
+golang.org/x/sync v0.5.0 h1:60k92dhOjHxJkrqnwsfl8KuaHbn/5dl0lUPUklKo3qE=
+golang.org/x/sync v0.5.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
