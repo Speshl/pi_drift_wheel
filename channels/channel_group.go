@@ -19,8 +19,13 @@ type ChannelGroup struct {
 }
 
 func NewChannelGroup() *ChannelGroup {
+	channels := make([]int, MaxChannels)
+	for i := range channels {
+		channels[i] = ChannelMidValue
+	}
+
 	return &ChannelGroup{
-		channels: make([]int, MaxChannels),
+		channels: channels,
 	}
 }
 
