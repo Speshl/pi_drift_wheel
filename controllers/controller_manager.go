@@ -37,7 +37,7 @@ func (c *ControllerManager) Start(ctx context.Context) error {
 				}
 				err := c.Controllers[i].Sync()
 				if err != nil {
-					return fmt.Errorf("failed syncing event for %s: %w", c.Controllers[i].name, err)
+					return fmt.Errorf("failed syncing event for %s: %w", c.Controllers[i].Name, err)
 				}
 			}
 		})
@@ -97,7 +97,7 @@ func (c *ControllerManager) LoadControllers() error {
 		}
 
 		controller := NewController(inputPath, device, keyMap)
-		controller.ShowCaps()
+		//controller.ShowCaps()
 		c.Controllers = append(c.Controllers, controller)
 	}
 	return nil

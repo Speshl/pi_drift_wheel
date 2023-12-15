@@ -67,6 +67,12 @@ func (g *ChannelGroup) GetChannel(channel int) (int, error) {
 	return g.channels[channel], nil
 }
 
+func (g *ChannelGroup) GetChannels() []int {
+	g.lock.RLock()
+	defer g.lock.RUnlock()
+	return g.channels
+}
+
 func mapToRangeWithDeadzone(value, min, max, minReturn, maxReturn, deadzone int) int {
 	mappedValue := mapToRange(value, min, max, minReturn, maxReturn)
 	if ChannelMidValue+deadzone > mappedValue && mappedValue > ChannelMidValue {

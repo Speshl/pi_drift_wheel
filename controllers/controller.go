@@ -19,7 +19,7 @@ type Mapping struct {
 
 type Controller struct {
 	device *evdev.InputDevice
-	name   string
+	Name   string
 	path   string
 	keyMap map[string]Mapping
 
@@ -30,7 +30,7 @@ func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap 
 	return &Controller{
 		device:   device,
 		keyMap:   keyMap,
-		name:     inputPath.Name,
+		Name:     inputPath.Name,
 		path:     inputPath.Path,
 		channels: channels.NewChannelGroup(),
 	}
@@ -53,6 +53,10 @@ func (c *Controller) Sync() error {
 	}
 
 	return nil
+}
+
+func (c *Controller) GetChannelGroup() *channels.ChannelGroup {
+	return c.channels
 }
 
 func (c *Controller) ShowCaps() {
