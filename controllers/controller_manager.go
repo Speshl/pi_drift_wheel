@@ -75,10 +75,10 @@ func (c *ControllerManager) LoadControllers() error {
 		if err != nil {
 			return fmt.Errorf("failed getting input id: %w", err)
 		}
-		uniqueId, err := device.UniqueID()
-		if err != nil {
-			return fmt.Errorf("failed getting unique id: %w", err)
-		}
+		// uniqueId, err := device.UniqueID()
+		// if err != nil {
+		// 	return fmt.Errorf("failed getting unique id: %w", err)
+		// }
 
 		slog.Info("loaded device",
 			"name", inputPath.Name,
@@ -87,7 +87,7 @@ func (c *ControllerManager) LoadControllers() error {
 			"vendor", inputId.Vendor,
 			"product", inputId.Product,
 			"version", inputId.Version,
-			"uniqueId", uniqueId,
+			//"uniqueId", uniqueId,
 		)
 
 		keyMap, err := c.GetKeyMap(inputPath.Name)
