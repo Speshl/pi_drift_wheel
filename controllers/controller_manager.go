@@ -75,10 +75,11 @@ func (c *ControllerManager) LoadControllers() error {
 		if err != nil {
 			return fmt.Errorf("failed getting input id: %w", err)
 		}
-		// uniqueId, err := device.UniqueID()
-		// if err != nil {
-		// 	return fmt.Errorf("failed getting unique id: %w", err)
-		// }
+
+		uniqueId, err := device.UniqueID()
+		if err != nil {
+			return fmt.Errorf("failed getting unique id: %w", err)
+		}
 
 		slog.Info("loaded device",
 			"name", inputPath.Name,
@@ -87,7 +88,7 @@ func (c *ControllerManager) LoadControllers() error {
 			"vendor", inputId.Vendor,
 			"product", inputId.Product,
 			"version", inputId.Version,
-			//"uniqueId", uniqueId,
+			"uniqueId", uniqueId,
 		)
 
 		keyMap, err := c.GetKeyMap(inputPath.Name)
@@ -105,9 +106,9 @@ func (c *ControllerManager) LoadControllers() error {
 func (c *ControllerManager) isSupported(name string) bool {
 	_, err := c.GetKeyMap(name)
 	if err != nil {
-		return true
+		return false
 	}
-	return false
+	return true
 }
 
 func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
