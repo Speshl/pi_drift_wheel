@@ -33,20 +33,21 @@ func (c *Controller) Sync() error {
 	}
 
 	//ts := log.Sprintf("Event: time %d.%06d", e.Time.Sec, e.Time.Usec)
+	slog.Info("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
 
-	switch e.Type {
-	case evdev.EV_SYN:
-		switch e.Code {
-		case evdev.SYN_MT_REPORT:
-			slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
-		case evdev.SYN_DROPPED:
-			slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
-		default:
-			slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
-		}
-	default:
-		log.Println("unknown code: %d", e.Type)
-	}
+	// switch e.Type {
+	// case evdev.EV_SYN:
+	// 	switch e.Code {
+	// 	case evdev.SYN_MT_REPORT:
+	// 		slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
+	// 	case evdev.SYN_DROPPED:
+	// 		slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
+	// 	default:
+	// 		slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
+	// 	}
+	// default:
+	// 	log.Printf("unknown code: %d", e.Type)
+	// }
 
 	return nil
 }
