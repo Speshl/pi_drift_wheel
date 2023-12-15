@@ -115,8 +115,8 @@ func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
 	switch name {
 	case "G27 Racing Wheel":
 		return GetG27KeyMap(), nil
-	case "Arduino LLC Arduino Micro":
-		return GetDIYHandBrakeKeyMap(), nil
+	// case "Arduino LLC Arduino Micro":
+	// 	return GetDIYHandBrakeKeyMap(), nil
 	default:
 		return nil, fmt.Errorf("no keymap found")
 	}
