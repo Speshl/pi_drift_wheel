@@ -3,26 +3,36 @@ package controllers
 import (
 	"fmt"
 	"log"
-	"log/slog"
-	"sync"
 
+	"github.com/Speshl/pi_drift_wheel/channels"
 	"github.com/holoplot/go-evdev"
 )
 
-type Controller struct {
-	device  *evdev.InputDevice
-	name    string
-	path    string
-	buttons map[string]int
-	lock    sync.RWMutex
+type Mapping struct {
+	CodeName string
+	Channel  int
+	Type     string //full, bottom, top
+	Min      int
+	Max      int
+	Inverted bool
 }
 
-func NewController(inputPath evdev.InputPath, device *evdev.InputDevice) *Controller {
+type Controller struct {
+	device *evdev.InputDevice
+	name   string
+	path   string
+	keyMap map[string]Mapping
+
+	channels *channels.ChannelGroup
+}
+
+func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping) *Controller {
 	return &Controller{
-		device:  device,
-		name:    inputPath.Name,
-		path:    inputPath.Path,
-		buttons: make(map[string]int, 0),
+		device:   device,
+		keyMap:   keyMap,
+		name:     inputPath.Name,
+		path:     inputPath.Path,
+		channels: channels.NewChannelGroup(),
 	}
 }
 
@@ -32,22 +42,15 @@ func (c *Controller) Sync() error {
 		return fmt.Errorf("failed reading from device: %w", err)
 	}
 
-	//ts := log.Sprintf("Event: time %d.%06d", e.Time.Sec, e.Time.Usec)
-	slog.Info("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
-
-	// switch e.Type {
-	// case evdev.EV_SYN:
-	// 	switch e.Code {
-	// 	case evdev.SYN_MT_REPORT:
-	// 		slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
-	// 	case evdev.SYN_DROPPED:
-	// 		slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
-	// 	default:
-	// 		slog.Info("event", "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
-	// 	}
-	// default:
-	// 	log.Printf("unknown code: %d", e.Type)
-	// }
+	//slog.Info("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
+	mapping, ok := c.keyMap[e.CodeName()]
+	if ok {
+		updatedValue := int(e.Value)
+		if mapping.Inverted {
+			updatedValue = mapping.Max - updatedValue + mapping.Min
+		}
+		c.channels.SetChannel(mapping.Channel, updatedValue, mapping.Type, mapping.Min, mapping.Max)
+	}
 
 	return nil
 }

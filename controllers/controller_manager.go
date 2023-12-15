@@ -90,7 +90,12 @@ func (c *ControllerManager) LoadControllers() error {
 			"uniqueId", uniqueId,
 		)
 
-		controller := NewController(inputPath, device)
+		keyMap, err := c.GetKeyMap(inputPath.Name)
+		if err != nil {
+			return fmt.Errorf("failed getting keymap for %d: %w", inputPath.Name, err)
+		}
+
+		controller := NewController(inputPath, device, keyMap)
 		controller.ShowCaps()
 		c.Controllers = append(c.Controllers, controller)
 	}
@@ -98,11 +103,20 @@ func (c *ControllerManager) LoadControllers() error {
 }
 
 func (c *ControllerManager) isSupported(name string) bool {
+	_, err := c.GetKeyMap(name)
+	if err != nil {
+		return true
+	}
+	return false
+}
+
+func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
 	switch name {
 	case "G27 Racing Wheel":
-		// "Arduino LLC Arduino Micro":
-		return true
+		return GetG27KeyMap(), nil
+	case "Arduino LLC Arduino Micro":
+		return GetDIYHandBrakeKeyMap(), nil
 	default:
-		return false
+		return nil, fmt.Errorf("no keymap found")
 	}
 }
