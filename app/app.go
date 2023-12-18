@@ -76,7 +76,7 @@ func (a *App) Start(ctx context.Context) error {
 			cancel()
 			return fmt.Errorf("received signal: %s\n", sig)
 		case <-ctx.Done():
-			log.Printf("closing signal goroutine\n")
+			log.Printf("closing signal goroutine: %s\n", ctx.Err().Error())
 			return ctx.Err()
 		}
 	})
