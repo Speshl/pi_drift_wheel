@@ -52,7 +52,7 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 			slog.Info("serial eof")
 			//break
 		}
-		slog.Info("read", "data", buff[:n])
+		slog.Info("read", "num_read", n, "data", buff[:n])
 	}
 }
 
