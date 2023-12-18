@@ -1,6 +1,0 @@
-# github.com/holoplot/go-evdev v0.0.0-20230626094006-70c9462cc0f2
-## explicit; go 1.18
-github.com/holoplot/go-evdev
-# golang.org/x/sync v0.5.0
-## explicit; go 1.18
-golang.org/x/sync/errgroup

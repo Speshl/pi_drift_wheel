@@ -8,6 +8,7 @@ func GetConfig() Config {
 	cfg := Config{
 		AppCfg:               GetAppConfig(),
 		ControllerManagerCfg: GetControllerManagerConfig(),
+		SbusCfg:              GetSBusConfig(),
 	}
 
 	log.Printf("app config: \n%+v\n", cfg)
@@ -20,4 +21,11 @@ func GetAppConfig() AppConfig {
 
 func GetControllerManagerConfig() ControllerManagerConfig {
 	return ControllerManagerConfig{}
+}
+
+func GetSBusConfig() SBusConfig {
+	return SBusConfig{
+		SBusInPath: "/dev/ttyAMA0",
+		SBusInBaud: 100000,
+	}
 }
