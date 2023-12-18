@@ -28,7 +28,12 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer port.Close() //Can error
+	defer func() {
+		err = port.Close() //Can error
+		if err != nil {
+			slog.Error("error closing serial port", "port", r.Path, "error", err)
+		}
+	}()
 
 	//dataBuffer := make([]byte, 0, 64)
 	readBuffer := make([]byte, 0, 64)
