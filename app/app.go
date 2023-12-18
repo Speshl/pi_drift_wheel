@@ -10,7 +10,6 @@ import (
 	"syscall"
 
 	"github.com/Speshl/pi_drift_wheel/config"
-	"github.com/Speshl/pi_drift_wheel/controllers"
 	"github.com/Speshl/pi_drift_wheel/sbus"
 	"golang.org/x/sync/errgroup"
 )
@@ -26,19 +25,22 @@ func NewApp(cfg config.Config) *App {
 }
 
 func (a *App) Start(ctx context.Context) error {
+	var (
+		err error
+	)
 	//ctx, cancel := context.WithCancel(ctx)
 	group, ctx := errgroup.WithContext(ctx)
 
-	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
-	err := controllerManager.LoadControllers()
-	if err != nil {
-		return fmt.Errorf("failed loading controllers: %w", err)
-	}
+	// controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
+	// err := controllerManager.LoadControllers()
+	// if err != nil {
+	// 	return fmt.Errorf("failed loading controllers: %w", err)
+	// }
 
-	//Start data input processes
-	group.Go(func() error {
-		return controllerManager.Start(ctx)
-	})
+	// //Start data input processes
+	// group.Go(func() error {
+	// 	return controllerManager.Start(ctx)
+	// })
 
 	sbusReader := sbus.NewSBusReader(a.cfg.SbusCfg)
 
