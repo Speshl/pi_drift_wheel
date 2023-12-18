@@ -80,14 +80,14 @@ func (r *SBusReader) Start(ctx context.Context) error {
 }
 
 func (r *SBusReader) open() (serial.Port, error) {
-	mode := &serial.Mode{
-		BaudRate: r.Baud,
-		// Parity:   serial.EvenParity,
-		// StopBits: serial.TwoStopBits,
-		// DataBits: 8,
-	}
+	// mode := &serial.Mode{
+	// 	BaudRate: r.Baud,
+	// 	// Parity:   serial.EvenParity,
+	// 	// StopBits: serial.TwoStopBits,
+	// 	DataBits: 8,
+	// }
 	slog.Info("opening serial connection", "path", r.Path)
-	port, err := serial.Open(r.Path, mode)
+	port, err := serial.Open(r.Path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed opening serial connection - %w", err)
 	}
