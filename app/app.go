@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"log/slog"
-	"time"
 
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
@@ -45,19 +43,19 @@ func (a *App) Start(ctx context.Context) error {
 	})
 
 	//Start data output processes
-	group.Go(func() error {
-		for {
-			controller := controllerManager.Controllers[0]
-			channelGroup := controller.GetChannelGroup()
-			channelData := channelGroup.GetChannels()
-			slog.Info("controller state",
-				"name", controller.Name,
-				"chan0", channelData[0],
-				"chan1", channelData[1],
-			)
-			time.Sleep(1000)
-		}
-	})
+	// group.Go(func() error {
+	// 	for {
+	// 		controller := controllerManager.Controllers[0]
+	// 		channelGroup := controller.GetChannelGroup()
+	// 		channelData := channelGroup.GetChannels()
+	// 		slog.Info("controller state",
+	// 			"name", controller.Name,
+	// 			"chan0", channelData[0],
+	// 			"chan1", channelData[1],
+	// 		)
+	// 		time.Sleep(1000)
+	// 	}
+	// })
 
 	err = group.Wait()
 	if err != nil {
