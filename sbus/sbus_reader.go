@@ -46,7 +46,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	slog.Info("start reading serial")
 
 	go func() {
-		close(dataChannel)
+		defer close(dataChannel)
 		for {
 			if ctx.Err() != nil {
 				return //ctx.Err()
@@ -72,6 +72,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 			return ctx.Err()
 		case data, ok := <-dataChannel:
 			if !ok {
+				slog.Info("sbus reader channel closed")
 				return nil
 			}
 			slog.Info("got data", "length", len(data), "data", data)
