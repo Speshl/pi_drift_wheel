@@ -45,7 +45,7 @@ func (c *ControllerManager) Start(ctx context.Context) error {
 	err := group.Wait()
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			slog.Debug("controller manager context was cancelled")
+			slog.Info("controller manager context was cancelled")
 			return nil
 		} else {
 			return fmt.Errorf("controller manager stopping due to error - %w", err)
@@ -61,7 +61,7 @@ func (c *ControllerManager) LoadControllers() error {
 	}
 	for _, inputPath := range inputPaths {
 		if !c.isSupported(inputPath.Name) {
-			slog.Debug("unsupported device", "path", inputPath.Path, "name", inputPath.Name)
+			slog.Info("unsupported device", "path", inputPath.Path, "name", inputPath.Name)
 			continue
 		}
 

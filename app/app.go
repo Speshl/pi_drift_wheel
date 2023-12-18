@@ -24,11 +24,8 @@ func NewApp(cfg config.Config) *App {
 	}
 }
 
-func (a *App) Start(ctx context.Context) error {
-	var (
-		err error
-	)
-	//ctx, cancel := context.WithCancel(ctx)
+func (a *App) Start(ctx context.Context) (err error) {
+	ctx, cancel := context.WithCancel(ctx)
 	group, ctx := errgroup.WithContext(ctx)
 
 	// controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
@@ -74,8 +71,8 @@ func (a *App) Start(ctx context.Context) error {
 		signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 		select {
 		case sig := <-signalChannel:
-			slog.Debug("received signal", "value", sig)
-			//cancel()
+			slog.Info("received signal", "value", sig)
+			cancel()
 			return fmt.Errorf("received signal: %s", sig)
 		case <-ctx.Done():
 			slog.Info("closing signal goroutine", "error", ctx.Err().Error())
