@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"time"
 
 	"go.bug.st/serial"
 
@@ -37,7 +38,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer r.Cleanup()
+	//defer r.Cleanup()
 
 	//dataBuffer := make([]byte, 0, 64)
 	readBuffer := make([]byte, 0, 64)
@@ -45,6 +46,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 
 	slog.Info("start reading serial")
 
+	r.Port.SetReadTimeout(5 * time.Second)
 	go func() {
 		defer close(dataChannel)
 		for {
