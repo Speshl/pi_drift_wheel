@@ -42,6 +42,7 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 	frame := make([]byte, 0, 25)
 	midFrame := false
 	for {
+		clear(buff)
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
