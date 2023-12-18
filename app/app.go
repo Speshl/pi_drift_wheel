@@ -26,7 +26,7 @@ func NewApp(cfg config.Config) *App {
 }
 
 func (a *App) Start(ctx context.Context) error {
-	ctx, cancel := context.WithCancel(ctx)
+	//ctx, cancel := context.WithCancel(ctx)
 	group, ctx := errgroup.WithContext(ctx)
 
 	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
