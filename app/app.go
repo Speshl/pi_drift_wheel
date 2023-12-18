@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
@@ -23,6 +26,7 @@ func NewApp(cfg config.Config) *App {
 }
 
 func (a *App) Start(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
 	group, ctx := errgroup.WithContext(ctx)
 
 	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
@@ -60,6 +64,22 @@ func (a *App) Start(ctx context.Context) error {
 	// 		time.Sleep(1000)
 	// 	}
 	// })
+
+	//kill listener
+	group.Go(func() error {
+		signalChannel := make(chan os.Signal, 1)
+		signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+		signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+		select {
+		case sig := <-signalChannel:
+			log.Printf("received signal: %s\n", sig)
+			cancel()
+			return fmt.Errorf("received signal: %s\n", sig)
+		case <-ctx.Done():
+			log.Printf("closing signal goroutine\n")
+			return ctx.Err()
+		}
+	})
 
 	err = group.Wait()
 	if err != nil {

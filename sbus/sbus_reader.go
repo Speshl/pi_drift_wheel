@@ -53,7 +53,7 @@ func (r *SBusReader) open() (serial.Port, error) {
 		StopBits: serial.TwoStopBits,
 		DataBits: 8,
 	}
-	slog.Info("opening serial connection", "path", r.Path)
+	slog.Debug("opening serial connection", "path", r.Path)
 	port, err := serial.Open(r.Path, mode)
 	if err != nil {
 		return nil, fmt.Errorf("failed opening serial connection - %w", err)
