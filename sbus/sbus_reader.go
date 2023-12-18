@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"time"
 
 	"go.bug.st/serial"
 
@@ -41,7 +40,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 
 	slog.Info("start reading serial")
 
-	port.SetReadTimeout(5 * time.Second)
+	//port.SetReadTimeout(5 * time.Second)
 	go func() {
 		defer close(dataChannel)
 		for {
