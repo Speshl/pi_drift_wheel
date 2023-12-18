@@ -38,7 +38,7 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 		return err
 	}
 
-	buff := make([]byte, 0, 25)
+	buff := make([]byte, 25)
 	frame := make([]byte, 0, 25)
 	midFrame := false
 	for {
@@ -49,11 +49,6 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if n == 0 {
-			slog.Info("serial eof")
-			//break
-		}
-
 		for i := range buff {
 			if midFrame { //already found start byte so looking for end byte
 				frame = append(frame, buff[i])
