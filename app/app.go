@@ -73,7 +73,7 @@ func (a *App) Start(ctx context.Context) error {
 		select {
 		case sig := <-signalChannel:
 			log.Printf("received signal: %s\n", sig)
-			cancel()
+			//cancel()
 			return fmt.Errorf("received signal: %s\n", sig)
 		case <-ctx.Done():
 			log.Printf("closing signal goroutine: %s\n", ctx.Err().Error())
