@@ -37,29 +37,55 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	defer r.Cleanup()
 
 	//dataBuffer := make([]byte, 0, 64)
 	readBuffer := make([]byte, 0, 64)
+	dataChannel := make(chan []byte, 100)
+
 	slog.Info("start reading serial")
+
+	go func() {
+		close(dataChannel)
+		for {
+			if ctx.Err() != nil {
+				return //ctx.Err()
+			}
+			if r.Port == nil {
+				return //fmt.Errorf("port is nil")
+			}
+
+			clear(readBuffer)
+			numRead, err := r.Port.Read(readBuffer)
+			if err != nil {
+				slog.Error("failed reading from serial", "error", err)
+				return //fmt.Errorf("failed reading from serial - %w", err)
+			}
+			slog.Info("read bytes", "numRead", numRead, "bytes", readBuffer[0:numRead])
+			dataChannel <- readBuffer
+		}
+	}()
+
 	for {
-		if ctx.Err() != nil {
+		select {
+		case <-ctx.Done():
 			return ctx.Err()
+		case data, ok := <-dataChannel:
+			if !ok {
+				return nil
+			}
+			slog.Info("got data", "length", len(data), "data", data)
 		}
-		clear(readBuffer)
-		numRead, err := r.Port.Read(readBuffer)
-		if err != nil {
-			return fmt.Errorf("failed reading from serial - %w", err)
-		}
-		log.Printf("read %d bytes", numRead)
 	}
+
 }
 
 func (r *SBusReader) Open() (err error) {
 	mode := &serial.Mode{
 		BaudRate: r.Baud,
-		Parity:   serial.EvenParity,
-		StopBits: serial.TwoStopBits,
-		DataBits: 8,
+		// Parity:   serial.EvenParity,
+		// StopBits: serial.TwoStopBits,
+		// DataBits: 8,
 	}
 	slog.Info("opening serial connection", "path", r.Path)
 	r.Port, err = serial.Open(r.Path, mode)

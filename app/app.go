@@ -42,11 +42,11 @@ func (a *App) Start(ctx context.Context) (err error) {
 	sbusReader := sbus.NewSBusReader(a.cfg.SbusCfg)
 
 	group.Go(func() error {
+		defer cancel()
 		err := sbusReader.ListPorts()
 		if err != nil {
 			return err
 		}
-		defer sbusReader.Cleanup()
 		return sbusReader.Start(ctx)
 	})
 
