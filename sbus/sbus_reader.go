@@ -38,12 +38,13 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 		return err
 	}
 
-	buff := make([]byte, 100)
+	buff := make([]byte, 0, 25)
+	frame := make([]byte, 0, 25)
+	midFrame := false
 	for {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		// Reads up to 100 bytes
 		n, err := port.Read(buff)
 		if err != nil {
 			log.Fatal(err)
@@ -51,6 +52,32 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 		if n == 0 {
 			slog.Info("serial eof")
 			//break
+		}
+
+		for i := range buff {
+			if midFrame { //already found start byte so looking for end byte
+				frame = append(frame, buff[i])
+				if len(frame) == framelength {
+					midFrame = false
+					if buff[i] == endbyte { //this is a complete frame
+						frame, err := UnmarshalFrame([25]byte(frame))
+						if err != nil {
+							slog.Warn("frame should have parsed but failed", "error", err)
+						}
+						slog.Info("read frame", "frame", frame)
+						//do something with the read frame
+					} else {
+						slog.Warn("found frame start but not frame end")
+					}
+				}
+			}
+			//look for start byte
+			if buff[i] == startbyte {
+				clear(frame)
+				midFrame = true
+				frame = append(frame, buff[i])
+			}
+
 		}
 		slog.Info("read", "num_read", n, "data", buff[:n])
 	}
