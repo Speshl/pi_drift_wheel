@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -74,11 +74,11 @@ func (a *App) Start(ctx context.Context) error {
 		signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 		select {
 		case sig := <-signalChannel:
-			log.Printf("received signal: %s\n", sig)
+			slog.Debug("received signal", "value", sig)
 			//cancel()
-			return fmt.Errorf("received signal: %s\n", sig)
+			return fmt.Errorf("received signal: %s", sig)
 		case <-ctx.Done():
-			log.Printf("closing signal goroutine: %s\n", ctx.Err().Error())
+			slog.Info("closing signal goroutine", "error", ctx.Err().Error())
 			return ctx.Err()
 		}
 	})
@@ -86,10 +86,10 @@ func (a *App) Start(ctx context.Context) error {
 	err = group.Wait()
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			log.Println("context was cancelled")
+			slog.Info("app context was cancelled")
 			return nil
 		} else {
-			return fmt.Errorf("server stopping due to error - %w", err)
+			return fmt.Errorf("app stopping due to error - %w", err)
 		}
 	}
 	return nil

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 
 	"github.com/Speshl/pi_drift_wheel/config"
@@ -46,10 +45,10 @@ func (c *ControllerManager) Start(ctx context.Context) error {
 	err := group.Wait()
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			log.Println("context was cancelled")
+			slog.Debug("controller manager context was cancelled")
 			return nil
 		} else {
-			return fmt.Errorf("server stopping due to error - %w", err)
+			return fmt.Errorf("controller manager stopping due to error - %w", err)
 		}
 	}
 	return nil
@@ -62,7 +61,7 @@ func (c *ControllerManager) LoadControllers() error {
 	}
 	for _, inputPath := range inputPaths {
 		if !c.isSupported(inputPath.Name) {
-			log.Printf("unsupported: %s:\t%s\n", inputPath.Path, inputPath.Name)
+			slog.Debug("unsupported device", "path", inputPath.Path, "name", inputPath.Name)
 			continue
 		}
 
