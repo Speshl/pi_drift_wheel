@@ -26,6 +26,7 @@ func NewSBusReader(cfg config.SBusConfig) *SBusReader {
 
 func (r *SBusReader) Cleanup() error {
 	if r.Port != nil {
+		slog.Info("closing serial port", "path", r.Path)
 		return r.Port.Close()
 	}
 	return nil
