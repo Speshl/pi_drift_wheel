@@ -47,7 +47,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 		if err != nil {
 			return err
 		}
-		return sbusReader.Start(ctx)
+		return sbusReader.Start2(ctx)
 	})
 
 	//Start data output processes
