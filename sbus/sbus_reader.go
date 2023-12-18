@@ -25,7 +25,10 @@ func NewSBusReader(cfg config.SBusConfig) *SBusReader {
 }
 
 func (r *SBusReader) Cleanup() error {
-	return r.Port.Close()
+	if r.Port != nil {
+		return r.Port.Close()
+	}
+	return nil
 }
 
 func (r *SBusReader) Start(ctx context.Context) error {
