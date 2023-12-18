@@ -12,6 +12,7 @@ import (
 )
 
 type SBusReader struct {
+	Port serial.Port
 	Path string
 	Baud int
 }
@@ -23,17 +24,15 @@ func NewSBusReader(cfg config.SBusConfig) *SBusReader {
 	}
 }
 
+func (r *SBusReader) Cleanup() error {
+	return r.Port.Close()
+}
+
 func (r *SBusReader) Start(ctx context.Context) error {
-	port, err := r.open()
+	err := r.Open()
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err = port.Close() //Can error
-		if err != nil {
-			slog.Error("error closing serial port", "port", r.Path, "error", err)
-		}
-	}()
 
 	//dataBuffer := make([]byte, 0, 64)
 	readBuffer := make([]byte, 0, 64)
@@ -43,7 +42,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 			return ctx.Err()
 		}
 		clear(readBuffer)
-		numRead, err := port.Read(readBuffer)
+		numRead, err := r.Port.Read(readBuffer)
 		if err != nil {
 			return fmt.Errorf("failed reading from serial - %w", err)
 		}
@@ -51,7 +50,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	}
 }
 
-func (r *SBusReader) open() (serial.Port, error) {
+func (r *SBusReader) Open() (err error) {
 	mode := &serial.Mode{
 		BaudRate: r.Baud,
 		Parity:   serial.EvenParity,
@@ -59,12 +58,12 @@ func (r *SBusReader) open() (serial.Port, error) {
 		DataBits: 8,
 	}
 	slog.Info("opening serial connection", "path", r.Path)
-	port, err := serial.Open(r.Path, mode)
+	r.Port, err = serial.Open(r.Path, mode)
 	if err != nil {
-		return nil, fmt.Errorf("failed opening serial connection - %w", err)
+		return fmt.Errorf("failed opening serial connection - %w", err)
 	}
 	slog.Info("serial connection opened:", "path", r.Path)
-	return port, err
+	return nil
 }
 
 func (r *SBusReader) ListPorts() error {

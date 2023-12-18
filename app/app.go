@@ -46,6 +46,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 		if err != nil {
 			return err
 		}
+		defer sbusReader.Cleanup()
 		return sbusReader.Start(ctx)
 	})
 
