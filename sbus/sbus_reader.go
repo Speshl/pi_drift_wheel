@@ -88,7 +88,7 @@ func (r *SBusReader) open() (serial.Port, error) {
 	// }
 	slog.Info("opening serial connection", "path", r.Path)
 	port, err := serial.Open(r.Path, &serial.Mode{
-		BaudRate: 9600,
+		BaudRate: 115200,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed opening serial connection - %w", err)
