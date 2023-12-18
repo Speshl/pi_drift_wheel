@@ -13,7 +13,6 @@ import (
 )
 
 type SBusReader struct {
-	Port serial.Port
 	Path string
 	Baud int
 }
@@ -25,42 +24,40 @@ func NewSBusReader(cfg config.SBusConfig) *SBusReader {
 	}
 }
 
-func (r *SBusReader) Cleanup() error {
-	if r.Port != nil {
-		slog.Info("closing serial port", "path", r.Path)
-		return r.Port.Close()
-	}
-	return nil
-}
-
 func (r *SBusReader) Start(ctx context.Context) error {
-	err := r.Open()
+	port, err := r.open()
 	if err != nil {
 		return err
 	}
-	//defer r.Cleanup()
+	defer func() {
+		if port != nil {
+			slog.Info("closing serial port", "path", r.Path)
+			port.Close()
+		}
+	}()
 
-	//dataBuffer := make([]byte, 0, 64)
 	readBuffer := make([]byte, 0, 64)
 	dataChannel := make(chan []byte, 100)
 
 	slog.Info("start reading serial")
 
-	r.Port.SetReadTimeout(5 * time.Second)
+	port.SetReadTimeout(5 * time.Second)
 	go func() {
 		defer close(dataChannel)
 		for {
 			if ctx.Err() != nil {
+				slog.Info("serial channel reader context cancelled")
 				return //ctx.Err()
 			}
-			if r.Port == nil {
-				return //fmt.Errorf("port is nil")
+			if port == nil {
+				slog.Info("serial  port is nil")
+				return
 			}
 
 			clear(readBuffer)
-			numRead, err := r.Port.Read(readBuffer)
+			numRead, err := port.Read(readBuffer)
 			if err != nil {
-				slog.Error("failed reading from serial", "error", err)
+				slog.Error("failed reading from serial", "error", err.Error())
 				return //fmt.Errorf("failed reading from serial - %w", err)
 			}
 			slog.Info("read bytes", "numRead", numRead, "bytes", readBuffer[0:numRead])
@@ -83,7 +80,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 
 }
 
-func (r *SBusReader) Open() (err error) {
+func (r *SBusReader) open() (serial.Port, error) {
 	mode := &serial.Mode{
 		BaudRate: r.Baud,
 		// Parity:   serial.EvenParity,
@@ -91,12 +88,12 @@ func (r *SBusReader) Open() (err error) {
 		// DataBits: 8,
 	}
 	slog.Info("opening serial connection", "path", r.Path)
-	r.Port, err = serial.Open(r.Path, mode)
+	port, err := serial.Open(r.Path, mode)
 	if err != nil {
-		return fmt.Errorf("failed opening serial connection - %w", err)
+		return nil, fmt.Errorf("failed opening serial connection - %w", err)
 	}
 	slog.Info("serial connection opened:", "path", r.Path)
-	return nil
+	return port, nil
 }
 
 func (r *SBusReader) ListPorts() error {
