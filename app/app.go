@@ -39,6 +39,10 @@ func (a *App) Start(ctx context.Context) error {
 	sbusReader := sbus.NewSBusReader(a.cfg.SbusCfg)
 
 	group.Go(func() error {
+		err := sbusReader.ListPorts()
+		if err != nil {
+			return err
+		}
 		return sbusReader.Start(ctx)
 	})
 

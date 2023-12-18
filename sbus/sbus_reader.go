@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 
 	"go.bug.st/serial"
 
@@ -31,6 +32,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 
 	//dataBuffer := make([]byte, 0, 64)
 	readBuffer := make([]byte, 0, 64)
+	slog.Info("start reading serial")
 	for {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -41,7 +43,6 @@ func (r *SBusReader) Start(ctx context.Context) error {
 			return fmt.Errorf("failed reading from serial - %w", err)
 		}
 		log.Printf("read %d bytes", numRead)
-
 	}
 }
 
@@ -56,6 +57,7 @@ func (r *SBusReader) open() (serial.Port, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed opening serial connection - %w", err)
 	}
+	slog.Info("serial connection opened:", "path", r.Path)
 	return port, err
 }
 
