@@ -52,7 +52,7 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 		}
 		for i := range buff[:n] {
 			if midFrame { //already found start byte so looking for end byte
-				//slog.Info("appending")
+				slog.Info("appending")
 				frame = append(frame, buff[i])
 				if len(frame) >= framelength {
 					midFrame = false
@@ -64,19 +64,19 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 						slog.Info("found frame", "frame", frame)
 						//do something with the read frame
 					} else {
-						//slog.Warn("found frame start but not frame end")
+						slog.Warn("found frame start but not frame end")
 					}
 				} else {
-					//slog.Info("building frame", "length", len(frame))
+					slog.Info("building frame", "length", len(frame))
 				}
 			} else if int(buff[i]) == int(startbyte) { //Looking for the start of the next frame
 				clear(frame)
 				midFrame = true
 				frame = append(frame, buff[i])
-				//slog.Info("found a match")
+				slog.Info("found a match")
 			}
 		}
-		//slog.Info("read", "num_read", n, "data", buff[:n])
+		slog.Info("read", "num_read", n, "data", buff[:n])
 	}
 }
 
