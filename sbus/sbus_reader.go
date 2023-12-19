@@ -50,7 +50,7 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		for i := range buff[0:n] {
+		for i := range buff[:n] {
 			if midFrame { //already found start byte so looking for end byte
 				frame = append(frame, buff[i])
 				if len(frame) == framelength {
