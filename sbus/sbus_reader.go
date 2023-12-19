@@ -73,7 +73,7 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 				midFrame = true
 				frame = append(frame, buff[i])
 			} else {
-				slog.Info("not start byte", "startbyte", startbyte, "endbyte", endbyte, "byte", int(buff[i]))
+				slog.Info("not start byte", "startbyte", startbyte, "endbyte", endbyte, "byte", string(buff[i]))
 			}
 
 		}
