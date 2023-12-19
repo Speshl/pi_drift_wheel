@@ -37,12 +37,12 @@ class SBUSReceiver:
                     self._frame.append(b)
                     if len(self._frame) == SBUSReceiver.SBUSFramer.SBUS_FRAME_LEN:
                         decoded_frame = SBUSReceiver.SBUSFrame(self._frame)
-                        # print(decoded_frame)
+                        print(decoded_frame)
                         asyncio.run_coroutine_threadsafe(self.frames.put(decoded_frame), asyncio.get_running_loop())
                         self._in_frame = False
                 else:
                     if b == SBUSReceiver.SBUSFramer.START_BYTE:
-                        print(f"Found start byte {b} == {SBUSReceiver.SBUSFramer.START_BYTE}")
+                        #print(f"Found start byte {b} == {SBUSReceiver.SBUSFramer.START_BYTE}")
                         self._in_frame = True
                         self._frame.clear()
                         self._frame.append(b)
