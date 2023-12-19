@@ -74,6 +74,8 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 				midFrame = true
 				frame = append(frame, buff[i])
 				slog.Info("found a match")
+			} else {
+				slog.Info("outside frame, but didn't find start")
 			}
 		}
 		slog.Info("read", "num_read", n, "data", buff[:n])
