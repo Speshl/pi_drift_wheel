@@ -70,9 +70,8 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 					slog.Info("building frame", "length", len(frame))
 				}
 			} else if int(buff[i]) == int(startbyte) { //Looking for the start of the next frame
-				clear(frame)
 				midFrame = true
-				frame = append(frame, buff[i])
+				frame = append(frame[:0], buff[i])
 				slog.Info("found a match", "length", len(frame))
 			} else {
 				slog.Info("outside frame, but didn't find start")
