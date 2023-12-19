@@ -68,10 +68,11 @@ func (r *SBusReader) Start2(ctx context.Context) error {
 				}
 			}
 			//look for start byte
-			if buff[i] == startbyte {
+			if int(buff[i]) == int(startbyte) {
 				clear(frame)
 				midFrame = true
 				frame = append(frame, buff[i])
+				slog.Info("found a match")
 			} else {
 				slog.Info("not start byte", "startbyte", startbyte, "endbyte", endbyte, "byte", string(buff[i]))
 			}
