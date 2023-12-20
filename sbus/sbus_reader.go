@@ -66,7 +66,6 @@ func (r *SBusReader) Start(ctx context.Context) error {
 
 						r.lock.Lock()
 						r.frame = frame
-						slog.Info("found frame", "frame", r.frame)
 						r.lock.Unlock()
 					} else {
 						//slog.Warn("found frame start but not frame end")
@@ -89,6 +88,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 func (r *SBusReader) GetLatestFrame() Frame {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
+	slog.Info("latest frame", "frame", r.frame)
 	return r.frame
 }
 
