@@ -54,7 +54,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	// Process data
 	group.Go(func() error {
 		slog.Info("waiting for initial events", "time", 2*time.Second)
-		time.Sleep(2 * time.Second) //give some time for signals to start being processed
+		time.Sleep(500 * time.Millisecond) //give some time for signals to start being processed
 
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+1)
 		ticker := time.NewTicker(7 * time.Millisecond) //fast ticker

@@ -28,9 +28,11 @@ type SBus struct {
 
 func NewSBus(cfg config.SBusConfig) *SBus {
 	return &SBus{
-		Path:  cfg.SBusPath,
-		read:  cfg.SBusIn,
-		write: cfg.SBusOut,
+		Path:     cfg.SBusPath,
+		read:     cfg.SBusIn,
+		inFrame:  NewFrame(),
+		write:    cfg.SBusOut,
+		outFrame: NewFrame(),
 	}
 }
 
