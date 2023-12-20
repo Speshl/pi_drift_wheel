@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 
@@ -27,6 +26,7 @@ func NewControllerManager(cfg config.ControllerManagerConfig) *ControllerManager
 
 func (c *ControllerManager) Start(ctx context.Context) error {
 	group, ctx := errgroup.WithContext(ctx)
+	doneChan := make(chan error)
 
 	for i := range c.Controllers {
 		group.Go(func() error {
@@ -42,16 +42,19 @@ func (c *ControllerManager) Start(ctx context.Context) error {
 		})
 	}
 
-	err := group.Wait()
-	if err != nil {
-		if errors.Is(err, context.Canceled) {
+	go func() {
+		doneChan <- group.Wait() //block in goroutine so we can still listen for ctx close
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
 			slog.Info("controller manager context was cancelled")
-			return nil
-		} else {
-			return fmt.Errorf("controller manager stopping due to error - %w", err)
+			return ctx.Err()
+		case groupErr := <-doneChan:
+			return fmt.Errorf("controller manager stopping due to error - %w", groupErr)
 		}
 	}
-	return nil
 }
 
 func (c *ControllerManager) LoadControllers() error {
