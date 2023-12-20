@@ -58,8 +58,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 		time.Sleep(2 * time.Second) //give some time for signals to start being processed
 
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+1)
-		//ticker := time.NewTicker(time.Duration(a.cfg.AppCfg.UpdateRate))
-		ticker := time.NewTicker(time.Duration(1000)) //slow ticker
+		//ticker := time.NewTicker(a.cfg.AppCfg.UpdateRate * time.Millisecond)
+		ticker := time.NewTicker(1000 * time.Millisecond) //slow ticker
 		for {
 			select {
 			case <-ctx.Done():
