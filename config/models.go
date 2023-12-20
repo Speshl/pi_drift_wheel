@@ -13,5 +13,7 @@ type AppConfig struct {
 type ControllerManagerConfig struct{}
 
 type SBusConfig struct {
-	SBusInPath string
+	SBusPath string
+	SBusIn   bool
+	SBusOut  bool
 }

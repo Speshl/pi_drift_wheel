@@ -6,26 +6,36 @@ import (
 	"log"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/albenik/go-serial/v2"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/Speshl/pi_drift_wheel/config"
 )
 
-type SBusReader struct {
-	lock  sync.RWMutex
-	Path  string
-	frame Frame
+type SBus struct {
+	Path string
+
+	read    bool
+	inLock  sync.RWMutex
+	inFrame Frame
+
+	write    bool
+	outLock  sync.RWMutex
+	outFrame Frame
 }
 
-func NewSBusReader(cfg config.SBusConfig) *SBusReader {
-	return &SBusReader{
-		Path: cfg.SBusInPath,
+func NewSBus(cfg config.SBusConfig) *SBus {
+	return &SBus{
+		Path:  cfg.SBusPath,
+		read:  cfg.SBusIn,
+		write: cfg.SBusOut,
 	}
 }
 
-func (r *SBusReader) Start(ctx context.Context) error {
-	port, err := serial.Open(r.Path,
+func (s *SBus) Start(ctx context.Context) error {
+	port, err := serial.Open(s.Path,
 		serial.WithBaudrate(100000),
 		serial.WithDataBits(8),
 		serial.WithParity(serial.EvenParity),
@@ -36,6 +46,24 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	)
 	if err != nil {
 		return err
+	}
+
+	sbusGroup, ctx := errgroup.WithContext(ctx)
+
+	sbusGroup.Go(func() error {
+		return s.startReader(ctx, port)
+	})
+
+	sbusGroup.Go(func() error {
+		return s.startWriter(ctx, port)
+	})
+
+	return sbusGroup.Wait()
+}
+
+func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
+	if !s.read {
+		return nil
 	}
 
 	buff := make([]byte, 25)
@@ -58,13 +86,13 @@ func (r *SBusReader) Start(ctx context.Context) error {
 				if len(frame) >= frameLength {
 					midFrame = false
 					if buff[i] == endByte { //this is a complete frame
-						frame, err := UnmarshalFrame([25]byte(frame))
+						frame, err := UnmarshalFrame(frame)
 						if err != nil {
 							slog.Warn("frame should have parsed but failed", "error", err)
 						}
-						r.lock.Lock()
-						r.frame = frame //set the latest frame
-						r.lock.Unlock()
+						s.inLock.Lock()
+						s.inFrame = frame //set the latest frame
+						s.inLock.Unlock()
 					} else {
 						slog.Debug("found frame start but not frame end")
 					}
@@ -83,13 +111,46 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	}
 }
 
-func (r *SBusReader) GetLatestFrame() Frame {
-	r.lock.RLock()
-	defer r.lock.RUnlock()
-	return r.frame
+func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
+	if !s.write {
+		return nil
+	}
+
+	ticker := time.NewTicker(7 * time.Millisecond)
+	var writeBytes []byte
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			s.inLock.RLock()
+			writeBytes = s.inFrame.Marshal()
+			s.inLock.RUnlock()
+			n, err := port.Write(writeBytes)
+			if err != nil {
+				return err
+			}
+			if n != len(writeBytes) {
+				slog.Info("sbus write incorrect length")
+			}
+
+		}
+	}
 }
 
-func (r *SBusReader) ListPorts() error {
+func (s *SBus) GetReadFrame() Frame {
+	s.inLock.RLock()
+	defer s.inLock.RUnlock()
+	return s.inFrame
+}
+
+func (s *SBus) SetWriteFrame(frame Frame) {
+	s.outLock.Lock()
+	defer s.outLock.Unlock()
+	s.outFrame = frame
+}
+
+func (s *SBus) ListPorts() error {
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		return err

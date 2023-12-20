@@ -70,8 +70,8 @@ func (f Flags) marshal() (fbyte byte) {
 }
 
 // Marshal serializes a Frame to bytes
-func (f Frame) Marshal() [frameLength]byte {
-	return [frameLength]byte{
+func (f Frame) Marshal() []byte {
+	return []byte{
 		startByte,
 		byte(f.Ch[0] & mask),
 		byte((f.Ch[0]&mask)>>8 | (f.Ch[1]&mask)<<3),
@@ -101,7 +101,11 @@ func (f Frame) Marshal() [frameLength]byte {
 }
 
 // UnmarshalFrame tries to create a Frame from a byte array
-func UnmarshalFrame(data [frameLength]byte) (f Frame, err error) {
+func UnmarshalFrame(data []byte) (f Frame, err error) {
+	if len(data) != frameLength {
+		err = fmt.Errorf("incorrect frame size")
+		return
+	}
 	if data[0] != startByte {
 		err = fmt.Errorf("Error parsing frame: incorrect start byte %v", data[0])
 		return

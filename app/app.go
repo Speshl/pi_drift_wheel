@@ -30,29 +30,28 @@ func (a *App) Start(ctx context.Context) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	group, ctx := errgroup.WithContext(ctx)
 
+	//Start Getting controller inputs
 	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
 	err = controllerManager.LoadControllers()
 	if err != nil {
 		return fmt.Errorf("failed loading controllers: %w", err)
 	}
-
-	//Start data input processes
 	group.Go(func() error {
 		return controllerManager.Start(ctx)
 	})
 
-	sbusReader := sbus.NewSBusReader(a.cfg.SbusCfg)
-
+	//Start Sbus read/write
+	sBus := sbus.NewSBus(a.cfg.SbusCfg)
 	group.Go(func() error {
 		defer cancel()
-		err := sbusReader.ListPorts()
+		err := sBus.ListPorts()
 		if err != nil {
 			return err
 		}
-		return sbusReader.Start(ctx)
+		return sBus.Start(ctx)
 	})
 
-	// Start data output processes
+	// Process data
 	group.Go(func() error {
 		slog.Info("waiting for initial events", "time", 2*time.Second)
 		time.Sleep(2 * time.Second) //give some time for signals to start being processed
@@ -70,8 +69,9 @@ func (a *App) Start(ctx context.Context) (err error) {
 				for i := range controllerManager.Controllers {
 					framesToMerge = append(framesToMerge, controllerManager.Controllers[i].GetFrame())
 				}
-				framesToMerge := append(framesToMerge, sbusReader.GetLatestFrame())
+				framesToMerge := append(framesToMerge, sBus.GetReadFrame())
 				mergedFrame := sbus.MergeFrames(framesToMerge)
+				sBus.SetWriteFrame(mergedFrame)
 				slog.Info("latest merged frame", "frame", mergedFrame, "time_to_update", time.Since(startTime))
 			}
 		}
@@ -80,7 +80,6 @@ func (a *App) Start(ctx context.Context) (err error) {
 	//kill listener
 	group.Go(func() error {
 		signalChannel := make(chan os.Signal, 1)
-		//signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 		signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 		for {
 			select {

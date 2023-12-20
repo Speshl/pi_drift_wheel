@@ -27,6 +27,8 @@ func GetControllerManagerConfig() ControllerManagerConfig {
 
 func GetSBusConfig() SBusConfig {
 	return SBusConfig{
-		SBusInPath: "/dev/ttyAMA0",
+		SBusPath: "/dev/ttyAMA0",
+		SBusIn:   true,
+		SBusOut:  true,
 	}
 }
