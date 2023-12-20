@@ -16,7 +16,9 @@ func GetConfig() Config {
 }
 
 func GetAppConfig() AppConfig {
-	return AppConfig{}
+	return AppConfig{
+		UpdateRate: 5, // value in milliseconds
+	}
 }
 
 func GetControllerManagerConfig() ControllerManagerConfig {
@@ -25,7 +27,6 @@ func GetControllerManagerConfig() ControllerManagerConfig {
 
 func GetSBusConfig() SBusConfig {
 	return SBusConfig{
-		SBusInPath: "/dev/ttyAMA0", // /dev/ttyACM0 // /dev/ttyAMA0
-		SBusInBaud: 9600,
+		SBusInPath: "/dev/ttyAMA0",
 	}
 }

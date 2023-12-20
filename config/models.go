@@ -6,11 +6,12 @@ type Config struct {
 	SbusCfg              SBusConfig
 }
 
-type AppConfig struct{}
+type AppConfig struct {
+	UpdateRate int
+}
 
 type ControllerManagerConfig struct{}
 
 type SBusConfig struct {
 	SBusInPath string
-	SBusInBaud int
 }

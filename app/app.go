@@ -58,20 +58,22 @@ func (a *App) Start(ctx context.Context) (err error) {
 		time.Sleep(2 * time.Second) //give some time for signals to start being processed
 
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+1)
+		//ticker := time.NewTicker(time.Duration(a.cfg.AppCfg.UpdateRate))
+		ticker := time.NewTicker(time.Duration(1000)) //slow ticker
 		for {
-			if ctx.Err() != nil {
+			select {
+			case <-ctx.Done():
 				return ctx.Err()
+			case <-ticker.C:
+				startTime := time.Now()
+				framesToMerge = framesToMerge[:0] //clear out frames before next merge
+				for i := range controllerManager.Controllers {
+					framesToMerge = append(framesToMerge, controllerManager.Controllers[i].GetFrame())
+				}
+				framesToMerge := append(framesToMerge, sbusReader.GetLatestFrame())
+				mergedFrame := sbus.MergeFrames(framesToMerge)
+				slog.Info("latest merged frame", "frame", mergedFrame, "time_to_update", time.Since(startTime))
 			}
-
-			framesToMerge = framesToMerge[:0] //clear out frames before next merge
-			for i := range controllerManager.Controllers {
-				framesToMerge = append(framesToMerge, controllerManager.Controllers[i].GetFrame())
-			}
-			framesToMerge := append(framesToMerge, sbusReader.GetLatestFrame())
-			mergedFrame := sbus.MergeFrames(framesToMerge)
-
-			slog.Info("latest merged frame", "frame", mergedFrame)
-			time.Sleep(1 * time.Second)
 		}
 	})
 
