@@ -118,7 +118,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 		return nil
 	}
 
-	ticker := time.NewTicker(7 * time.Millisecond)
+	ticker := time.NewTicker(6 * time.Millisecond)
 	var writeBytes []byte
 	for {
 		select {
