@@ -32,6 +32,16 @@ type Frame struct {
 	Flags Flags
 }
 
+func NewFrame() Frame {
+	frameChannels := [16]uint16{}
+	for i := range frameChannels {
+		frameChannels[i] = uint16(MidValue)
+	}
+	return Frame{
+		Ch: frameChannels,
+	}
+}
+
 // Shows channels as their bits
 func (c Channels) String() {
 	fmt.Printf("% 8b", c)
