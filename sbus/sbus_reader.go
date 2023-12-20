@@ -54,7 +54,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 			log.Fatal(err)
 		}
 
-		if framesRead%1000 == 0 {
+		if framesRead%1000 == 0 && framesRead != 0 {
 			slog.Info("sbus update rate",
 				"frames", framesRead,
 				"time", time.Since(startTime),
