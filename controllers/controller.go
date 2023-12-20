@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/Speshl/pi_drift_wheel/channels"
+	"github.com/Speshl/pi_drift_wheel/sbus"
 	"github.com/holoplot/go-evdev"
 )
 
@@ -18,12 +19,12 @@ type Mapping struct {
 }
 
 type Controller struct {
-	device *evdev.InputDevice
-	Name   string
-	path   string
-	keyMap map[string]Mapping
-
+	device   *evdev.InputDevice
+	Name     string
+	path     string
+	keyMap   map[string]Mapping
 	channels *channels.ChannelGroup
+	frame    sbus.Frame
 }
 
 func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping) *Controller {
@@ -50,6 +51,19 @@ func (c *Controller) Sync() error {
 			updatedValue = mapping.Max - updatedValue + mapping.Min
 		}
 		c.channels.SetChannel(mapping.Channel, updatedValue, mapping.Type, mapping.Min, mapping.Max)
+		value, err := c.channels.GetChannel(mapping.Channel)
+		if err != nil {
+			return fmt.Errorf("failed getting channel value for Sbus Frame")
+		}
+
+		//update frame
+		c.frame.Ch[mapping.Channel] = uint16(channels.MapToRange(
+			value,
+			channels.ChannelMinValue,
+			channels.ChannelMaxValue,
+			sbus.MinValue,
+			sbus.MaxValue,
+		))
 	}
 
 	return nil
@@ -57,6 +71,10 @@ func (c *Controller) Sync() error {
 
 func (c *Controller) GetChannelGroup() *channels.ChannelGroup {
 	return c.channels
+}
+
+func (c *Controller) GetFrame() sbus.Frame {
+	return c.frame
 }
 
 func (c *Controller) ShowCaps() {

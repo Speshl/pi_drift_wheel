@@ -36,11 +36,11 @@ func (g *ChannelGroup) SetChannel(channel int, value int, inputType string, min 
 	channelValue := ChannelMidValue
 	switch inputType {
 	case "axis_full":
-		channelValue = mapToRangeWithDeadzone(value, min, max, ChannelMinValue, ChannelMaxValue, DeadZone)
+		channelValue = MapToRangeWithDeadzone(value, min, max, ChannelMinValue, ChannelMaxValue, DeadZone)
 	case "axis_top":
-		channelValue = mapToRangeWithDeadzone(value, min, max, ChannelMidValue, ChannelMaxValue, DeadZone)
+		channelValue = MapToRangeWithDeadzone(value, min, max, ChannelMidValue, ChannelMaxValue, DeadZone)
 	case "axis_bottom":
-		channelValue = mapToRangeWithDeadzone(value, min, max, ChannelMinValue, ChannelMidValue, DeadZone)
+		channelValue = MapToRangeWithDeadzone(value, min, max, ChannelMinValue, ChannelMidValue, DeadZone)
 		channelValue = ChannelMidValue - channelValue + ChannelMinValue //Flip bottom half
 	case "hat":
 		if value == max {
@@ -78,8 +78,8 @@ func (g *ChannelGroup) GetChannels() []int {
 	return g.channels
 }
 
-func mapToRangeWithDeadzone(value, min, max, minReturn, maxReturn, deadzone int) int {
-	mappedValue := mapToRange(value, min, max, minReturn, maxReturn)
+func MapToRangeWithDeadzone(value, min, max, minReturn, maxReturn, deadzone int) int {
+	mappedValue := MapToRange(value, min, max, minReturn, maxReturn)
 	if ChannelMidValue+deadzone > mappedValue && mappedValue > ChannelMidValue {
 		return ChannelMidValue
 	} else if ChannelMidValue-deadzone < mappedValue && mappedValue < ChannelMidValue {
@@ -89,7 +89,7 @@ func mapToRangeWithDeadzone(value, min, max, minReturn, maxReturn, deadzone int)
 	}
 }
 
-func mapToRange(value, min, max, minReturn, maxReturn int) int {
+func MapToRange(value, min, max, minReturn, maxReturn int) int {
 	mappedValue := (maxReturn-minReturn)*(value-min)/(max-min) + minReturn
 
 	if mappedValue > maxReturn {

@@ -8,8 +8,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Speshl/pi_drift_wheel/config"
+	"github.com/Speshl/pi_drift_wheel/controllers"
 	"github.com/Speshl/pi_drift_wheel/sbus"
 	"golang.org/x/sync/errgroup"
 )
@@ -28,16 +30,16 @@ func (a *App) Start(ctx context.Context) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	group, ctx := errgroup.WithContext(ctx)
 
-	// controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
-	// err := controllerManager.LoadControllers()
-	// if err != nil {
-	// 	return fmt.Errorf("failed loading controllers: %w", err)
-	// }
+	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
+	err = controllerManager.LoadControllers()
+	if err != nil {
+		return fmt.Errorf("failed loading controllers: %w", err)
+	}
 
-	// //Start data input processes
-	// group.Go(func() error {
-	// 	return controllerManager.Start(ctx)
-	// })
+	//Start data input processes
+	group.Go(func() error {
+		return controllerManager.Start(ctx)
+	})
 
 	sbusReader := sbus.NewSBusReader(a.cfg.SbusCfg)
 
@@ -47,23 +49,20 @@ func (a *App) Start(ctx context.Context) (err error) {
 		if err != nil {
 			return err
 		}
-		return sbusReader.Start2(ctx)
+		return sbusReader.Start(ctx)
 	})
 
 	//Start data output processes
-	// group.Go(func() error {
-	// 	for {
-	// 		controller := controllerManager.Controllers[0]
-	// 		channelGroup := controller.GetChannelGroup()
-	// 		channelData := channelGroup.GetChannels()
-	// 		slog.Info("controller state",
-	// 			"name", controller.Name,
-	// 			"chan0", channelData[0],
-	// 			"chan1", channelData[1],
-	// 		)
-	// 		time.Sleep(1000)
-	// 	}
-	// })
+	group.Go(func() error {
+		for {
+			wheel := controllerManager.Controllers[0]
+			wheelFrame := wheel.GetFrame()
+
+			sbusFrame := sbusReader.GetLatestFrame()
+			slog.Info("latest frames", "sbus", sbusFrame, "wheel", wheelFrame)
+			time.Sleep(1000)
+		}
+	})
 
 	//kill listener
 	group.Go(func() error {

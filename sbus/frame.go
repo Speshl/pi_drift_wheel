@@ -5,10 +5,14 @@ import (
 )
 
 const (
-	framelength int    = 25
-	startbyte   byte   = 0x0f
-	endbyte     byte   = 0x00
+	frameLength int    = 25
+	startByte   byte   = 0x0f
+	endByte     byte   = 0x00
 	mask        uint16 = 0x07ff // The maximum 11-bit channel value
+
+	MinValue int = 272
+	MidValue int = 992
+	MaxValue int = 1712
 )
 
 // Channels is the ordered list of servo channel values with 16 channels
@@ -55,9 +59,9 @@ func (f Flags) marshal() (fbyte byte) {
 }
 
 // Marshal serializes a Frame to bytes
-func (f Frame) Marshal() [framelength]byte {
-	return [framelength]byte{
-		startbyte,
+func (f Frame) Marshal() [frameLength]byte {
+	return [frameLength]byte{
+		startByte,
 		byte(f.Ch[0] & mask),
 		byte((f.Ch[0]&mask)>>8 | (f.Ch[1]&mask)<<3),
 		byte((f.Ch[1]&mask)>>5 | (f.Ch[2]&mask)<<6),
@@ -81,18 +85,18 @@ func (f Frame) Marshal() [framelength]byte {
 		byte((f.Ch[14]&mask)>>6 | (f.Ch[15]&mask)<<5),
 		byte((f.Ch[15] & mask) >> 3),
 		f.Flags.marshal(),
-		endbyte,
+		endByte,
 	}
 }
 
 // UnmarshalFrame tries to create a Frame from a byte array
-func UnmarshalFrame(data [framelength]byte) (f Frame, err error) {
-	if data[0] != startbyte {
+func UnmarshalFrame(data [frameLength]byte) (f Frame, err error) {
+	if data[0] != startByte {
 		err = fmt.Errorf("Error parsing frame: incorrect start byte %v", data[0])
 		return
 	}
-	if data[framelength-1] != endbyte {
-		err = fmt.Errorf("Error parsing frame: incorrect end byte %v", data[framelength-1])
+	if data[frameLength-1] != endByte {
+		err = fmt.Errorf("Error parsing frame: incorrect end byte %v", data[frameLength-1])
 		return
 	}
 
@@ -113,10 +117,10 @@ func UnmarshalFrame(data [framelength]byte) (f Frame, err error) {
 	f.Ch[14] = ((uint16(data[20])>>2 | uint16(data[21])<<6) & mask)
 	f.Ch[15] = ((uint16(data[21])>>5 | uint16(data[22])<<3) & mask)
 
-	f.Flags.Failsafe = (data[framelength-2] & 0x10) != 0
-	f.Flags.Framelost = (data[framelength-2] & 0x20) != 0
-	f.Flags.Ch18 = (data[framelength-2] & 0x40) != 0
-	f.Flags.Ch17 = (data[framelength-2] & 0x80) != 0
+	f.Flags.Failsafe = (data[frameLength-2] & 0x10) != 0
+	f.Flags.Framelost = (data[frameLength-2] & 0x20) != 0
+	f.Flags.Ch18 = (data[frameLength-2] & 0x40) != 0
+	f.Flags.Ch17 = (data[frameLength-2] & 0x80) != 0
 
 	return
 }
