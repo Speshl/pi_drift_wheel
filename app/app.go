@@ -57,14 +57,14 @@ func (a *App) Start(ctx context.Context) (err error) {
 		time.Sleep(2 * time.Second) //give some time for signals to start being processed
 
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+1)
-		//ticker := time.NewTicker(a.cfg.AppCfg.UpdateRate * time.Millisecond)
-		ticker := time.NewTicker(1000 * time.Millisecond) //slow ticker
+		ticker := time.NewTicker(7 * time.Millisecond) //fast ticker
+		//ticker := time.NewTicker(1000 * time.Millisecond) //slow ticker
 		for {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-ticker.C:
-				startTime := time.Now()
+				//startTime := time.Now()
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
 				for i := range controllerManager.Controllers {
 					framesToMerge = append(framesToMerge, controllerManager.Controllers[i].GetFrame())
@@ -72,7 +72,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				framesToMerge := append(framesToMerge, sBus.GetReadFrame())
 				mergedFrame := sbus.MergeFrames(framesToMerge)
 				sBus.SetWriteFrame(mergedFrame)
-				slog.Info("latest merged frame", "frame", mergedFrame, "time_to_update", time.Since(startTime))
+				//slog.Info("latest merged frame", "frame", mergedFrame, "time_to_update", time.Since(startTime))
 			}
 		}
 	})
