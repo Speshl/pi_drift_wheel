@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
@@ -51,20 +52,20 @@ func (a *App) Start(ctx context.Context) (err error) {
 		return sbusReader.Start(ctx)
 	})
 
-	//Start data output processes
-	// group.Go(func() error {
-	// 	for {
-	// 		if ctx.Err() != nil {
-	// 			return ctx.Err()
-	// 		}
+	// Start data output processes
+	group.Go(func() error {
+		for {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
 
-	// 		wheel := controllerManager.Controllers[0]
-	// 		wheelFrame := wheel.GetFrame()
-	// 		sbusFrame := sbusReader.GetLatestFrame()
-	// 		slog.Info("latest frames", "sbus", sbusFrame, "wheel", wheelFrame)
-	// 		time.Sleep(1 * time.Second)
-	// 	}
-	// })
+			wheel := controllerManager.Controllers[0]
+			wheelFrame := wheel.GetFrame()
+			sbusFrame := sbusReader.GetLatestFrame()
+			slog.Info("latest frames", "sbus", sbusFrame, "wheel", wheelFrame)
+			time.Sleep(1 * time.Second)
+		}
+	})
 
 	//kill listener
 	group.Go(func() error {
