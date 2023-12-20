@@ -41,7 +41,6 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	buff := make([]byte, 25)
 	frame := make([]byte, 0, 25)
 	midFrame := false
-	//framesRead := 0
 	for {
 		clear(buff)
 		if ctx.Err() != nil {
@@ -62,10 +61,8 @@ func (r *SBusReader) Start(ctx context.Context) error {
 						if err != nil {
 							slog.Warn("frame should have parsed but failed", "error", err)
 						}
-						//framesRead += 1
-
 						r.lock.Lock()
-						r.frame = frame
+						r.frame = frame //set the latest frame
 						r.lock.Unlock()
 					} else {
 						//slog.Warn("found frame start but not frame end")
@@ -88,7 +85,6 @@ func (r *SBusReader) Start(ctx context.Context) error {
 func (r *SBusReader) GetLatestFrame() Frame {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
-	slog.Info("latest frame", "frame", r.frame)
 	return r.frame
 }
 

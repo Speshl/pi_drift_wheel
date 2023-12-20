@@ -54,13 +54,17 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 	// Start data output processes
 	group.Go(func() error {
+		time.Sleep(2 * time.Second) //give some time for signals to start being processed
+
 		for {
 			if ctx.Err() != nil {
 				return ctx.Err()
 			}
 
-			// wheel := controllerManager.Controllers[0]
-			// wheelFrame := wheel.GetFrame()
+			wheel := controllerManager.Controllers[0]
+			wheelFrame := wheel.GetFrame()
+			slog.Info("latest wheel frame", "frame", wheelFrame)
+
 			sbusFrame := sbusReader.GetLatestFrame()
 			slog.Info("latest sbus frame", "frame", sbusFrame)
 			time.Sleep(1 * time.Second)
