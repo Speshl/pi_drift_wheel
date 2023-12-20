@@ -55,6 +55,10 @@ func (a *App) Start(ctx context.Context) (err error) {
 	//Start data output processes
 	group.Go(func() error {
 		for {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+
 			wheel := controllerManager.Controllers[0]
 			wheelFrame := wheel.GetFrame()
 			sbusFrame := sbusReader.GetLatestFrame()
@@ -68,14 +72,16 @@ func (a *App) Start(ctx context.Context) (err error) {
 		signalChannel := make(chan os.Signal, 1)
 		signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 		signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-		select {
-		case sig := <-signalChannel:
-			slog.Info("received signal", "value", sig)
-			cancel()
-			return fmt.Errorf("received signal: %s", sig)
-		case <-ctx.Done():
-			slog.Info("closing signal goroutine", "error", ctx.Err().Error())
-			return ctx.Err()
+		for {
+			select {
+			case sig := <-signalChannel:
+				slog.Info("received signal", "value", sig)
+				cancel()
+				return fmt.Errorf("received signal: %s", sig)
+			case <-ctx.Done():
+				slog.Info("closing signal goroutine", "error", ctx.Err().Error())
+				return ctx.Err()
+			}
 		}
 	})
 
