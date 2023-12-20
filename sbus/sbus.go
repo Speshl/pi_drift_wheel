@@ -123,9 +123,9 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			s.inLock.RLock()
-			writeBytes = s.inFrame.Marshal()
-			s.inLock.RUnlock()
+			s.outLock.RLock()
+			writeBytes = s.outFrame.Marshal()
+			s.outLock.RUnlock()
 			n, err := port.Write(writeBytes)
 			if err != nil {
 				return err
