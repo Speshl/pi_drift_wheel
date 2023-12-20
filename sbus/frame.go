@@ -2,6 +2,7 @@ package sbus
 
 import (
 	"fmt"
+	"math"
 )
 
 const (
@@ -133,4 +134,24 @@ func UnmarshalFrame(data [frameLength]byte) (f Frame, err error) {
 	f.Flags.Ch17 = (data[frameLength-2] & 0x80) != 0
 
 	return
+}
+
+// Merge all provided frames into 1 frame. Use the furthest channel value from the midpoint of each frame
+func MergeFrames(frames []Frame) Frame {
+	if len(frames) == 0 {
+		return NewFrame()
+	}
+
+	mergedFrame := frames[0]
+	for i := range frames {
+		for j := range frames[i].Ch {
+			mergedDistFromMid := math.Abs(float64(mergedFrame.Ch[j]) - float64(MidValue))
+			frameDisFromMid := math.Abs(float64(frames[i].Ch[j]) - float64(MidValue))
+
+			if frameDisFromMid > mergedDistFromMid {
+				mergedFrame.Ch[j] = frames[i].Ch[j]
+			}
+		}
+	}
+	return mergedFrame
 }

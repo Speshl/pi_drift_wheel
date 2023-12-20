@@ -54,19 +54,23 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 	// Start data output processes
 	group.Go(func() error {
+		slog.Info("waiting for initial events", "time", 2*time.Second)
 		time.Sleep(2 * time.Second) //give some time for signals to start being processed
 
+		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+1)
 		for {
 			if ctx.Err() != nil {
 				return ctx.Err()
 			}
 
-			wheel := controllerManager.Controllers[0]
-			wheelFrame := wheel.GetFrame()
-			slog.Info("latest wheel frame", "frame", wheelFrame)
+			framesToMerge = framesToMerge[:0] //clear out frames before next merge
+			for i := range controllerManager.Controllers {
+				framesToMerge = append(framesToMerge, controllerManager.Controllers[i].GetFrame())
+			}
+			framesToMerge := append(framesToMerge, sbusReader.GetLatestFrame())
+			mergedFrame := sbus.MergeFrames(framesToMerge)
 
-			sbusFrame := sbusReader.GetLatestFrame()
-			slog.Info("latest sbus frame", "frame", sbusFrame)
+			slog.Info("latest merged frame", "frame", mergedFrame)
 			time.Sleep(1 * time.Second)
 		}
 	})
@@ -74,7 +78,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	//kill listener
 	group.Go(func() error {
 		signalChannel := make(chan os.Signal, 1)
-		signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+		//signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 		signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 		for {
 			select {
