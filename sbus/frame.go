@@ -152,6 +152,7 @@ func MergeFrames(frames []Frame) Frame {
 				mergedFrame.Ch[j] = frames[i].Ch[j]
 			}
 		}
+		//TODO: Merge other channels
 	}
 	return mergedFrame
 }

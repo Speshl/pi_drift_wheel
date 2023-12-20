@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/albenik/go-serial/v2"
 
@@ -41,6 +42,8 @@ func (r *SBusReader) Start(ctx context.Context) error {
 	buff := make([]byte, 25)
 	frame := make([]byte, 0, 25)
 	midFrame := false
+	framesRead := uint64(0)
+	startTime := time.Now()
 	for {
 		clear(buff)
 		if ctx.Err() != nil {
@@ -50,6 +53,15 @@ func (r *SBusReader) Start(ctx context.Context) error {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		if framesRead%1000 == 0 {
+			slog.Info("sbus update rate",
+				"frames", framesRead,
+				"time", time.Since(startTime),
+				"rate", time.Since(startTime).Milliseconds()/int64(framesRead),
+			)
+		}
+
 		for i := range buff[:n] {
 			if midFrame { //already found start byte so looking for end byte
 				//slog.Info("appending")
@@ -61,6 +73,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 						if err != nil {
 							slog.Warn("frame should have parsed but failed", "error", err)
 						}
+						framesRead++
 						r.lock.Lock()
 						r.frame = frame //set the latest frame
 						r.lock.Unlock()
