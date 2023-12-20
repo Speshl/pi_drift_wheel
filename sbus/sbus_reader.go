@@ -63,7 +63,7 @@ func (r *SBusReader) Start(ctx context.Context) error {
 							slog.Warn("frame should have parsed but failed", "error", err)
 						}
 						//framesRead += 1
-						//slog.Info("found frame", "frame", frame, "num", framesRead)
+						slog.Info("found frame", "frame", frame)
 
 						r.lock.Lock()
 						r.frame = frame
