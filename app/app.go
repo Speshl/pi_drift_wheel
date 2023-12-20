@@ -57,10 +57,9 @@ func (a *App) Start(ctx context.Context) (err error) {
 		for {
 			wheel := controllerManager.Controllers[0]
 			wheelFrame := wheel.GetFrame()
-
 			sbusFrame := sbusReader.GetLatestFrame()
 			slog.Info("latest frames", "sbus", sbusFrame, "wheel", wheelFrame)
-			time.Sleep(1000)
+			time.Sleep(1 * time.Second)
 		}
 	})
 
