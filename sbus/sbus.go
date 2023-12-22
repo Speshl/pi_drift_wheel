@@ -141,7 +141,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 	s.Transmitting = true
 
 	slog.Info("start writing to sbus", "path", s.Path)
-	ticker := time.NewTicker(6 * time.Millisecond)
+	ticker := time.NewTicker(6 * time.Millisecond) //TODO sync with config
 	var writeBytes []byte
 	for {
 		select {
