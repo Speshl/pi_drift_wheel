@@ -37,25 +37,36 @@ func (a *App) Start(ctx context.Context) (err error) {
 		return fmt.Errorf("failed loading controllers: %w", err)
 	}
 	group.Go(func() error {
+		defer cancel()
 		return controllerManager.Start(ctx)
 	})
 
 	//Start Sbus read/write
-	sBus := sbus.NewSBus(a.cfg.SbusCfg)
-	group.Go(func() error {
-		defer cancel()
-		err := sBus.ListPorts()
+	sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
+	for i := 0; i < config.MaxSbus; i++ {
+		sBus, err := sbus.NewSBus(a.cfg.SbusCfgs[i])
 		if err != nil {
-			return err
+			if i != 0 {
+				continue
+			}
 		}
-		return sBus.Start(ctx)
-	})
+
+		sBusConns = append(sBusConns, sBus)
+		group.Go(func() error {
+			defer cancel()
+			err := sBus.ListPorts()
+			if err != nil {
+				return err
+			}
+			return sBus.Start(ctx)
+		})
+	}
 
 	// Process data
 	group.Go(func() error {
-		time.Sleep(500 * time.Millisecond) //give some time for signals to start being processed
+		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 
-		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+1)
+		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
 		ticker := time.NewTicker(6 * time.Millisecond) //fast ticker
 		//ticker := time.NewTicker(1000 * time.Millisecond) //slow ticker
 		for {
@@ -63,15 +74,27 @@ func (a *App) Start(ctx context.Context) (err error) {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-ticker.C:
-				//startTime := time.Now()
+				startTime := time.Now()
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
+
 				for i := range controllerManager.Controllers {
 					framesToMerge = append(framesToMerge, controllerManager.Controllers[i].GetFrame())
 				}
-				framesToMerge := append(framesToMerge, sBus.GetReadFrame())
+
+				for i := range sBusConns {
+					if sBusConns[i].Recieving && sBusConns[i].Type == sbus.RxTypeControl {
+						framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
+					}
+				}
+
 				mergedFrame := sbus.MergeFrames(framesToMerge)
-				sBus.SetWriteFrame(mergedFrame)
-				//slog.Info("latest merged frame", "frame", mergedFrame, "time_to_update", time.Since(startTime))
+
+				for i := range sBusConns {
+					if sBusConns[i].Transmitting {
+						sBusConns[i].SetWriteFrame(mergedFrame)
+					}
+				}
+				slog.Debug("frame sent", "frame", mergedFrame, "time_to_update", time.Since(startTime))
 			}
 		}
 	})

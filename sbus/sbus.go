@@ -14,26 +14,45 @@ import (
 	"github.com/Speshl/pi_drift_wheel/config"
 )
 
+var (
+	ErrNoPath   = fmt.Errorf("no path provided for sbus")
+	ErrNoAction = fmt.Errorf("no rx or tx action")
+
+	RxTypeControl   = "control"
+	RxTypeTelemetry = "telemetry"
+)
+
 type SBus struct {
 	Path string
 
-	read    bool
-	inLock  sync.RWMutex
-	inFrame Frame
+	Type string
 
-	write    bool
-	outLock  sync.RWMutex
-	outFrame Frame
+	read      bool
+	Recieving bool
+	rxLock    sync.RWMutex
+	rxFrame   Frame
+
+	write        bool
+	Transmitting bool
+	txLock       sync.RWMutex
+	txFrame      Frame
 }
 
-func NewSBus(cfg config.SBusConfig) *SBus {
-	return &SBus{
-		Path:     cfg.SBusPath,
-		read:     cfg.SBusIn,
-		inFrame:  NewFrame(),
-		write:    cfg.SBusOut,
-		outFrame: NewFrame(),
+func NewSBus(cfg config.SBusConfig) (*SBus, error) {
+	if cfg.SBusPath == "" {
+		return nil, ErrNoPath
 	}
+	if !cfg.SBusRx && !cfg.SBusTx {
+		return nil, ErrNoAction
+	}
+	return &SBus{
+		Path:    cfg.SBusPath,
+		Type:    cfg.SBusType,
+		read:    cfg.SBusRx,
+		rxFrame: NewFrame(),
+		write:   cfg.SBusTx,
+		txFrame: NewFrame(),
+	}, nil
 }
 
 func (s *SBus) Start(ctx context.Context) error {
@@ -67,7 +86,9 @@ func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 	if !s.read {
 		return nil
 	}
+	s.Recieving = true
 
+	slog.Info("start reading from sbus", "path", s.Path)
 	buff := make([]byte, 25)
 	frame := make([]byte, 0, 25)
 	midFrame := false
@@ -92,9 +113,9 @@ func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 						if err != nil {
 							slog.Warn("frame should have parsed but failed", "error", err)
 						}
-						s.inLock.Lock()
-						s.inFrame = frame //set the latest frame
-						s.inLock.Unlock()
+						s.rxLock.Lock()
+						s.rxFrame = frame //set the latest frame
+						s.rxLock.Unlock()
 					} else {
 						slog.Debug("found frame start but not frame end")
 					}
@@ -117,7 +138,9 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 	if !s.write {
 		return nil
 	}
+	s.Transmitting = true
 
+	slog.Info("start writing to sbus", "path", s.Path)
 	ticker := time.NewTicker(6 * time.Millisecond)
 	var writeBytes []byte
 	for {
@@ -125,9 +148,9 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			s.outLock.RLock()
-			writeBytes = s.outFrame.Marshal()
-			s.outLock.RUnlock()
+			s.txLock.RLock()
+			writeBytes = s.txFrame.Marshal()
+			s.txLock.RUnlock()
 			n, err := port.Write(writeBytes)
 			if err != nil {
 				return err
@@ -141,15 +164,16 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 }
 
 func (s *SBus) GetReadFrame() Frame {
-	s.inLock.RLock()
-	defer s.inLock.RUnlock()
-	return s.inFrame
+	s.rxLock.RLock()
+	defer s.rxLock.RUnlock()
+	slog.Info("read sbus frame", "frame", s.rxFrame)
+	return s.rxFrame
 }
 
 func (s *SBus) SetWriteFrame(frame Frame) {
-	s.outLock.Lock()
-	defer s.outLock.Unlock()
-	s.outFrame = frame
+	s.txLock.Lock()
+	defer s.txLock.Unlock()
+	s.txFrame = frame
 }
 
 func (s *SBus) ListPorts() error {
