@@ -81,7 +81,6 @@ func (a *App) Start(ctx context.Context) (err error) {
 				if err != nil {
 					return err
 				}
-				slog.Info("controller frame", "esc", controllerFrame.Ch[0], "steer", controllerFrame.Ch[1])
 				framesToMerge = append(framesToMerge, controllerFrame)
 
 				for i := range sBusConns {

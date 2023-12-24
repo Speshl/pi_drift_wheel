@@ -42,9 +42,9 @@ func WheelMixer(inputs []Input, mixState map[string]string, opts ControllerOptio
 	}
 
 	//ESC Value
-
+	currentState := mixState["esc_state"]
+	currentGear := 0
 	if opts.UseHPattern {
-		currentGear := 0
 		for i := 4; i <= 10; i++ {
 			if inputs[i].Value > inputs[i].Min {
 				if i == 10 {
@@ -56,8 +56,7 @@ func WheelMixer(inputs []Input, mixState map[string]string, opts ControllerOptio
 			}
 		}
 
-		currentState := mixState["esc_state"]
-		slog.Info("building frame", "inputs", inputs, "gear", currentGear, "esc_state", currentState, "options", opts)
+		slog.Debug("building frame", "inputs", inputs, "gear", currentGear, "esc_state", currentState, "options", opts)
 
 		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
 			if currentGear == 0 { //Neutral so keep esc at center value
@@ -159,6 +158,8 @@ func WheelMixer(inputs []Input, mixState map[string]string, opts ControllerOptio
 		sbus.MaxValue,
 		2,
 	))
+
+	slog.Info("mixed frame", "gear", currentGear, "esc_state", currentState, "esc", frame.Ch[0], "steer", frame.Ch[1])
 
 	return frame, mixState
 }
