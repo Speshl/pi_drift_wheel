@@ -56,36 +56,75 @@ func WheelMixer(inputs []Input, mixState map[string]string, opts ControllerOptio
 			}
 		}
 
-		slog.Info("building frame", "inputs", inputs, "state", mixState, "options", opts, "gear", currentGear)
-		if currentGear == 0 { //Neutral so keep esc at center value
-			frame.Ch[0] = uint16(sbus.MidValue)
-		} else if currentGear == -1 { //Reverse
-			value := MapToRange( //Map throttle to bottom half of esc channel
-				inputs[1].Value,
-				inputs[1].Min,
-				inputs[1].Max,
-				sbus.MinValue,
-				sbus.MidValue,
-			)
-			frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
-		} else if currentGear > 0 && currentGear <= 6 {
-			value := int(float64(inputs[1].Value) / float64(6) * float64(currentGear)) //Scale throttle to gear
-			if currentGear == 6 {
-				value = inputs[1].Value //let top gear have full range without rounding issues
+		currentState := mixState["esc_state"]
+		slog.Info("building frame", "inputs", inputs, "gear", currentGear, "esc_state", currentState, "options", opts)
+
+		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
+			if currentGear == 0 { //Neutral so keep esc at center value
+				frame.Ch[0] = uint16(sbus.MidValue)
+			} else if currentGear == -1 { //Reverse
+				switch currentState {
+				case "forward": //Going to reverse from forward needs to turn on brakes first then reverse to get esc into reverse mode
+					value := MapToRange( //Map throttle to bottom half of esc channel
+						inputs[1].Value,
+						inputs[1].Min,
+						inputs[1].Max,
+						sbus.MinValue,
+						sbus.MidValue,
+					)
+					frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
+					mixState["esc_state"] = "brake"
+				case "brake":
+					frame.Ch[0] = uint16(sbus.MidValue) //set mid to get the esc out of brake
+					mixState["esc_state"] = "reverse"
+				case "reverse":
+					value := MapToRange( //Map throttle to bottom half of esc channel
+						inputs[1].Value,
+						inputs[1].Min,
+						inputs[1].Max,
+						sbus.MinValue,
+						sbus.MidValue,
+					)
+					frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
+				}
+
+			} else if currentGear > 0 && currentGear <= 6 {
+				value := int(float64(inputs[1].Value) / float64(6) * float64(currentGear)) //Scale throttle to gear
+				if currentGear == 6 {
+					value = inputs[1].Value //let top gear have full range without rounding issues
+				}
+
+				value = MapToRange(
+					value,
+					inputs[1].Min,
+					inputs[1].Max,
+					sbus.MidValue,
+					sbus.MaxValue,
+				)
+				frame.Ch[0] = uint16(value)
+				mixState["esc_state"] = "forward"
+			} else {
+				slog.Warn("gear out of bounds")
+			}
+		} else { //Brake is pressed more than throttle
+			switch currentState {
+			case "forward", "brake":
+				value := MapToRangeWithDeadzoneLow(
+					inputs[2].Value,
+					inputs[2].Min,
+					inputs[2].Max,
+					sbus.MinValue,
+					sbus.MidValue,
+					2,
+				)
+				frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
+				mixState["esc_state"] = "brake"
+			case "reverse":
+				frame.Ch[0] = uint16(sbus.MidValue + 10) //set enough forward to get the esc out of reverse
+				mixState["esc_state"] = "forward"
 			}
 
-			value = MapToRange( //Map throttle to bottom half of esc channel
-				value,
-				inputs[1].Min,
-				inputs[1].Max,
-				sbus.MidValue,
-				sbus.MaxValue,
-			)
-			frame.Ch[0] = uint16(value)
-		} else {
-			slog.Warn("gear out of bounds")
 		}
-
 	} else { //map without using gear selections
 		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
 			frame.Ch[0] = uint16(MapToRangeWithDeadzoneLow(
