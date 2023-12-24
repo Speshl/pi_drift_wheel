@@ -98,6 +98,7 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 0,
 		Min:      0,
 		Max:      16383,
+		Rests:    "middle",
 		Inverted: false,
 	}
 
@@ -108,6 +109,7 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 1,
 		Min:      0,
 		Max:      255,
+		Rests:    "low",
 		Inverted: true,
 	}
 
@@ -118,6 +120,7 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 2,
 		Min:      0,
 		Max:      255,
+		Rests:    "low",
 		Inverted: true,
 	}
 
@@ -128,6 +131,7 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 3,
 		Min:      0,
 		Max:      255,
+		Rests:    "low",
 		Inverted: true,
 	}
 
@@ -138,6 +142,7 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 4,
 		Min:      0,
 		Max:      1,
+		Rests:    "low",
 		Inverted: false,
 	}
 
@@ -148,6 +153,7 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 5,
 		Min:      0,
 		Max:      1,
+		Rests:    "low",
 		Inverted: false,
 	}
 
@@ -156,6 +162,7 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 6,
 		Min:      0,
 		Max:      1,
+		Rests:    "low",
 		Inverted: false,
 	}
 
@@ -166,22 +173,29 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 7,
 		Min:      0,
 		Max:      1,
+		Rests:    "low",
 		Inverted: false,
 	}
 
 	keyMap["1:704"] = Mapping{ //fifth
 		CodeName: "704",
+		Type:     1,
+		Code:     704,
 		RawInput: 8,
 		Min:      0,
 		Max:      1,
+		Rests:    "low",
 		Inverted: false,
 	}
 
 	keyMap["1:705"] = Mapping{ //sixth
 		CodeName: "705",
+		Type:     1,
+		Code:     704,
 		RawInput: 9,
 		Min:      0,
 		Max:      1,
+		Rests:    "low",
 		Inverted: false,
 	}
 
@@ -192,6 +206,7 @@ func GetG27KeyMap() map[string]Mapping {
 		RawInput: 10,
 		Min:      0,
 		Max:      1,
+		Rests:    "low",
 		Inverted: false,
 	}
 

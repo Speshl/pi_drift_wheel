@@ -20,6 +20,7 @@ type Mapping struct {
 	MapType  string
 	Min      int
 	Max      int
+	Rests    string
 	Inverted bool
 }
 
@@ -41,9 +42,16 @@ type ControllerOptions struct {
 }
 
 func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping, mixer Mixer, opts ControllerOptions) *Controller {
-	rawInputs := make([]int, len(keyMap))
-	for i := range rawInputs {
-		rawInputs[i] = sbus.MidValue
+	rawInputs := make([]int, len(keyMap)) //set proper initial raw value for each key in map, value would be 0 until first event from that key
+	for i := range keyMap {
+		switch keyMap[i].Rests {
+		case "low":
+			rawInputs[keyMap[i].RawInput] = sbus.MinValue
+		case "middle":
+			rawInputs[keyMap[i].RawInput] = sbus.MidValue
+		case "high":
+			rawInputs[keyMap[i].RawInput] = sbus.MaxValue
+		}
 	}
 
 	return &Controller{
@@ -52,7 +60,7 @@ func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap 
 		mixer:             mixer,
 		Name:              inputPath.Name,
 		path:              inputPath.Path,
-		rawInputs:         rawInputs,
+		rawInputs:         make([]int, len(keyMap)),
 		ControllerOptions: opts,
 	}
 }
