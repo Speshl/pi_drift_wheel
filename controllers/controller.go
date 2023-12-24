@@ -44,7 +44,7 @@ func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap 
 		keyMap:    keyMap,
 		Name:      inputPath.Name,
 		path:      inputPath.Path,
-		rawInputs: make([]Input, 16),
+		rawInputs: rawInputs,
 	}
 }
 
