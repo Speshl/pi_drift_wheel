@@ -52,7 +52,7 @@ func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap 
 		mixer:             mixer,
 		Name:              inputPath.Name,
 		path:              inputPath.Path,
-		rawInputs:         make([]int, len(keyMap)),
+		rawInputs:         rawInputs,
 		ControllerOptions: opts,
 	}
 }
