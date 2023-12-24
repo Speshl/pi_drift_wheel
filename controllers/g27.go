@@ -38,13 +38,13 @@ func G27Mixer(inputs []int, mixState map[string]string, opts ControllerOptions) 
 				sbus.MinValue,
 				sbus.MaxValue,
 				sbus.MinValue,
-				sbus.MaxValue,
+				sbus.MidValue,
 			)
 			frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 		} else if currentGear > 0 && currentGear <= 6 {
 			value := int(float64(inputs[1]) / float64(6) * float64(currentGear)) //Scale throttle to gear
 			if currentGear == 6 {
-				value = inputs[6] //let top gear have full range without rounding issues
+				value = inputs[1] //let top gear have full range without rounding issues
 			}
 
 			value = MapToRange( //Map throttle to bottom half of esc channel
