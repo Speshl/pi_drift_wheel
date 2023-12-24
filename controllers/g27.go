@@ -1,6 +1,10 @@
 package controllers
 
-import "github.com/Speshl/pi_drift_wheel/sbus"
+import (
+	"log/slog"
+
+	"github.com/Speshl/pi_drift_wheel/sbus"
+)
 
 func G27Mixer(inputs []int, mixState map[string]string, opts ControllerOptions) (sbus.Frame, map[string]string) {
 	frame := sbus.NewFrame()
@@ -9,6 +13,8 @@ func G27Mixer(inputs []int, mixState map[string]string, opts ControllerOptions) 
 		mixState = make(map[string]string, 1)
 		mixState["esc_state"] = "forward"
 	}
+
+	slog.Info("building frame", "inputs", inputs, "state", mixState, "options", opts)
 
 	//ESC Value
 

@@ -72,13 +72,12 @@ func (c *Controller) Sync() error {
 		}
 
 		//update raw input
-		c.rawInputs[mapping.RawInput] = MapToRangeWithDeadzoneLow(
+		c.rawInputs[mapping.RawInput] = MapToRange(
 			updatedValue,
 			mapping.Min,
 			mapping.Max,
 			sbus.MinValue,
 			sbus.MaxValue,
-			5, //deadzone
 		)
 	}
 	return nil
@@ -129,19 +128,22 @@ func (c *Controller) ShowCaps() {
 	}
 }
 
-// func MapToRangeWithDeadzone(value, min, max, minReturn, maxReturn, deadzone int) int {
-// 	mappedValue := MapToRange(value, min, max, minReturn, maxReturn)
-// 	if ChannelMidValue+deadzone > mappedValue && mappedValue > ChannelMidValue {
-// 		return ChannelMidValue
-// 	} else if ChannelMidValue-deadzone < mappedValue && mappedValue < ChannelMidValue {
-// 		return ChannelMidValue
-// 	} else {
-// 		return mappedValue
-// 	}
-// }
+func MapToRangeWithDeadzoneMid(value, min, max, minReturn, maxReturn, deadzone int) int {
+	midValue := (maxReturn + minReturn) / 2
+
+	mappedValue := MapToRange(value, min, max, minReturn, maxReturn)
+	if midValue+deadzone > mappedValue && mappedValue > midValue {
+		return midValue
+	} else if midValue-deadzone < mappedValue && mappedValue < midValue {
+		return midValue
+	} else {
+		return mappedValue
+	}
+}
 
 func MapToRangeWithDeadzoneLow(value, min, max, minReturn, maxReturn, deadZone int) int {
-	mappedValue := (maxReturn-minReturn)*(value-min)/(max-min) + minReturn
+	mappedValue := MapToRange(value, min, max, minReturn, maxReturn)
+
 	if mappedValue > maxReturn {
 		return maxReturn
 	} else if mappedValue < minReturn {
