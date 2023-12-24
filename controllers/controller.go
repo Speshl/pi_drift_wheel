@@ -5,10 +5,11 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/Speshl/pi_drift_wheel/channels"
 	"github.com/Speshl/pi_drift_wheel/sbus"
 	"github.com/holoplot/go-evdev"
 )
+
+type Mixer func([]int, map[string]string, ControllerOptions) (sbus.Frame, map[string]string)
 
 type Mapping struct {
 	CodeName string
@@ -27,30 +28,26 @@ type Controller struct {
 	Name      string
 	path      string
 	keyMap    map[string]Mapping
-	channels  *channels.ChannelGroup
+	mixer     Mixer
 	rawInputs []int
-	frame     sbus.Frame
+	mixState  map[string]string
 
 	//options
 	ControllerOptions
-
-	//Special Transformations
-	Gears
 }
 
 type ControllerOptions struct {
-	useGears bool
+	useHPattern bool
 }
 
-func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping, opts ControllerOptions) *Controller {
+func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping, mixer Mixer, opts ControllerOptions) *Controller {
 	return &Controller{
 		device:            device,
 		keyMap:            keyMap,
+		mixer:             mixer,
 		Name:              inputPath.Name,
 		path:              inputPath.Path,
-		channels:          channels.NewChannelGroup(),
 		rawInputs:         make([]int, len(keyMap)),
-		frame:             sbus.NewFrame(),
 		ControllerOptions: opts,
 	}
 }
@@ -70,45 +67,22 @@ func (c *Controller) Sync() error {
 		}
 
 		//update raw input
-		c.rawInputs[mapping.RawInput] = channels.MapToRange(
+		c.rawInputs[mapping.RawInput] = MapToRangeWithDeadzoneLow(
 			updatedValue,
 			mapping.Min,
 			mapping.Max,
 			sbus.MinValue,
 			sbus.MaxValue,
+			5, //deadzone
 		)
-
-		//update frame for final output values
-		if mapping.Channel >= 0 && mapping.Channel < sbus.MaxChannels {
-			c.channels.SetChannel(mapping.Channel, updatedValue, mapping.MapType, mapping.Min, mapping.Max)
-			value, err := c.channels.GetChannel(mapping.Channel)
-			if err != nil {
-				return fmt.Errorf("failed getting channel value for Sbus Frame")
-			}
-
-			c.frame.Ch[mapping.Channel] = uint16(channels.MapToRange(
-				value,
-				channels.ChannelMinValue,
-				channels.ChannelMaxValue,
-				sbus.MinValue,
-				sbus.MaxValue,
-			))
-		}
-
-		if c.useGears { //apply transformation to throttle (assumed to be channel 1)
-			c.ApplyGearTransform()
-		}
 	}
-
 	return nil
 }
 
-func (c *Controller) GetChannelGroup() *channels.ChannelGroup {
-	return c.channels
-}
-
-func (c *Controller) GetFrame() sbus.Frame {
-	return c.frame
+func (c *Controller) BuildFrame() sbus.Frame {
+	frame, state := c.mixer(c.rawInputs, c.mixState, c.ControllerOptions)
+	c.mixState = state
+	return frame
 }
 
 func (c *Controller) ShowCaps() {
@@ -147,5 +121,41 @@ func (c *Controller) ShowCaps() {
 				log.Printf("      Resolution: %d\n", absInfo.Resolution)
 			}
 		}
+	}
+}
+
+// func MapToRangeWithDeadzone(value, min, max, minReturn, maxReturn, deadzone int) int {
+// 	mappedValue := MapToRange(value, min, max, minReturn, maxReturn)
+// 	if ChannelMidValue+deadzone > mappedValue && mappedValue > ChannelMidValue {
+// 		return ChannelMidValue
+// 	} else if ChannelMidValue-deadzone < mappedValue && mappedValue < ChannelMidValue {
+// 		return ChannelMidValue
+// 	} else {
+// 		return mappedValue
+// 	}
+// }
+
+func MapToRangeWithDeadzoneLow(value, min, max, minReturn, maxReturn, deadZone int) int {
+	mappedValue := (maxReturn-minReturn)*(value-min)/(max-min) + minReturn
+	if mappedValue > maxReturn {
+		return maxReturn
+	} else if mappedValue < minReturn {
+		return minReturn
+	} else if minReturn+deadZone > value {
+		return minReturn
+	} else {
+		return mappedValue
+	}
+}
+
+func MapToRange(value, min, max, minReturn, maxReturn int) int {
+	mappedValue := (maxReturn-minReturn)*(value-min)/(max-min) + minReturn
+
+	if mappedValue > maxReturn {
+		return maxReturn
+	} else if mappedValue < minReturn {
+		return minReturn
+	} else {
+		return mappedValue
 	}
 }

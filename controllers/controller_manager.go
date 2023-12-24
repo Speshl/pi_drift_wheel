@@ -95,10 +95,15 @@ func (c *ControllerManager) LoadControllers() error {
 
 		keyMap, err := c.GetKeyMap(inputPath.Name)
 		if err != nil {
-			return fmt.Errorf("failed getting keymap for %d: %w", inputPath.Name, err)
+			return fmt.Errorf("failed getting keymap for %s: %w", inputPath.Name, err)
 		}
 
-		controller := NewController(inputPath, device, keyMap, ControllerOptions{useGears: true})
+		mixer, err := c.GetMixer(inputPath.Name)
+		if err != nil {
+			return fmt.Errorf("failed getting mixer for %s: %w", inputPath.Name, err)
+		}
+
+		controller := NewController(inputPath, device, keyMap, mixer, ControllerOptions{useHPattern: true})
 		//controller.ShowCaps()
 		c.Controllers = append(c.Controllers, controller)
 	}
@@ -117,6 +122,17 @@ func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
 	switch name {
 	case "G27 Racing Wheel":
 		return GetG27KeyMap(), nil
+	// case "Arduino LLC Arduino Micro":
+	// 	return GetDIYHandBrakeKeyMap(), nil
+	default:
+		return nil, fmt.Errorf("no keymap found")
+	}
+}
+
+func (c *ControllerManager) GetMixer(name string) (Mixer, error) {
+	switch name {
+	case "G27 Racing Wheel":
+		return G27Mixer, nil
 	// case "Arduino LLC Arduino Micro":
 	// 	return GetDIYHandBrakeKeyMap(), nil
 	default:
