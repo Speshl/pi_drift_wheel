@@ -67,8 +67,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		ticker := time.NewTicker(6 * time.Millisecond) //fast ticker
-		//ticker := time.NewTicker(1000 * time.Millisecond) //slow ticker
+		//ticker := time.NewTicker(6 * time.Millisecond) //fast ticker
+		ticker := time.NewTicker(1000 * time.Millisecond) //slow ticker
 		for {
 			select {
 			case <-ctx.Done():
@@ -78,12 +78,16 @@ func (a *App) Start(ctx context.Context) (err error) {
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
 
 				for i := range controllerManager.Controllers {
-					framesToMerge = append(framesToMerge, controllerManager.Controllers[i].GetFrame())
+					frame := controllerManager.Controllers[i].GetFrame()
+					slog.Info("controller frame", "frame", frame, "name", controllerManager.Controllers[i].Name)
+					framesToMerge = append(framesToMerge, frame)
 				}
 
 				for i := range sBusConns {
 					if sBusConns[i].Recieving && sBusConns[i].Type == sbus.RxTypeControl {
 						framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
+					} else if sBusConns[i].Recieving && sBusConns[i].Type == sbus.RxTypeTelemetry {
+						slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
 					}
 				}
 

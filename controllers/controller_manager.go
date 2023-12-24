@@ -98,7 +98,7 @@ func (c *ControllerManager) LoadControllers() error {
 			return fmt.Errorf("failed getting keymap for %d: %w", inputPath.Name, err)
 		}
 
-		controller := NewController(inputPath, device, keyMap)
+		controller := NewController(inputPath, device, keyMap, ControllerOptions{useGears: true})
 		//controller.ShowCaps()
 		c.Controllers = append(c.Controllers, controller)
 	}

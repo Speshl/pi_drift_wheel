@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"log"
+	"log/slog"
 
 	"github.com/Speshl/pi_drift_wheel/channels"
 	"github.com/Speshl/pi_drift_wheel/sbus"
@@ -12,6 +13,7 @@ import (
 type Mapping struct {
 	CodeName string
 	Channel  int
+	RawInput int
 	Type     string //full, bottom, top
 	Min      int
 	Max      int
@@ -19,22 +21,35 @@ type Mapping struct {
 }
 
 type Controller struct {
-	device   *evdev.InputDevice
-	Name     string
-	path     string
-	keyMap   map[string]Mapping
-	channels *channels.ChannelGroup
-	frame    sbus.Frame
+	device    *evdev.InputDevice
+	Name      string
+	path      string
+	keyMap    map[string]Mapping
+	channels  *channels.ChannelGroup
+	rawInputs []int
+	frame     sbus.Frame
+
+	//options
+	ControllerOptions
+
+	//Special Transformations
+	Gears
 }
 
-func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping) *Controller {
+type ControllerOptions struct {
+	useGears bool
+}
+
+func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping, opts ControllerOptions) *Controller {
 	return &Controller{
-		device:   device,
-		keyMap:   keyMap,
-		Name:     inputPath.Name,
-		path:     inputPath.Path,
-		channels: channels.NewChannelGroup(),
-		frame:    sbus.NewFrame(),
+		device:            device,
+		keyMap:            keyMap,
+		Name:              inputPath.Name,
+		path:              inputPath.Path,
+		channels:          channels.NewChannelGroup(),
+		rawInputs:         make([]int, 0, len(keyMap)),
+		frame:             sbus.NewFrame(),
+		ControllerOptions: opts,
 	}
 }
 
@@ -44,7 +59,7 @@ func (c *Controller) Sync() error {
 		return fmt.Errorf("failed reading from device: %w", err)
 	}
 
-	//slog.Info("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
+	slog.Info("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
 	mapping, ok := c.keyMap[e.CodeName()]
 	if ok {
 		updatedValue := int(e.Value)
@@ -57,14 +72,29 @@ func (c *Controller) Sync() error {
 			return fmt.Errorf("failed getting channel value for Sbus Frame")
 		}
 
-		//update frame
-		c.frame.Ch[mapping.Channel] = uint16(channels.MapToRange(
-			value,
-			channels.ChannelMinValue,
-			channels.ChannelMaxValue,
+		//update raw input
+		c.rawInputs[mapping.RawInput] = channels.MapToRange(
+			updatedValue,
+			mapping.Min,
+			mapping.Max,
 			sbus.MinValue,
 			sbus.MaxValue,
-		))
+		)
+
+		//update frame for final output values
+		if mapping.Channel >= 0 && mapping.Channel < sbus.MaxChannels {
+			c.frame.Ch[mapping.Channel] = uint16(channels.MapToRange(
+				value,
+				channels.ChannelMinValue,
+				channels.ChannelMaxValue,
+				sbus.MinValue,
+				sbus.MaxValue,
+			))
+		}
+
+		if c.useGears { //apply transformation to throttle (assumed to be channel 1)
+			c.ApplyGearTransform()
+		}
 	}
 
 	return nil

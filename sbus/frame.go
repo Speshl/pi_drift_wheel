@@ -11,13 +11,17 @@ const (
 	endByte     byte   = 0x00
 	mask        uint16 = 0x07ff // The maximum 11-bit channel value
 
-	MinValue int = 272
+	MaxChannels int = 16
+
+	//MinValue int = 272
+	MinValue int = 172
 	MidValue int = 992
-	MaxValue int = 1712
+	MaxValue int = 1811
+	//MaxValue int = 1712
 )
 
 // Channels is the ordered list of servo channel values with 16 channels
-type Channels [16]uint16
+type Channels [MaxChannels]uint16
 
 // Flags stores SBUS flags
 type Flags struct {
@@ -34,7 +38,7 @@ type Frame struct {
 }
 
 func NewFrame() Frame {
-	frameChannels := [16]uint16{}
+	frameChannels := [MaxChannels]uint16{}
 	for i := range frameChannels {
 		frameChannels[i] = uint16(MidValue)
 	}
