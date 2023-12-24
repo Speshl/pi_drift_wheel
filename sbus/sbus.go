@@ -166,7 +166,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 func (s *SBus) GetReadFrame() Frame {
 	s.rxLock.RLock()
 	defer s.rxLock.RUnlock()
-	slog.Info("read sbus frame", "frame", s.rxFrame)
+	slog.Debug("read sbus frame", "frame", s.rxFrame)
 	return s.rxFrame
 }
 

@@ -79,7 +79,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				for i := range controllerManager.Controllers {
 					frame := controllerManager.Controllers[i].GetFrame()
-					slog.Info("controller frame", "frame", frame, "name", controllerManager.Controllers[i].Name)
+					slog.Debug("controller frame", "frame", frame, "name", controllerManager.Controllers[i].Name)
 					framesToMerge = append(framesToMerge, frame)
 				}
 
@@ -87,7 +87,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 					if sBusConns[i].Recieving && sBusConns[i].Type == sbus.RxTypeControl {
 						framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
 					} else if sBusConns[i].Recieving && sBusConns[i].Type == sbus.RxTypeTelemetry {
-						slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
+						slog.Debug("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
 					}
 				}
 
