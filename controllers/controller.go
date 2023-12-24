@@ -47,7 +47,7 @@ func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap 
 		Name:              inputPath.Name,
 		path:              inputPath.Path,
 		channels:          channels.NewChannelGroup(),
-		rawInputs:         make([]int, 0, len(keyMap)),
+		rawInputs:         make([]int, len(keyMap)),
 		frame:             sbus.NewFrame(),
 		ControllerOptions: opts,
 	}
