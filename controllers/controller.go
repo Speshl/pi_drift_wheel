@@ -12,9 +12,11 @@ import (
 
 type Mapping struct {
 	CodeName string
+	Code     int
+	Type     int
 	Channel  int
 	RawInput int
-	Type     string //full, bottom, top
+	MapType  string
 	Min      int
 	Max      int
 	Inverted bool
@@ -60,13 +62,13 @@ func (c *Controller) Sync() error {
 	}
 
 	slog.Info("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
-	mapping, ok := c.keyMap[e.CodeName()]
+	mapping, ok := c.keyMap[fmt.Sprintf("%d:%d", e.Type, e.Code)]
 	if ok {
 		updatedValue := int(e.Value)
 		if mapping.Inverted {
 			updatedValue = mapping.Max - updatedValue + mapping.Min
 		}
-		c.channels.SetChannel(mapping.Channel, updatedValue, mapping.Type, mapping.Min, mapping.Max)
+		c.channels.SetChannel(mapping.Channel, updatedValue, mapping.MapType, mapping.Min, mapping.Max)
 		value, err := c.channels.GetChannel(mapping.Channel)
 		if err != nil {
 			return fmt.Errorf("failed getting channel value for Sbus Frame")
