@@ -31,7 +31,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group, ctx := errgroup.WithContext(ctx)
 
 	//Start Getting controller inputs
-	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg)
+	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg, controllers.WheelMixer, controllers.ControllerOptions{UseHPattern: true})
 	err = controllerManager.LoadControllers()
 	if err != nil {
 		return fmt.Errorf("failed loading controllers: %w", err)
@@ -77,12 +77,9 @@ func (a *App) Start(ctx context.Context) (err error) {
 				startTime := time.Now()
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
 
-				for i := range controllerManager.Controllers {
-					frame := controllerManager.Controllers[i].BuildFrame()
-					//slog.Info("controller frame", "frame", frame, "name", controllerManager.Controllers[i].Name)
-					slog.Info("controller frame", "esc", frame.Ch[0], "steer", frame.Ch[1])
-					framesToMerge = append(framesToMerge, frame)
-				}
+				controllerFrame := controllerManager.GetMixedFrame()
+				slog.Info("controller frame", "esc", controllerFrame.Ch[0], "steer", controllerFrame.Ch[1])
+				framesToMerge = append(framesToMerge, controllerFrame)
 
 				for i := range sBusConns {
 					if sBusConns[i].Recieving && sBusConns[i].Type == sbus.RxTypeControl {

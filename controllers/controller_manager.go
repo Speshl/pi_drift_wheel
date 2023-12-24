@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/Speshl/pi_drift_wheel/config"
+	"github.com/Speshl/pi_drift_wheel/sbus"
 	"github.com/holoplot/go-evdev"
 	"golang.org/x/sync/errgroup"
 )
@@ -14,13 +15,32 @@ const (
 	MaxControllers = 8
 )
 
-type ControllerManager struct {
-	Controllers []*Controller
+type Mixer func([]Input, map[string]string, ControllerOptions) (sbus.Frame, map[string]string)
+
+type Input struct {
+	Value int
+	Min   int
+	Max   int
+	Rests string
 }
 
-func NewControllerManager(cfg config.ControllerManagerConfig) *ControllerManager {
+type ControllerManager struct {
+	Controllers []*Controller
+	mixer       Mixer
+	mixState    map[string]string
+
+	ControllerOptions
+}
+
+type ControllerOptions struct {
+	UseHPattern bool
+}
+
+func NewControllerManager(cfg config.ControllerManagerConfig, mixer Mixer, opts ControllerOptions) *ControllerManager {
 	return &ControllerManager{
-		Controllers: make([]*Controller, 0, MaxControllers),
+		Controllers:       make([]*Controller, 0, MaxControllers),
+		mixer:             mixer,
+		ControllerOptions: opts,
 	}
 }
 
@@ -98,12 +118,7 @@ func (c *ControllerManager) LoadControllers() error {
 			return fmt.Errorf("failed getting keymap for %s: %w", inputPath.Name, err)
 		}
 
-		mixer, err := c.GetMixer(inputPath.Name)
-		if err != nil {
-			return fmt.Errorf("failed getting mixer for %s: %w", inputPath.Name, err)
-		}
-
-		controller := NewController(inputPath, device, keyMap, mixer, ControllerOptions{useHPattern: true})
+		controller := NewController(inputPath, device, keyMap)
 		//controller.ShowCaps()
 		c.Controllers = append(c.Controllers, controller)
 	}
@@ -122,17 +137,6 @@ func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
 	switch name {
 	case "G27 Racing Wheel":
 		return GetG27KeyMap(), nil
-	// case "Arduino LLC Arduino Micro":
-	// 	return GetDIYHandBrakeKeyMap(), nil
-	default:
-		return nil, fmt.Errorf("no keymap found")
-	}
-}
-
-func (c *ControllerManager) GetMixer(name string) (Mixer, error) {
-	switch name {
-	case "G27 Racing Wheel":
-		return G27Mixer, nil
 	// case "Arduino LLC Arduino Micro":
 	// 	return GetDIYHandBrakeKeyMap(), nil
 	default:

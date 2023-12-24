@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"sync"
 
-	"github.com/Speshl/pi_drift_wheel/sbus"
 	"github.com/holoplot/go-evdev"
 )
-
-type Mixer func([]int, map[string]string, ControllerOptions) (sbus.Frame, map[string]string)
 
 type Mapping struct {
 	CodeName string
@@ -25,43 +23,22 @@ type Mapping struct {
 }
 
 type Controller struct {
-	device    *evdev.InputDevice
-	Name      string
-	path      string
-	keyMap    map[string]Mapping
-	mixer     Mixer
-	rawInputs []int
-	mixState  map[string]string
+	device *evdev.InputDevice
+	Name   string
+	path   string
+	keyMap map[string]Mapping
 
-	//options
-	ControllerOptions
+	inputLock sync.RWMutex
+	rawInputs []Input
 }
 
-type ControllerOptions struct {
-	useHPattern bool
-}
-
-func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping, mixer Mixer, opts ControllerOptions) *Controller {
-	rawInputs := make([]int, len(keyMap)) //set proper initial raw value for each key in map, value would be 0 until first event from that key
-	for i := range keyMap {
-		switch keyMap[i].Rests {
-		case "low":
-			rawInputs[keyMap[i].RawInput] = sbus.MinValue
-		case "middle":
-			rawInputs[keyMap[i].RawInput] = sbus.MidValue
-		case "high":
-			rawInputs[keyMap[i].RawInput] = sbus.MaxValue
-		}
-	}
-
+func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping) *Controller {
 	return &Controller{
-		device:            device,
-		keyMap:            keyMap,
-		mixer:             mixer,
-		Name:              inputPath.Name,
-		path:              inputPath.Path,
-		rawInputs:         rawInputs,
-		ControllerOptions: opts,
+		device:    device,
+		keyMap:    keyMap,
+		Name:      inputPath.Name,
+		path:      inputPath.Path,
+		rawInputs: make([]Input, 16),
 	}
 }
 
@@ -80,21 +57,22 @@ func (c *Controller) Sync() error {
 		}
 
 		//update raw input
-		c.rawInputs[mapping.RawInput] = MapToRange(
-			updatedValue,
-			mapping.Min,
-			mapping.Max,
-			sbus.MinValue,
-			sbus.MaxValue,
-		)
+		c.inputLock.Lock()
+		c.rawInputs[mapping.RawInput] = Input{
+			Value: updatedValue,
+			Min:   mapping.Min,
+			Max:   mapping.Max,
+			Rests: mapping.Rests,
+		}
+		c.inputLock.Unlock()
 	}
 	return nil
 }
 
-func (c *Controller) BuildFrame() sbus.Frame {
-	frame, state := c.mixer(c.rawInputs, c.mixState, c.ControllerOptions)
-	c.mixState = state
-	return frame
+func (c *Controller) GetRawInputs() []Input {
+	c.inputLock.RLock()
+	defer c.inputLock.RUnlock()
+	return c.rawInputs
 }
 
 func (c *Controller) ShowCaps() {
