@@ -41,6 +41,11 @@ type ControllerOptions struct {
 }
 
 func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping, mixer Mixer, opts ControllerOptions) *Controller {
+	rawInputs := make([]int, len(keyMap))
+	for i := range rawInputs {
+		rawInputs[i] = sbus.MidValue
+	}
+
 	return &Controller{
 		device:            device,
 		keyMap:            keyMap,

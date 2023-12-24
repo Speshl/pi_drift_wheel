@@ -80,7 +80,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				for i := range controllerManager.Controllers {
 					frame := controllerManager.Controllers[i].BuildFrame()
 					//slog.Info("controller frame", "frame", frame, "name", controllerManager.Controllers[i].Name)
-					slog.Info("controller frame", "esc", frame.Ch[0], "esc", frame.Ch[1])
+					slog.Info("controller frame", "esc", frame.Ch[0], "steer", frame.Ch[1])
 					framesToMerge = append(framesToMerge, frame)
 				}
 
