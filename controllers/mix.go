@@ -72,7 +72,9 @@ func WheelMixer(inputs []Input, mixState map[string]string, opts ControllerOptio
 						sbus.MidValue,
 					)
 					frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
-					mixState["esc_state"] = "brake"
+					if frame.Ch[0] < uint16(sbus.MidValue) {
+						mixState["esc_state"] = "brake"
+					}
 				case "brake":
 					frame.Ch[0] = uint16(sbus.MidValue) //set mid to get the esc out of brake
 					mixState["esc_state"] = "reverse"
@@ -101,7 +103,9 @@ func WheelMixer(inputs []Input, mixState map[string]string, opts ControllerOptio
 					sbus.MaxValue,
 				)
 				frame.Ch[0] = uint16(value)
-				mixState["esc_state"] = "forward"
+				if frame.Ch[0] > uint16(sbus.MidValue) {
+					mixState["esc_state"] = "forward"
+				}
 			} else {
 				slog.Warn("gear out of bounds")
 			}
@@ -117,7 +121,10 @@ func WheelMixer(inputs []Input, mixState map[string]string, opts ControllerOptio
 					2,
 				)
 				frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
-				mixState["esc_state"] = "brake"
+				if frame.Ch[0] < uint16(sbus.MidValue) {
+					mixState["esc_state"] = "brake"
+				}
+
 			case "reverse":
 				frame.Ch[0] = uint16(sbus.MidValue + 10) //set enough forward to get the esc out of reverse
 				mixState["esc_state"] = "forward"
