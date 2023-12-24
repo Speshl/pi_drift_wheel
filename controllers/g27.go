@@ -14,8 +14,6 @@ func G27Mixer(inputs []int, mixState map[string]string, opts ControllerOptions) 
 		mixState["esc_state"] = "forward"
 	}
 
-	slog.Info("building frame", "inputs", inputs, "state", mixState, "options", opts)
-
 	//ESC Value
 
 	if opts.useHPattern {
@@ -31,6 +29,7 @@ func G27Mixer(inputs []int, mixState map[string]string, opts ControllerOptions) 
 			}
 		}
 
+		slog.Info("building frame", "inputs", inputs, "state", mixState, "options", opts, "gear", currentGear)
 		if currentGear == 0 { //Neutral so keep esc at center value
 			frame.Ch[0] = uint16(sbus.MidValue)
 		} else if currentGear == -1 { //Reverse
@@ -56,6 +55,8 @@ func G27Mixer(inputs []int, mixState map[string]string, opts ControllerOptions) 
 				sbus.MaxValue,
 			)
 			frame.Ch[0] = uint16(value)
+		} else {
+			slog.Warn("gear out of bounds")
 		}
 
 	} else { //map without using gear selections
