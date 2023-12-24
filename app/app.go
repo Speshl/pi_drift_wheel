@@ -77,7 +77,10 @@ func (a *App) Start(ctx context.Context) (err error) {
 				startTime := time.Now()
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
 
-				controllerFrame := controllerManager.GetMixedFrame()
+				controllerFrame, err := controllerManager.GetMixedFrame()
+				if err != nil {
+					return err
+				}
 				slog.Info("controller frame", "esc", controllerFrame.Ch[0], "steer", controllerFrame.Ch[1])
 				framesToMerge = append(framesToMerge, controllerFrame)
 
