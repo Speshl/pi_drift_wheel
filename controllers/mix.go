@@ -1,16 +1,21 @@
 package controllers
 
 import (
+	"fmt"
 	"log/slog"
 	"math"
 
 	"github.com/Speshl/pi_drift_wheel/sbus"
 )
 
-func (c *ControllerManager) GetMixedFrame() sbus.Frame {
-	mixedInputs := make([]Input, 16)
+func (c *ControllerManager) GetMixedFrame() (sbus.Frame, error) {
+	if len(c.Controllers) == 0 {
+		return sbus.Frame{}, fmt.Errorf("no controllers loaded")
+	}
 
-	for i := range c.Controllers {
+	mixedInputs := c.Controllers[0].GetRawInputs()
+
+	for i := 1; i < len(c.Controllers); i++ {
 		inputs := c.Controllers[i].GetRawInputs()
 
 		for j := range inputs {
@@ -24,7 +29,7 @@ func (c *ControllerManager) GetMixedFrame() sbus.Frame {
 
 	frame, state := c.mixer(mixedInputs, c.mixState, c.ControllerOptions)
 	c.mixState = state
-	return frame
+	return frame, nil
 
 }
 
