@@ -33,12 +33,39 @@ type Controller struct {
 }
 
 func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping) *Controller {
+
+	rawInputs := make([]Input, 16)
+	for i := range keyMap {
+		rawInputs[keyMap[i].RawInput] = NewInput(keyMap[i])
+	}
+
 	return &Controller{
 		device:    device,
 		keyMap:    keyMap,
 		Name:      inputPath.Name,
 		path:      inputPath.Path,
 		rawInputs: make([]Input, 16),
+	}
+}
+
+func NewInput(keyMap Mapping) Input {
+	value := 0
+	switch keyMap.Rests {
+	case "high":
+		value = keyMap.Max
+	case "middle":
+		value = (keyMap.Max + keyMap.Min) / 2
+	case "low":
+		fallthrough
+	default:
+		value = keyMap.Min
+	}
+
+	return Input{
+		Value: value,
+		Min:   keyMap.Min,
+		Max:   keyMap.Max,
+		Rests: keyMap.Rests,
 	}
 }
 
