@@ -68,11 +68,6 @@ func (c *Controller) Sync() error {
 		if mapping.Inverted {
 			updatedValue = mapping.Max - updatedValue + mapping.Min
 		}
-		c.channels.SetChannel(mapping.Channel, updatedValue, mapping.MapType, mapping.Min, mapping.Max)
-		value, err := c.channels.GetChannel(mapping.Channel)
-		if err != nil {
-			return fmt.Errorf("failed getting channel value for Sbus Frame")
-		}
 
 		//update raw input
 		c.rawInputs[mapping.RawInput] = channels.MapToRange(
@@ -85,6 +80,12 @@ func (c *Controller) Sync() error {
 
 		//update frame for final output values
 		if mapping.Channel >= 0 && mapping.Channel < sbus.MaxChannels {
+			c.channels.SetChannel(mapping.Channel, updatedValue, mapping.MapType, mapping.Min, mapping.Max)
+			value, err := c.channels.GetChannel(mapping.Channel)
+			if err != nil {
+				return fmt.Errorf("failed getting channel value for Sbus Frame")
+			}
+
 			c.frame.Ch[mapping.Channel] = uint16(channels.MapToRange(
 				value,
 				channels.ChannelMinValue,
