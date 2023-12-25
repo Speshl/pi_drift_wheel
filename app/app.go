@@ -106,7 +106,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 						sBusConns[i].SetWriteFrame(mergedFrame)
 					}
 				}
-				slog.Debug("frame sent details",
+				slog.Info("frame sent details",
 					"esc", mergedFrame.Ch[0],
 					"steer", mergedFrame.Ch[1],
 					"gyro_gain", mergedFrame.Ch[2],
