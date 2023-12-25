@@ -83,7 +83,6 @@ func (a *App) Start(ctx context.Context) (err error) {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-ticker.C:
-				startTime := time.Now()
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
 
 				controllerFrame, err := controllerManager.GetMixedFrame()
@@ -107,7 +106,15 @@ func (a *App) Start(ctx context.Context) (err error) {
 						sBusConns[i].SetWriteFrame(mergedFrame)
 					}
 				}
-				slog.Debug("frame sent", "frame", mergedFrame, "time_to_update", time.Since(startTime))
+				slog.Debug("frame sent details",
+					"esc", mergedFrame.Ch[0],
+					"steer", mergedFrame.Ch[1],
+					"gyro_gain", mergedFrame.Ch[2],
+					"head_pan", mergedFrame.Ch[3],
+					"head_tilt", mergedFrame.Ch[4],
+					"head_roll", mergedFrame.Ch[5],
+				)
+				slog.Debug("frame sent", "frame", mergedFrame)
 			}
 		}
 	})
