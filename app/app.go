@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +14,7 @@ import (
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
 	"github.com/Speshl/pi_drift_wheel/sbus"
+	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -44,7 +46,14 @@ func (a *App) Start(ctx context.Context) (err error) {
 	//Start Sbus read/write
 	sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
 	for i := 0; i < config.MaxSbus; i++ {
-		sBus, err := sbus.NewSBus(a.cfg.SbusCfgs[i])
+		sBus, err := sbus.NewSBus(
+			a.cfg.SbusCfgs[i].SBusPath,
+			a.cfg.SbusCfgs[i].SBusRx,
+			a.cfg.SbusCfgs[i].SBusTx,
+			&sbus.SBusCfgOpts{
+				Type: sbus.RxTypeControl,
+			},
+		)
 		if err != nil {
 			if i != 0 {
 				continue
@@ -54,7 +63,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 		sBusConns = append(sBusConns, sBus)
 		group.Go(func() error {
 			defer cancel()
-			err := sBus.ListPorts()
+			err := ListPorts()
 			if err != nil {
 				return err
 			}
@@ -84,17 +93,17 @@ func (a *App) Start(ctx context.Context) (err error) {
 				framesToMerge = append(framesToMerge, controllerFrame)
 
 				for i := range sBusConns {
-					if sBusConns[i].Recieving && sBusConns[i].Type == sbus.RxTypeControl {
+					if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
 						framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
-					} else if sBusConns[i].Recieving && sBusConns[i].Type == sbus.RxTypeTelemetry {
+					} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
 						slog.Debug("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
 					}
 				}
 
-				mergedFrame := sbus.MergeFrames(framesToMerge)
+				mergedFrame := MergeFrames(framesToMerge)
 
 				for i := range sBusConns {
-					if sBusConns[i].Transmitting {
+					if sBusConns[i].IsTransmitting() {
 						sBusConns[i].SetWriteFrame(mergedFrame)
 					}
 				}
@@ -128,6 +137,40 @@ func (a *App) Start(ctx context.Context) (err error) {
 		} else {
 			return fmt.Errorf("app stopping due to error - %w", err)
 		}
+	}
+	return nil
+}
+
+// Merge all provided frames into 1 frame. Use the furthest channel value from the midpoint of each frame
+func MergeFrames(frames []sbus.Frame) sbus.Frame {
+	if len(frames) == 0 {
+		return sbus.NewFrame()
+	}
+
+	mergedFrame := frames[0]
+	for i := range frames {
+		for j := range frames[i].Ch {
+			mergedDistFromMid := math.Abs(float64(mergedFrame.Ch[j]) - float64(sbus.MidValue))
+			frameDisFromMid := math.Abs(float64(frames[i].Ch[j]) - float64(sbus.MidValue))
+
+			if frameDisFromMid > mergedDistFromMid {
+				mergedFrame.Ch[j] = frames[i].Ch[j]
+			}
+		}
+	}
+	return mergedFrame
+}
+
+func ListPorts() error {
+	ports, err := serial.GetPortsList()
+	if err != nil {
+		return err
+	}
+	if len(ports) == 0 {
+		return fmt.Errorf("no serial ports found")
+	}
+	for _, port := range ports {
+		slog.Info("found port", "port", port)
 	}
 	return nil
 }

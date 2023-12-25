@@ -10,60 +10,69 @@ import (
 
 	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
+)
 
-	"github.com/Speshl/pi_drift_wheel/config"
+const (
+	RxTypeControl   = "control"
+	RxTypeTelemetry = "telemetry"
 )
 
 var (
 	ErrNoPath   = fmt.Errorf("no path provided for sbus")
 	ErrNoAction = fmt.Errorf("no rx or tx action")
-
-	RxTypeControl   = "control"
-	RxTypeTelemetry = "telemetry"
 )
 
-type SBus struct {
-	Path string
+type SBusCfgOpts struct {
+	Type string //TODO goenum
+}
 
-	Type string
+type SBus struct {
+	path string
 
 	read      bool
-	Recieving bool
+	receiving bool
 	rxLock    sync.RWMutex
 	rxFrame   Frame
 
 	write        bool
-	Transmitting bool
+	transmitting bool
 	txLock       sync.RWMutex
 	txFrame      Frame
+
+	opts SBusCfgOpts
 }
 
-func NewSBus(cfg config.SBusConfig) (*SBus, error) {
-	if cfg.SBusPath == "" {
+func NewSBus(path string, read bool, write bool, opts *SBusCfgOpts) (*SBus, error) {
+	if path == "" {
 		return nil, ErrNoPath
 	}
-	if !cfg.SBusRx && !cfg.SBusTx {
+	if !read && !write {
 		return nil, ErrNoAction
 	}
+
+	if opts == nil {
+		opts = &SBusCfgOpts{
+			Type: RxTypeTelemetry,
+		}
+	}
+
 	return &SBus{
-		Path:    cfg.SBusPath,
-		Type:    cfg.SBusType,
-		read:    cfg.SBusRx,
+		path:    path,
+		read:    read,
 		rxFrame: NewFrame(),
-		write:   cfg.SBusTx,
+		write:   write,
 		txFrame: NewFrame(),
+		opts:    *opts,
 	}, nil
 }
 
 func (s *SBus) Start(ctx context.Context) error {
-	port, err := serial.Open(s.Path,
+	port, err := serial.Open(s.path,
 		serial.WithBaudrate(100000),
 		serial.WithDataBits(8),
 		serial.WithParity(serial.EvenParity),
 		serial.WithStopBits(serial.TwoStopBits),
 		serial.WithReadTimeout(1000),
-		// serial.WithWriteTimeout(1000),
-		// serial.WithHUPCL(false),
 	)
 	if err != nil {
 		return err
@@ -82,11 +91,18 @@ func (s *SBus) Start(ctx context.Context) error {
 	return sbusGroup.Wait()
 }
 
+func (s *SBus) IsReceiving() bool {
+	return s.receiving
+}
+
 func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 	if !s.read {
 		return nil
 	}
-	s.Recieving = true
+	s.receiving = true
+	defer func() {
+		s.receiving = false
+	}()
 
 	slog.Info("start reading from sbus", "path", s.Path)
 	buff := make([]byte, 25)
@@ -134,11 +150,18 @@ func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 	}
 }
 
+func (s *SBus) IsTransmitting() bool {
+	return s.transmitting
+}
+
 func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 	if !s.write {
 		return nil
 	}
-	s.Transmitting = true
+	s.transmitting = true
+	defer func() {
+		s.transmitting = false
+	}()
 
 	slog.Info("start writing to sbus", "path", s.Path)
 	ticker := time.NewTicker(6 * time.Millisecond) //TODO sync with config
@@ -156,17 +179,24 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 				return err
 			}
 			if n != len(writeBytes) {
-				slog.Info("sbus write incorrect length")
+				slog.Warn("sbus write incorrect length")
 			}
 
 		}
 	}
 }
 
+func (s *SBus) Path() string {
+	return s.path
+}
+
+func (s *SBus) Type() string {
+	return s.opts.Type
+}
+
 func (s *SBus) GetReadFrame() Frame {
 	s.rxLock.RLock()
 	defer s.rxLock.RUnlock()
-	slog.Debug("read sbus frame", "frame", s.rxFrame)
 	return s.rxFrame
 }
 
@@ -174,18 +204,4 @@ func (s *SBus) SetWriteFrame(frame Frame) {
 	s.txLock.Lock()
 	defer s.txLock.Unlock()
 	s.txFrame = frame
-}
-
-func (s *SBus) ListPorts() error {
-	ports, err := serial.GetPortsList()
-	if err != nil {
-		return err
-	}
-	if len(ports) == 0 {
-		return fmt.Errorf("no serial ports found")
-	}
-	for _, port := range ports {
-		log.Printf("found port: %v\n", port)
-	}
-	return nil
 }

@@ -2,7 +2,6 @@ package sbus
 
 import (
 	"fmt"
-	"math"
 )
 
 const (
@@ -58,16 +57,16 @@ func (f Flags) String() {
 }
 
 func (f Flags) marshal() (fbyte byte) {
-	if f.Ch17 == true {
+	if f.Ch17 {
 		fbyte |= 0x80
 	}
-	if f.Ch18 == true {
+	if f.Ch18 {
 		fbyte |= 0x40
 	}
-	if f.Framelost == true {
+	if f.Framelost {
 		fbyte |= 0x20
 	}
-	if f.Failsafe == true {
+	if f.Failsafe {
 		fbyte |= 0x10
 	}
 	return
@@ -111,11 +110,11 @@ func UnmarshalFrame(data []byte) (f Frame, err error) {
 		return
 	}
 	if data[0] != startByte {
-		err = fmt.Errorf("Error parsing frame: incorrect start byte %v", data[0])
+		err = fmt.Errorf("error parsing frame: incorrect start byte %v", data[0])
 		return
 	}
 	if data[frameLength-1] != endByte {
-		err = fmt.Errorf("Error parsing frame: incorrect end byte %v", data[frameLength-1])
+		err = fmt.Errorf("error parsing frame: incorrect end byte %v", data[frameLength-1])
 		return
 	}
 
@@ -142,25 +141,4 @@ func UnmarshalFrame(data []byte) (f Frame, err error) {
 	f.Flags.Ch17 = (data[frameLength-2] & 0x80) != 0
 
 	return
-}
-
-// Merge all provided frames into 1 frame. Use the furthest channel value from the midpoint of each frame
-func MergeFrames(frames []Frame) Frame {
-	if len(frames) == 0 {
-		return NewFrame()
-	}
-
-	mergedFrame := frames[0]
-	for i := range frames {
-		for j := range frames[i].Ch {
-			mergedDistFromMid := math.Abs(float64(mergedFrame.Ch[j]) - float64(MidValue))
-			frameDisFromMid := math.Abs(float64(frames[i].Ch[j]) - float64(MidValue))
-
-			if frameDisFromMid > mergedDistFromMid {
-				mergedFrame.Ch[j] = frames[i].Ch[j]
-			}
-		}
-		//TODO: Merge other channels
-	}
-	return mergedFrame
 }
