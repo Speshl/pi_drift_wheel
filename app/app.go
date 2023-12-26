@@ -76,13 +76,23 @@ func (a *App) Start(ctx context.Context) (err error) {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		//ticker := time.NewTicker(6 * time.Millisecond) //fast ticker
-		ticker := time.NewTicker(1000 * time.Millisecond) //slow ticker
+		mergeTicker := time.NewTicker(6 * time.Millisecond)  //fast ticker
+		logTicker := time.NewTicker(1000 * time.Millisecond) //slow ticker
+		mergedFrame := sbus.NewFrame()
 		for {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case <-ticker.C:
+			case <-logTicker.C:
+				slog.Info("frame sent details",
+					"esc", mergedFrame.Ch[0],
+					"steer", mergedFrame.Ch[1],
+					"gyro_gain", mergedFrame.Ch[2],
+					"head_pan", mergedFrame.Ch[3],
+					"head_tilt", mergedFrame.Ch[4],
+					"head_roll", mergedFrame.Ch[5],
+				)
+			case <-mergeTicker.C:
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
 
 				controllerFrame, err := controllerManager.GetMixedFrame()
@@ -99,21 +109,13 @@ func (a *App) Start(ctx context.Context) (err error) {
 					}
 				}
 
-				mergedFrame := MergeFrames(framesToMerge)
+				mergedFrame = MergeFrames(framesToMerge)
 
 				for i := range sBusConns {
 					if sBusConns[i].IsTransmitting() {
 						sBusConns[i].SetWriteFrame(mergedFrame)
 					}
 				}
-				slog.Info("frame sent details",
-					"esc", mergedFrame.Ch[0],
-					"steer", mergedFrame.Ch[1],
-					"gyro_gain", mergedFrame.Ch[2],
-					"head_pan", mergedFrame.Ch[3],
-					"head_tilt", mergedFrame.Ch[4],
-					"head_roll", mergedFrame.Ch[5],
-				)
 				slog.Debug("frame sent", "frame", mergedFrame)
 			}
 		}
