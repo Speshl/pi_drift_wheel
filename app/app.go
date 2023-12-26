@@ -54,7 +54,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				Type: sbus.RxTypeControl,
 			},
 		)
-		if err != nil {
+		if err != nil { //TODO: Remove when more channels supported
 			if i != 0 {
 				continue
 			}
@@ -76,8 +76,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		mergeTicker := time.NewTicker(6 * time.Millisecond)  //fast ticker
-		logTicker := time.NewTicker(1000 * time.Millisecond) //slow ticker
+		mergeTicker := time.NewTicker(6 * time.Millisecond)
+		logTicker := time.NewTicker(1 * time.Second)
 		mergedFrame := sbus.NewFrame()
 		for {
 			select {

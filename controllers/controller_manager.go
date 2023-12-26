@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	sbus "github.com/Speshl/go-sbus"
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/holoplot/go-evdev"
 	"golang.org/x/sync/errgroup"
@@ -15,19 +14,18 @@ const (
 	MaxControllers = 8
 )
 
-type Mixer func([]Input, map[string]string, ControllerOptions) (sbus.Frame, map[string]string)
-
 type Input struct {
 	Value int
 	Min   int
 	Max   int
 	Rests string
+	Label string
 }
 
 type ControllerManager struct {
 	Controllers []*Controller
 	mixer       Mixer
-	mixState    map[string]string
+	mixState    MixState
 
 	ControllerOptions
 }
