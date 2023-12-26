@@ -21,6 +21,7 @@ func NewMixState() MixState {
 	return MixState{
 		buttons: make(map[string]int, 32),
 		esc:     "",
+		trims:   make(map[string]int, 10),
 		aux:     make(map[string]string, 1),
 	}
 }
