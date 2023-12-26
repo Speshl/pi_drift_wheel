@@ -93,6 +93,7 @@ func (c *Controller) Sync() error {
 			Max:   mapping.Max,
 			Rests: mapping.Rests,
 		}
+		slog.Info("found top_right", "input", c.rawInputs[mapping.RawInput])
 		c.inputLock.Unlock()
 	}
 	return nil
