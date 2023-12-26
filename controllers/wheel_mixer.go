@@ -6,35 +6,80 @@ import (
 	sbus "github.com/Speshl/go-sbus"
 )
 
+//Mapping - 0 esc, 1 steer, 2 gyro gain
+
 func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus.Frame, MixState) {
 	frame := sbus.NewFrame()
 
 	if mixState.IsEmpty() {
 		mixState = NewMixState()
 		mixState.esc = "forward"
+		mixState.gear = 0
 	}
+
+	//Check for button state changes
+	for i := range inputs {
+		if inputs[i].Value == mixState.buttons[inputs[i].Label] {
+			continue
+		}
+
+		mixState.buttons[inputs[i].Label] = inputs[i].Value
+
+		if inputs[i].Value != inputs[i].Max { //button presses are considered to be a value equal to the max possible value
+			continue
+		}
+
+		switch inputs[i].Label {
+		case "upshift":
+			if mixState.gear >= -1 {
+				mixState.gear++
+			}
+		case "downshift":
+			if mixState.gear <= 6 {
+				mixState.gear--
+			}
+		case "top_left":
+			if mixState.trims["gyro_trim"] > -100 {
+				mixState.trims["gyro_trim"]--
+			}
+		case "top_right":
+			if mixState.trims["gyro_trim"] < 100 {
+				mixState.trims["gyro_trim"]++
+			}
+		}
+	}
+
+	//Build frame values based on current state/buttons
+	frame.Ch[2] = uint16(MapToRange(
+		mixState.trims["gyro_trim"],
+		0,
+		100,
+		sbus.MinValue,
+		sbus.MidValue,
+	))
 
 	//ESC Value
 	currentState := mixState.esc
-	currentGear := 0
 	if opts.UseHPattern {
-		for i := 4; i <= 10; i++ {
+		for i := 10; i < 20; i++ {
 			if inputs[i].Value > inputs[i].Min {
-				if i == 10 {
-					currentGear = -1
+				if i == 19 {
+					mixState.gear = -1
+				} else if i >= 15 && i < 19 {
+					continue //g27 is only 6 speed
 				} else {
-					currentGear = i - 3
+					mixState.gear = i - 10
 				}
 				break
 			}
 		}
 
-		slog.Debug("building frame", "inputs", inputs, "gear", currentGear, "esc_state", currentState, "options", opts)
+		slog.Debug("building frame", "inputs", inputs, "gear", mixState.gear, "esc_state", currentState, "options", opts)
 
 		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
-			if currentGear == 0 { //Neutral so keep esc at center value
+			if mixState.gear == 0 { //Neutral so keep esc at center value
 				frame.Ch[0] = uint16(sbus.MidValue)
-			} else if currentGear == -1 { //Reverse
+			} else if mixState.gear == -1 { //Reverse
 				switch currentState {
 				case "forward": //Going to reverse from forward needs to turn on brakes first then reverse to get esc into reverse mode
 					value := MapToRange( //Map throttle to bottom half of esc channel
@@ -63,9 +108,9 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 					frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 				}
 
-			} else if currentGear > 0 && currentGear <= 6 {
-				value := int(float64(inputs[1].Value) / float64(6) * float64(currentGear)) //Scale throttle to gear
-				if currentGear == 6 {
+			} else if mixState.gear > 0 && mixState.gear <= 6 {
+				value := int(float64(inputs[1].Value) / float64(6) * float64(mixState.gear)) //Scale throttle to gear
+				if mixState.gear == 6 {
 					value = inputs[1].Value //let top gear have full range without rounding issues
 				}
 
@@ -145,8 +190,6 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		}
 	}
 
-	//Handle ESC State
-
 	//Steer Value
 	frame.Ch[1] = uint16(MapToRangeWithDeadzoneMid(
 		inputs[0].Value,
@@ -157,7 +200,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		2,
 	))
 
-	slog.Debug("mixed frame", "gear", currentGear, "esc_state", currentState, "esc", frame.Ch[0], "steer", frame.Ch[1])
+	slog.Debug("mixed frame", "gear", mixState.gear, "esc_state", currentState, "esc", frame.Ch[0], "steer", frame.Ch[1])
 
 	return frame, mixState
 }

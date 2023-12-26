@@ -23,7 +23,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["3:2"] = Mapping{ //throttle
+	keyMap["3:2"] = Mapping{
 		Label:    "throttle",
 		CodeName: "ABS_Z",
 		Type:     3,
@@ -35,7 +35,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: true,
 	}
 
-	keyMap["3:5"] = Mapping{ //brake
+	keyMap["3:5"] = Mapping{
 		Label:    "brake",
 		CodeName: "ABS_RZ",
 		Type:     3,
@@ -47,7 +47,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: true,
 	}
 
-	keyMap["3:1"] = Mapping{ //clutch
+	keyMap["3:1"] = Mapping{
 		Label:    "clutch",
 		CodeName: "ABS_X",
 		Type:     3,
@@ -59,7 +59,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: true,
 	}
 
-	keyMap["1:300"] = Mapping{ //first
+	keyMap["1:300"] = Mapping{
 		Label:    "1st",
 		CodeName: "300",
 		Type:     1,
@@ -71,7 +71,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:301"] = Mapping{ //second
+	keyMap["1:301"] = Mapping{
 		Label:    "2nd",
 		CodeName: "301",
 		Type:     1,
@@ -83,7 +83,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:302"] = Mapping{ //third
+	keyMap["1:302"] = Mapping{
 		Label:    "3rd",
 		CodeName: "302",
 		Type:     1,
@@ -95,7 +95,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:303"] = Mapping{ //fourth
+	keyMap["1:303"] = Mapping{
 		Label:    "4th",
 		CodeName: "303",
 		Type:     1,
@@ -107,7 +107,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:704"] = Mapping{ //fifth
+	keyMap["1:704"] = Mapping{
 		Label:    "5th",
 		CodeName: "704",
 		Type:     1,
@@ -119,7 +119,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:705"] = Mapping{ //sixth
+	keyMap["1:705"] = Mapping{
 		Label:    "6th",
 		CodeName: "705",
 		Type:     1,
@@ -131,7 +131,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:710"] = Mapping{ //reverse
+	keyMap["1:710"] = Mapping{
 		Label:    "R",
 		CodeName: "710",
 		Type:     1,
@@ -144,99 +144,222 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	//TODO Complete mapping
-	// keyMap["1:710"] = Mapping{ //reverse
-	// 	Label:    "upshift",
-	// 	CodeName: "710",
-	// 	Type:     1,
-	// 	Code:     710,
-	// 	RawInput: 20,
-	// 	Min:      0,
-	// 	Max:      1,
-	// 	Rests:    "low",
-	// 	Inverted: false,
-	// }
+	keyMap["1:293"] = Mapping{
+		Label:    "upshift",
+		CodeName: "BTN_PINKIE",
+		Type:     1,
+		Code:     293,
+		RawInput: 20,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
 
-	// keyMap["1:710"] = Mapping{ //reverse
-	// 	Label:    "downshift",
-	// 	CodeName: "710",
-	// 	Type:     1,
-	// 	Code:     710,
-	// 	RawInput: 20,
-	// 	Min:      0,
-	// 	Max:      1,
-	// 	Rests:    "low",
-	// 	Inverted: false,
-	// }
+	keyMap["1:710"] = Mapping{
+		Label:    "downshift",
+		CodeName: "710",
+		Type:     1,
+		Code:     710,
+		RawInput: 20,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
 
-	// //left Face buttons
-	// keyMap["1:710"] = Mapping{ //reverse
-	// 	Label:    "top_left",
-	// 	CodeName: "710",
-	// 	Type:     1,
-	// 	Code:     710,
-	// 	RawInput: 32,
-	// 	Min:      0,
-	// 	Max:      1,
-	// 	Rests:    "low",
-	// 	Inverted: false,
-	// }
-	// keyMap["1:710"] = Mapping{ //reverse
-	// 	Label:    "mid_left",
-	// 	CodeName: "710",
-	// 	Type:     1,
-	// 	Code:     710,
-	// 	RawInput: 33,
-	// 	Min:      0,
-	// 	Max:      1,
-	// 	Rests:    "low",
-	// 	Inverted: false,
-	// }
-	// keyMap["1:710"] = Mapping{ //reverse
-	// 	Label:    "bot_left",
-	// 	CodeName: "710",
-	// 	Type:     1,
-	// 	Code:     710,
-	// 	RawInput: 34,
-	// 	Min:      0,
-	// 	Max:      1,
-	// 	Rests:    "low",
-	// 	Inverted: false,
-	// }
+	//left Face buttons
+	keyMap["1:710"] = Mapping{
+		Label:    "top_left",
+		CodeName: "BTN_BASE2",
+		Type:     1,
+		Code:     295,
+		RawInput: 32,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+	keyMap["1:710"] = Mapping{
+		Label:    "mid_left",
+		CodeName: "BTN_TRIGGER_HAPPY5",
+		Type:     1,
+		Code:     708,
+		RawInput: 33,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+	keyMap["1:710"] = Mapping{
+		Label:    "bot_left",
+		CodeName: "BTN_TRIGGER_HAPPY6",
+		Type:     1,
+		Code:     709,
+		RawInput: 34,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
 
-	// //Right Face buttons
-	// keyMap["1:710"] = Mapping{ //reverse
-	// 	Label:    "top_right",
-	// 	CodeName: "710",
-	// 	Type:     1,
-	// 	Code:     710,
-	// 	RawInput: 35,
-	// 	Min:      0,
-	// 	Max:      1,
-	// 	Rests:    "low",
-	// 	Inverted: false,
-	// }
-	// keyMap["1:710"] = Mapping{ //reverse
-	// 	Label:    "mid_right",
-	// 	CodeName: "710",
-	// 	Type:     1,
-	// 	Code:     710,
-	// 	RawInput: 36,
-	// 	Min:      0,
-	// 	Max:      1,
-	// 	Rests:    "low",
-	// 	Inverted: false,
-	// }
-	// keyMap["1:710"] = Mapping{ //reverse
-	// 	Label:    "bot_right",
-	// 	CodeName: "710",
-	// 	Type:     1,
-	// 	Code:     710,
-	// 	RawInput: 37,
-	// 	Min:      0,
-	// 	Max:      1,
-	// 	Rests:    "low",
-	// 	Inverted: false,
-	// }
+	//Right Face buttons
+	keyMap["1:710"] = Mapping{
+		Label:    "top_right",
+		CodeName: "BTN_BASE",
+		Type:     1,
+		Code:     294,
+		RawInput: 35,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+	keyMap["1:710"] = Mapping{
+		Label:    "mid_right",
+		CodeName: "BTN_TRIGGER_HAPPY3",
+		Type:     1,
+		Code:     706,
+		RawInput: 36,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+	keyMap["1:710"] = Mapping{
+		Label:    "bot_right",
+		CodeName: "BTN_TRIGGER_HAPPY4",
+		Type:     1,
+		Code:     707,
+		RawInput: 37,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+
+	//Red Row
+	keyMap["1:710"] = Mapping{
+		Label:    "red1",
+		CodeName: "BTN_BASE6",
+		Type:     1,
+		Code:     299,
+		RawInput: 38,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+
+	keyMap["1:710"] = Mapping{
+		Label:    "red1",
+		CodeName: "BTN_BASE3",
+		Type:     1,
+		Code:     296,
+		RawInput: 39,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+
+	keyMap["1:710"] = Mapping{
+		Label:    "red1",
+		CodeName: "BTN_BASE4",
+		Type:     1,
+		Code:     297,
+		RawInput: 40,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+
+	keyMap["1:710"] = Mapping{
+		Label:    "red1",
+		CodeName: "BTN_BASE5",
+		Type:     1,
+		Code:     298,
+		RawInput: 41,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+
+	//D Pad
+	keyMap["1:710"] = Mapping{
+		Label:    "up/down",
+		CodeName: "ABS_HAT0Y",
+		Type:     3,
+		Code:     17,
+		RawInput: 42,
+		Min:      -1,
+		Max:      1,
+		Rests:    "mid",
+		Inverted: true,
+	}
+
+	keyMap["1:710"] = Mapping{
+		Label:    "left/right",
+		CodeName: "ABS_HAT0X",
+		Type:     3,
+		Code:     16,
+		RawInput: 43,
+		Min:      -1,
+		Max:      1,
+		Rests:    "mid",
+		Inverted: false,
+	}
+
+	//Diamond
+	keyMap["1:710"] = Mapping{
+		Label:    "y/triangle",
+		CodeName: "BTN_TOP",
+		Type:     1,
+		Code:     291,
+		RawInput: 44,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+
+	keyMap["1:710"] = Mapping{
+		Label:    "b/circle",
+		CodeName: "BTN_THUMB2",
+		Type:     1,
+		Code:     290,
+		RawInput: 45,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+
+	keyMap["1:710"] = Mapping{
+		Label:    "a/x",
+		CodeName: "BTN_JOYSTICK/BTN_TRIGGER",
+		Type:     1,
+		Code:     288,
+		RawInput: 45,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
+
+	keyMap["1:710"] = Mapping{
+		Label:    "x/square",
+		CodeName: "BTN_THUMB",
+		Type:     1,
+		Code:     289,
+		RawInput: 46,
+		Min:      0,
+		Max:      1,
+		Rests:    "low",
+		Inverted: false,
+	}
 
 	return keyMap
 }

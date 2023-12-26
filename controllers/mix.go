@@ -10,14 +10,16 @@ import (
 type Mixer func([]Input, MixState, ControllerOptions) (sbus.Frame, MixState)
 
 type MixState struct {
-	buttons map[string]bool
+	buttons map[string]int
 	esc     string
+	gear    int
+	trims   map[string]int
 	aux     map[string]string
 }
 
 func NewMixState() MixState {
 	return MixState{
-		buttons: make(map[string]bool, 32),
+		buttons: make(map[string]int, 32),
 		esc:     "",
 		aux:     make(map[string]string, 1),
 	}
