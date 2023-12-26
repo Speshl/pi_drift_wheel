@@ -169,7 +169,7 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	//left Face buttons
-	keyMap["1:710"] = Mapping{
+	keyMap["1:295"] = Mapping{
 		Label:    "top_left",
 		CodeName: "BTN_BASE2",
 		Type:     1,
@@ -180,7 +180,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Rests:    "low",
 		Inverted: false,
 	}
-	keyMap["1:710"] = Mapping{
+	keyMap["1:708"] = Mapping{
 		Label:    "mid_left",
 		CodeName: "BTN_TRIGGER_HAPPY5",
 		Type:     1,
@@ -191,7 +191,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Rests:    "low",
 		Inverted: false,
 	}
-	keyMap["1:710"] = Mapping{
+	keyMap["1:709"] = Mapping{
 		Label:    "bot_left",
 		CodeName: "BTN_TRIGGER_HAPPY6",
 		Type:     1,
@@ -204,7 +204,7 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	//Right Face buttons
-	keyMap["1:710"] = Mapping{
+	keyMap["1:294"] = Mapping{
 		Label:    "top_right",
 		CodeName: "BTN_BASE",
 		Type:     1,
@@ -215,7 +215,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Rests:    "low",
 		Inverted: false,
 	}
-	keyMap["1:710"] = Mapping{
+	keyMap["1:706"] = Mapping{
 		Label:    "mid_right",
 		CodeName: "BTN_TRIGGER_HAPPY3",
 		Type:     1,
@@ -226,7 +226,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Rests:    "low",
 		Inverted: false,
 	}
-	keyMap["1:710"] = Mapping{
+	keyMap["1:707"] = Mapping{
 		Label:    "bot_right",
 		CodeName: "BTN_TRIGGER_HAPPY4",
 		Type:     1,
@@ -239,7 +239,7 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	//Red Row
-	keyMap["1:710"] = Mapping{
+	keyMap["1:299"] = Mapping{
 		Label:    "red1",
 		CodeName: "BTN_BASE6",
 		Type:     1,
@@ -251,7 +251,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:710"] = Mapping{
+	keyMap["1:296"] = Mapping{
 		Label:    "red1",
 		CodeName: "BTN_BASE3",
 		Type:     1,
@@ -263,7 +263,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:710"] = Mapping{
+	keyMap["1:297"] = Mapping{
 		Label:    "red1",
 		CodeName: "BTN_BASE4",
 		Type:     1,
@@ -275,7 +275,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:710"] = Mapping{
+	keyMap["1:298"] = Mapping{
 		Label:    "red1",
 		CodeName: "BTN_BASE5",
 		Type:     1,
@@ -288,7 +288,7 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	//D Pad
-	keyMap["1:710"] = Mapping{
+	keyMap["3:17"] = Mapping{
 		Label:    "up/down",
 		CodeName: "ABS_HAT0Y",
 		Type:     3,
@@ -300,7 +300,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: true,
 	}
 
-	keyMap["1:710"] = Mapping{
+	keyMap["3:16"] = Mapping{
 		Label:    "left/right",
 		CodeName: "ABS_HAT0X",
 		Type:     3,
@@ -313,7 +313,7 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	//Diamond
-	keyMap["1:710"] = Mapping{
+	keyMap["1:291"] = Mapping{
 		Label:    "y/triangle",
 		CodeName: "BTN_TOP",
 		Type:     1,
@@ -325,7 +325,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:710"] = Mapping{
+	keyMap["1:290"] = Mapping{
 		Label:    "b/circle",
 		CodeName: "BTN_THUMB2",
 		Type:     1,
@@ -337,7 +337,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:710"] = Mapping{
+	keyMap["1:288"] = Mapping{
 		Label:    "a/x",
 		CodeName: "BTN_JOYSTICK/BTN_TRIGGER",
 		Type:     1,
@@ -349,7 +349,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:710"] = Mapping{
+	keyMap["1:289"] = Mapping{
 		Label:    "x/square",
 		CodeName: "BTN_THUMB",
 		Type:     1,
