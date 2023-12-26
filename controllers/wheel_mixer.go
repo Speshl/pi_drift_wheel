@@ -52,7 +52,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 	//Build frame values based on current state/buttons
 	frame.Ch[2] = uint16(MapToRange(
 		mixState.trims["gyro_trim"],
-		0,
+		-100,
 		100,
 		sbus.MinValue,
 		sbus.MidValue,
