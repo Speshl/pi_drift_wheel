@@ -1,3 +1,5 @@
+github.com/Speshl/go-sbus v0.0.0-20231226015654-ecc618c72cef h1:r2rc/3LRw7oPtrwOMksDL7ecmmDKdcmTCzkguvfGw9Q=
+github.com/Speshl/go-sbus v0.0.0-20231226015654-ecc618c72cef/go.mod h1:zV6Q/vXwGJ5ezal58PxKBTQm8M08f67VAU1iYZBoU90=
 github.com/albenik/go-serial/v2 v2.6.0 h1:UX30WZPL0qouDrKu4xwVFgvQA3YDTNhk3+aVC6X0jYg=
 github.com/albenik/go-serial/v2 v2.6.0/go.mod h1:sqQA6eeZHKUB6rAgrBsP/8d3Go5Md5cjCof1WcyaK0o=
 github.com/creack/goselect v0.1.2 h1:2DNy14+JPjRBgPzAd1thbQp4BSIihxcBf0IXhQXDRa0=

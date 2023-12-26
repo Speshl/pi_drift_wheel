@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"math"
 
-	"github.com/Speshl/pi_drift_wheel/sbus"
+	"github.com/Speshl/go-sbus"
 )
 
 func (c *ControllerManager) GetMixedFrame() (sbus.Frame, error) {

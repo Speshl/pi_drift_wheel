@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	sbus "github.com/Speshl/go-sbus"
 	"github.com/Speshl/pi_drift_wheel/config"
-	"github.com/Speshl/pi_drift_wheel/sbus"
 	"github.com/holoplot/go-evdev"
 	"golang.org/x/sync/errgroup"
 )
