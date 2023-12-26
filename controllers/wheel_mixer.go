@@ -55,7 +55,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		-100,
 		100,
 		sbus.MinValue,
-		sbus.MidValue,
+		sbus.MaxValue,
 	))
 
 	//ESC Value
