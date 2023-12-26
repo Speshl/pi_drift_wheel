@@ -4,7 +4,7 @@ package controllers
 //Values 0-9 are expected to be axis. (0 steer, 1 throttle, 2 brake, 3 clutch (not used), 4-9 unused)
 //Values 10-19 are expected to be H pattern gears. (10 first, 11 second, 12 third ... 19 reverse) only 6 gears used atm
 //Values 20-21 are paddle shifts
-//Values 100-1000 are all other buttons
+//Values 32-64 are all other buttons
 //
 /* Raw Input Mapping */
 
@@ -174,7 +174,7 @@ func GetG27KeyMap() map[string]Mapping {
 	// 	CodeName: "710",
 	// 	Type:     1,
 	// 	Code:     710,
-	// 	RawInput: 20,
+	// 	RawInput: 32,
 	// 	Min:      0,
 	// 	Max:      1,
 	// 	Rests:    "low",
@@ -185,7 +185,7 @@ func GetG27KeyMap() map[string]Mapping {
 	// 	CodeName: "710",
 	// 	Type:     1,
 	// 	Code:     710,
-	// 	RawInput: 20,
+	// 	RawInput: 33,
 	// 	Min:      0,
 	// 	Max:      1,
 	// 	Rests:    "low",
@@ -196,7 +196,7 @@ func GetG27KeyMap() map[string]Mapping {
 	// 	CodeName: "710",
 	// 	Type:     1,
 	// 	Code:     710,
-	// 	RawInput: 20,
+	// 	RawInput: 34,
 	// 	Min:      0,
 	// 	Max:      1,
 	// 	Rests:    "low",
@@ -209,7 +209,7 @@ func GetG27KeyMap() map[string]Mapping {
 	// 	CodeName: "710",
 	// 	Type:     1,
 	// 	Code:     710,
-	// 	RawInput: 20,
+	// 	RawInput: 35,
 	// 	Min:      0,
 	// 	Max:      1,
 	// 	Rests:    "low",
@@ -220,7 +220,7 @@ func GetG27KeyMap() map[string]Mapping {
 	// 	CodeName: "710",
 	// 	Type:     1,
 	// 	Code:     710,
-	// 	RawInput: 20,
+	// 	RawInput: 36,
 	// 	Min:      0,
 	// 	Max:      1,
 	// 	Rests:    "low",
@@ -231,7 +231,7 @@ func GetG27KeyMap() map[string]Mapping {
 	// 	CodeName: "710",
 	// 	Type:     1,
 	// 	Code:     710,
-	// 	RawInput: 20,
+	// 	RawInput: 37,
 	// 	Min:      0,
 	// 	Max:      1,
 	// 	Rests:    "low",

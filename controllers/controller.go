@@ -35,7 +35,7 @@ type Controller struct {
 
 func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping) *Controller {
 
-	rawInputs := make([]Input, 16)
+	rawInputs := make([]Input, 64)
 	for i := range keyMap {
 		rawInputs[keyMap[i].RawInput] = NewInput(keyMap[i])
 	}
