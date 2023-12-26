@@ -29,6 +29,8 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			continue
 		}
 
+		slog.Info("button press", "label", inputs[i].Label)
+
 		switch inputs[i].Label {
 		case "upshift":
 			if mixState.gear >= -1 {
