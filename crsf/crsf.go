@@ -38,7 +38,7 @@ func (c *CRSF) Start(ctx context.Context) error {
 	port, err := serial.Open(c.path,
 		serial.WithBaudrate(420000), //Looks like this can be multiple baudrates
 		serial.WithDataBits(8),
-		//serial.WithParity(serial.EvenParity),
+		serial.WithParity(serial.NoParity),
 		serial.WithStopBits(serial.OneStopBit),
 		serial.WithReadTimeout(1000),
 	)
@@ -137,7 +137,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 			case 0x7D:
 				slog.Info("displayport command")
 			}
-			slog.Info("byte value", "byte", fmt.Sprintf("0x%02x ", buff[i]))
+			slog.Info("byte value", "byte", fmt.Sprintf("0x%02x ", buff[i]), "int", buff[i])
 		}
 		slog.Info("read", "num_read", n, "data", buff[:n])
 	}
