@@ -2,6 +2,7 @@ package crsf
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 
@@ -149,6 +150,11 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 			}
 			//slog.Info("byte value", "byte", fmt.Sprintf("0x%02x ", buff[i]), "int", buff[i])
 		}
+		builtString := ""
+		for i := range buff[:n] {
+			builtString = fmt.Sprintf("%s,0x%02x", builtString, buff[i])
+		}
+		slog.Info("bytes as hex", "bytes", builtString)
 		slog.Info("read", "num_read", n, "data", buff[:n])
 	}
 }
