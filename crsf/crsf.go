@@ -86,6 +86,33 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 				slog.Info("msg to flight controller")
 			case 0xEC:
 				slog.Info("msg to receiver")
+
+			//Alt
+			case 0x00:
+				slog.Info("msg to broadcast")
+			case 0x10:
+				slog.Info("msg to usb")
+			}
+		}
+
+		for i := range buff[:n] {
+			switch buff[i] {
+			case 0x14:
+				slog.Info("link stats")
+			case 0x16:
+				slog.Info("channels")
+			case 0x28:
+				slog.Info("device ping")
+			case 0x29:
+				slog.Info("device info")
+			case 0x2B:
+				slog.Info("parameter entry")
+			case 0x2C:
+				slog.Info("parameter read")
+			case 0x2D:
+				slog.Info("parameter write")
+			case 0x32:
+				slog.Info("command")
 			}
 		}
 		slog.Info("read", "num_read", n, "data", buff[:n])
