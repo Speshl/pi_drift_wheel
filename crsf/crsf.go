@@ -86,7 +86,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 				slog.Info("msg to transmitter module")
 
 			//Not Mentioned in edgetx
-			case 0xC8:
+			case 0xC8, 0x8C:
 				slog.Info("uart sync")
 			case 0x10:
 				slog.Info("subcommand")
