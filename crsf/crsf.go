@@ -36,9 +36,9 @@ func NewCRSFData() CRSFData {
 func (c *CRSF) Start(ctx context.Context) error {
 	port, err := serial.Open(c.path,
 		serial.WithBaudrate(420000), //Looks like this can be multiple baudrates
-		//serial.WithDataBits(8),
+		serial.WithDataBits(8),
 		//serial.WithParity(serial.EvenParity),
-		//serial.WithStopBits(serial.TwoStopBits),
+		serial.WithStopBits(serial.OneStopBit),
 		serial.WithReadTimeout(1000),
 	)
 	if err != nil {
