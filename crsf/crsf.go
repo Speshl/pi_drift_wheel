@@ -97,10 +97,22 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 
 		for i := range buff[:n] {
 			switch buff[i] {
+			case 0x02:
+				slog.Info("gps")
+			case 0x08:
+				slog.Info("battery")
 			case 0x14:
 				slog.Info("link stats")
+			case 0x10:
+				slog.Info("opentx sync")
+			case 0x3A:
+				slog.Info("radio id")
 			case 0x16:
 				slog.Info("channels")
+			case 0x1E:
+				slog.Info("attitude")
+			case 0x21:
+				slog.Info("flight mode")
 			case 0x28:
 				slog.Info("device ping")
 			case 0x29:
@@ -113,8 +125,16 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 				slog.Info("parameter write")
 			case 0x32:
 				slog.Info("command")
+
+			//MSP
+			case 0x7A:
+				slog.Info("msp req")
+			case 0x7B:
+				slog.Info("msp resp")
+			case 0x7C:
+				slog.Info("msp write")
 			}
 		}
-		slog.Info("read", "num_read", n, "data", buff[:n])
+		//slog.Info("read", "num_read", n, "data", buff[:n])
 	}
 }
