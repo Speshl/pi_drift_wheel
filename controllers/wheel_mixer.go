@@ -29,10 +29,8 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		mixState.buttons[inputs[i].Label] = inputs[i].Value
 
 		if inputs[i].Value != inputs[i].Max { //button presses are considered to be a value equal to the max possible value
-			continue
+			continue //TODO update this to properly handle hats where -1 can be a press also or if something is resting high
 		}
-
-		slog.Info("button press", "label", inputs[i].Label)
 
 		switch inputs[i].Label {
 		case "upshift":

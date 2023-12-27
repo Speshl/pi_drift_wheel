@@ -9,11 +9,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	sbus "github.com/Speshl/go-sbus"
 	"github.com/Speshl/pi_drift_wheel/config"
-	"github.com/Speshl/pi_drift_wheel/controllers"
+	"github.com/Speshl/pi_drift_wheel/crsf"
 	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
 )
@@ -33,94 +32,100 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group, ctx := errgroup.WithContext(ctx)
 
 	//Start Getting controller inputs
-	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg, controllers.WheelMixer, controllers.ControllerOptions{UseHPattern: true})
-	err = controllerManager.LoadControllers()
-	if err != nil {
-		return fmt.Errorf("failed loading controllers: %w", err)
-	}
-	group.Go(func() error {
-		defer cancel()
-		return controllerManager.Start(ctx)
-	})
+	// controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg, controllers.WheelMixer, controllers.ControllerOptions{UseHPattern: true})
+	// err = controllerManager.LoadControllers()
+	// if err != nil {
+	// 	return fmt.Errorf("failed loading controllers: %w", err)
+	// }
+	// group.Go(func() error {
+	// 	defer cancel()
+	// 	return controllerManager.Start(ctx)
+	// })
 
 	//Start Sbus read/write
-	sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
-	for i := 0; i < config.MaxSbus; i++ {
-		sBus, err := sbus.NewSBus(
-			a.cfg.SbusCfgs[i].SBusPath,
-			a.cfg.SbusCfgs[i].SBusRx,
-			a.cfg.SbusCfgs[i].SBusTx,
-			&sbus.SBusCfgOpts{
-				Type: sbus.RxTypeControl,
-			},
-		)
-		if err != nil { //TODO: Remove when more channels supported
-			if i != 0 {
-				continue
-			}
-		}
+	// sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
+	// for i := 0; i < config.MaxSbus; i++ {
+	// 	sBus, err := sbus.NewSBus(
+	// 		a.cfg.SbusCfgs[i].SBusPath,
+	// 		a.cfg.SbusCfgs[i].SBusRx,
+	// 		a.cfg.SbusCfgs[i].SBusTx,
+	// 		&sbus.SBusCfgOpts{
+	// 			Type: sbus.RxTypeControl,
+	// 		},
+	// 	)
+	// 	if err != nil { //TODO: Remove when more channels supported
+	// 		if i != 0 {
+	// 			continue
+	// 		}
+	// 	}
 
-		sBusConns = append(sBusConns, sBus)
-		group.Go(func() error {
-			defer cancel()
-			err := ListPorts()
-			if err != nil {
-				return err
-			}
-			return sBus.Start(ctx)
-		})
-	}
+	// 	sBusConns = append(sBusConns, sBus)
+	// 	group.Go(func() error {
+	// 		defer cancel()
+	// 		err := ListPorts()
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		return sBus.Start(ctx)
+	// 	})
+	// }
+
+	//Start CRSF read/write
+	crsf := crsf.NewCRSF("/dev/ttyACM0")
+	group.Go(func() error {
+		return crsf.Start(ctx)
+	})
 
 	// Process data
-	group.Go(func() error {
-		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
+	// group.Go(func() error {
+	// 	time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 
-		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		//mergeTicker := time.NewTicker(6 * time.Millisecond)
-		mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-		logTicker := time.NewTicker(1 * time.Second)
-		mergedFrame := sbus.NewFrame()
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-logTicker.C:
-				slog.Info("frame details",
-					"esc", mergedFrame.Ch[0],
-					"steer", mergedFrame.Ch[1],
-					"gyro_gain", mergedFrame.Ch[2],
-					"head_tilt", mergedFrame.Ch[3],
-					"head_roll", mergedFrame.Ch[4],
-					"head_pan", mergedFrame.Ch[5],
-				)
-			case <-mergeTicker.C:
-				framesToMerge = framesToMerge[:0] //clear out frames before next merge
+	// 	framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
+	// 	//mergeTicker := time.NewTicker(6 * time.Millisecond)
+	// 	mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
+	// 	logTicker := time.NewTicker(1 * time.Second)
+	// 	mergedFrame := sbus.NewFrame()
+	// 	for {
+	// 		select {
+	// 		case <-ctx.Done():
+	// 			return ctx.Err()
+	// 		case <-logTicker.C:
+	// 			slog.Info("frame details",
+	// 				"esc", mergedFrame.Ch[0],
+	// 				"steer", mergedFrame.Ch[1],
+	// 				"gyro_gain", mergedFrame.Ch[2],
+	// 				"head_tilt", mergedFrame.Ch[3],
+	// 				"head_roll", mergedFrame.Ch[4],
+	// 				"head_pan", mergedFrame.Ch[5],
+	// 			)
+	// 		case <-mergeTicker.C:
+	// 			framesToMerge = framesToMerge[:0] //clear out frames before next merge
 
-				controllerFrame, err := controllerManager.GetMixedFrame()
-				if err != nil {
-					return err
-				}
-				framesToMerge = append(framesToMerge, controllerFrame)
+	// 			controllerFrame, err := controllerManager.GetMixedFrame()
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			framesToMerge = append(framesToMerge, controllerFrame)
 
-				for i := range sBusConns {
-					if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
-						framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
-					} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
-						slog.Debug("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
-					}
-				}
+	// 			for i := range sBusConns {
+	// 				if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
+	// 					framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
+	// 				} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
+	// 					slog.Debug("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
+	// 				}
+	// 			}
 
-				mergedFrame = MergeFrames(framesToMerge)
+	// 			mergedFrame = MergeFrames(framesToMerge)
 
-				for i := range sBusConns {
-					if sBusConns[i].IsTransmitting() {
-						sBusConns[i].SetWriteFrame(mergedFrame)
-					}
-				}
-				slog.Debug("frame sent", "frame", mergedFrame)
-			}
-		}
-	})
+	// 			for i := range sBusConns {
+	// 				if sBusConns[i].IsTransmitting() {
+	// 					sBusConns[i].SetWriteFrame(mergedFrame)
+	// 				}
+	// 			}
+	// 			slog.Debug("frame sent", "frame", mergedFrame)
+	// 		}
+	// 	}
+	// })
 
 	//kill listener
 	group.Go(func() error {
