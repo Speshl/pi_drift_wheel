@@ -2,7 +2,6 @@ package crsf
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 
@@ -36,7 +35,7 @@ func NewCRSFData() CRSFData {
 
 func (c *CRSF) Start(ctx context.Context) error {
 	port, err := serial.Open(c.path,
-		serial.WithBaudrate(420000), //Looks like this can be multiple baudrates
+		serial.WithBaudrate(400000), //Looks like this can be multiple baudrates
 		serial.WithDataBits(8),
 		serial.WithParity(serial.NoParity),
 		serial.WithStopBits(serial.OneStopBit),
@@ -79,20 +78,21 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 
 		for i := range buff[:n] {
 			switch buff[i] {
-			case 0xEE:
-				slog.Info("msg to transmitter module")
-			case 0xEA:
-				slog.Info("msg to handset")
-			case 0xC8:
-				slog.Info("msg to flight controller")
-			case 0xEC:
-				slog.Info("msg to receiver")
-
-			//Alt
 			case 0x00:
 				slog.Info("msg to broadcast")
+			case 0xEA:
+				slog.Info("msg to handset")
+			case 0xEE:
+				slog.Info("msg to transmitter module")
+
+			//Not Mentioned in edgetx
+			case 0xC8:
+				slog.Info("uart sync")
 			case 0x10:
-				slog.Info("msg to usb")
+				slog.Info("subcommand")
+			//Alt
+			case 0x05:
+				slog.Info("model select")
 			}
 		}
 
@@ -100,14 +100,22 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 			switch buff[i] {
 			case 0x02:
 				slog.Info("gps")
+			case 0x07:
+				slog.Info("cf vario")
 			case 0x08:
 				slog.Info("battery")
+			case 0x09:
+				slog.Info("baro alt")
 			case 0x14:
 				slog.Info("link stats")
-			case 0x10:
-				slog.Info("opentx sync")
+			// case 0x10:
+			// 	slog.Info("opentx sync")
 			case 0x16:
 				slog.Info("channels")
+			case 0x1C:
+				slog.Info("link rx")
+			case 0x1D:
+				slog.Info("link tx")
 			case 0x1E:
 				slog.Info("attitude")
 			case 0x21:
@@ -116,6 +124,8 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 				slog.Info("device ping")
 			case 0x29:
 				slog.Info("device info")
+			case 0x2A:
+				slog.Info("request settings")
 			case 0x2B:
 				slog.Info("parameter entry")
 			case 0x2C:
@@ -137,8 +147,8 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 			case 0x7D:
 				slog.Info("displayport command")
 			}
-			slog.Info("byte value", "byte", fmt.Sprintf("0x%02x ", buff[i]), "int", buff[i])
+			//slog.Info("byte value", "byte", fmt.Sprintf("0x%02x ", buff[i]), "int", buff[i])
 		}
-		slog.Info("read", "num_read", n, "data", buff[:n])
+		//slog.Info("read", "num_read", n, "data", buff[:n])
 	}
 }
