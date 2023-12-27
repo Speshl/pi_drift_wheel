@@ -106,8 +106,6 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 				slog.Info("link stats")
 			case 0x10:
 				slog.Info("opentx sync")
-			case 0x3A:
-				slog.Info("radio id")
 			case 0x16:
 				slog.Info("channels")
 			case 0x1E:
@@ -126,6 +124,8 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 				slog.Info("parameter write")
 			case 0x32:
 				slog.Info("command")
+			case 0x3A:
+				slog.Info("radio id")
 
 			//MSP
 			case 0x7A:
@@ -134,6 +134,8 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 				slog.Info("msp resp")
 			case 0x7C:
 				slog.Info("msp write")
+			case 0x7D:
+				slog.Info("displayport command")
 			}
 			slog.Info("byte value", "byte", fmt.Sprintf("0x%02x ", buff[i]))
 		}
