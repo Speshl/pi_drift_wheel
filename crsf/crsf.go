@@ -1,42 +1,54 @@
 package crsf
 
+//Followed specification as defined on the wiki here: https://github.com/crsf-wg/crsf/wiki
 import (
 	"context"
 	"fmt"
 	"log"
 	"log/slog"
+	"sync"
 
 	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
 )
 
 type CRSF struct {
-	path string
-
+	path      string
+	opts      CRSFOptions
 	receiving bool
 	//transmitting bool
 
-	//dataLock sync.RWMutex
-	data CRSFData
+	dataLock sync.RWMutex
+	data     CRSFData
 }
 
-type CRSFData struct {
+type CRSFOptions struct {
+	BaudRate int
 }
 
-func NewCRSF(path string) *CRSF {
+func NewCRSF(path string, opts *CRSFOptions) *CRSF {
+	if opts == nil {
+		opts = &CRSFOptions{
+			BaudRate: 400000,
+		}
+	}
+
 	return &CRSF{
 		path: path,
+		opts: *opts,
 		data: NewCRSFData(),
 	}
 }
 
-func NewCRSFData() CRSFData {
-	return CRSFData{}
+func (c *CRSF) String() string {
+	c.dataLock.RLock()
+	defer c.dataLock.RUnlock()
+	return c.data.String()
 }
 
 func (c *CRSF) Start(ctx context.Context) error {
 	port, err := serial.Open(c.path,
-		serial.WithBaudrate(400000), //Looks like this can be multiple baudrates
+		serial.WithBaudrate(c.opts.BaudRate), //Looks like this can be multiple baudrates
 		serial.WithDataBits(8),
 		serial.WithParity(serial.NoParity),
 		serial.WithStopBits(serial.OneStopBit),
@@ -46,20 +58,27 @@ func (c *CRSF) Start(ctx context.Context) error {
 		return err
 	}
 
-	sbusGroup, ctx := errgroup.WithContext(ctx)
+	crsfGroup, ctx := errgroup.WithContext(ctx)
 
-	sbusGroup.Go(func() error {
-		return c.startReader(ctx, port)
+	readChan := make(chan byte, 1024)
+
+	crsfGroup.Go(func() error {
+		defer close(readChan)
+		return c.startReader(ctx, port, readChan)
+	})
+
+	crsfGroup.Go(func() error {
+		return c.startReadParser(ctx, readChan)
 	})
 
 	// sbusGroup.Go(func() error {
 	// 	return c.startWriter(ctx, port)
 	// })
 
-	return sbusGroup.Wait()
+	return crsfGroup.Wait()
 }
 
-func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
+func (c *CRSF) startReader(ctx context.Context, port *serial.Port, readChan chan byte) error {
 	c.receiving = true
 	defer func() {
 		c.receiving = false
@@ -68,7 +87,6 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 	slog.Info("start reading from crsf", "path", c.path)
 	buff := make([]byte, 64)
 	for {
-		clear(buff)
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
@@ -76,85 +94,127 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		for i := range buff[:n] {
-			switch buff[i] {
-			case 0x00:
-				slog.Info("msg to broadcast")
-			case 0xEA:
-				slog.Info("msg to handset")
-			case 0xEE:
-				slog.Info("msg to transmitter module")
+			readChan <- buff[i]
+		}
+	}
+}
 
-			//Not Mentioned in edgetx
-			case 0xC8, 0x8C:
-				slog.Info("uart sync")
-			case 0x10:
-				slog.Info("subcommand")
-			//Alt
-			case 0x05:
-				slog.Info("model select")
+func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
+	for {
+		addressByte, err := c.getByte(ctx, readChan)
+		if err != nil {
+			return err
+		}
+		//[sync] [len] [type] [payload] [crc8]
+		if AddressType(addressByte).IsValid() {
+			//next byte should be the length of the payload
+			lengthByte, err := c.getByte(ctx, readChan)
+			if err != nil {
+				return err
+			}
+
+			if lengthByte == 0 {
+				return fmt.Errorf("payload has no length")
+			}
+
+			if lengthByte > 62 {
+				return fmt.Errorf("payload length to high")
+			}
+
+			//length should be the type + payload + CRC
+			fullPayload, err := c.getBytes(ctx, readChan, int(lengthByte))
+			if err != nil {
+				return err
+			}
+
+			//first byte of the full payload should be the frame type
+			switch FrameType(fullPayload[0]) {
+			case FrameTypeChannels:
+				err = c.updateChannels(fullPayload)
+			//telemetry
+			case FrameTypeGPS:
+				err = c.updateGps(fullPayload)
+			case FrameTypeVario:
+				err = c.updateVario(fullPayload)
+			case FrameTypeBatterySensor:
+				err = c.updateBatterySensor(fullPayload)
+			case FrameTypeBarometer:
+				err = c.updateBarometer(fullPayload)
+			case FrameTypeLinkStats:
+				err = c.updateLinkStats(fullPayload)
+			case FrameTypeLinkRx:
+				err = c.updateLinkRx(fullPayload)
+			case FrameTypeLinkTx:
+				err = c.updateLinkTx(fullPayload)
+			case FrameTypeAttitude:
+				err = c.updateAttitude(fullPayload)
+			case FrameTypeFlightMode:
+				err = c.updateFlightMode(fullPayload)
+			//unused
+			// case FrameTypeOpenTxSync:
+			// 	err = c.updateOpenTxSync(fullPayload)
+			// case FrameTypeDevicePing:
+			// 	err = c.updateDevicePing(fullPayload)
+			// case FrameTypeDeviceInfo:
+			// 	err = c.updateDeviceInfo(fullPayload)
+			// case FrameTypeRequestSettings:
+			// 	err = c.updateRequestSettings(fullPayload)
+			// case FrameTypeParameterEntry:
+			// 	err = c.updateParameterEntry(fullPayload)
+			// case FrameTypeParameterRead:
+			// 	err = c.updateParameterRead(fullPayload)
+			// case FrameTypeParameterWrite:
+			// 	err = c.updateParameterWrite(fullPayload)
+			// case FrameTypeCommand:
+			// 	err = c.updateCommand(fullPayload)
+			// case FrameTypeRadioId:
+			// 	err = c.updateRadioId(fullPayload)
+			// case FrameTypeMspRequest:
+			// 	err = c.updateMspRequest(fullPayload)
+			// case FrameTypeMspResponse:
+			// 	err = c.updateMspResponse(fullPayload)
+			// case FrameTypeMspWrite:
+			// 	err = c.updateMspWrite(fullPayload)
+			// case FrameTypeDisplayCommand:
+			// 	err = c.updateDisplayCommand(fullPayload)
+			default:
+				slog.Debug("unsupported frame type", "type", fullPayload[0], "length", len(fullPayload))
+			}
+			if err != nil {
+				return fmt.Errorf("failed parsing frame: %w", err)
 			}
 		}
+	}
+}
 
-		for i := range buff[:n] {
-			switch buff[i] {
-			case 0x02:
-				slog.Info("gps")
-			case 0x07:
-				slog.Info("cf vario")
-			case 0x08:
-				slog.Info("battery")
-			case 0x09:
-				slog.Info("baro alt")
-			case 0x14:
-				slog.Info("link stats")
-			// case 0x10:
-			// 	slog.Info("opentx sync")
-			case 0x16:
-				slog.Info("channels")
-			case 0x1C:
-				slog.Info("link rx")
-			case 0x1D:
-				slog.Info("link tx")
-			case 0x1E:
-				slog.Info("attitude")
-			case 0x21:
-				slog.Info("flight mode")
-			case 0x28:
-				slog.Info("device ping")
-			case 0x29:
-				slog.Info("device info")
-			case 0x2A:
-				slog.Info("request settings")
-			case 0x2B:
-				slog.Info("parameter entry")
-			case 0x2C:
-				slog.Info("parameter read")
-			case 0x2D:
-				slog.Info("parameter write")
-			case 0x32:
-				slog.Info("command")
-			case 0x3A:
-				slog.Info("radio id")
+func (c *CRSF) getBytes(ctx context.Context, readChan chan byte, n int) ([]byte, error) {
+	returnBytes := make([]byte, 0, n)
 
-			//MSP
-			case 0x7A:
-				slog.Info("msp req")
-			case 0x7B:
-				slog.Info("msp resp")
-			case 0x7C:
-				slog.Info("msp write")
-			case 0x7D:
-				slog.Info("displayport command")
+	for len(returnBytes) < n {
+		select {
+		case <-ctx.Done():
+			return returnBytes, ctx.Err()
+		case readByte, ok := <-readChan:
+			if !ok {
+				return returnBytes, fmt.Errorf("reader stopped")
 			}
-			//slog.Info("byte value", "byte", fmt.Sprintf("0x%02x ", buff[i]), "int", buff[i])
+			returnBytes = append(returnBytes, readByte)
 		}
-		builtString := ""
-		for i := range buff[:n] {
-			builtString = fmt.Sprintf("%s,0x%02x", builtString, buff[i])
+	}
+	return returnBytes, nil
+}
+
+func (c *CRSF) getByte(ctx context.Context, readChan chan byte) (byte, error) {
+	for {
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		case readByte, ok := <-readChan:
+			if !ok {
+				return 0, fmt.Errorf("reader stopped")
+			}
+			return readByte, nil
 		}
-		slog.Info("bytes as hex", "bytes", builtString)
-		slog.Info("read", "num_read", n, "data", buff[:n])
 	}
 }
