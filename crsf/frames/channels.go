@@ -3,6 +3,7 @@ package frames
 
 import (
 	"fmt"
+	"log/slog"
 )
 
 const (
@@ -26,6 +27,7 @@ func UnmarshalChannels(data []byte) (ChannelsData, error) {
 	}
 
 	if len(data) != ChannelsFrameLength {
+		slog.Error("Invalid frame length")
 		return d, fmt.Errorf("incorrect frame length")
 	}
 	//TODO check correct type?
