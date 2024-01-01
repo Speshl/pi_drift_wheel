@@ -184,7 +184,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 			// case FrameTypeDisplayCommand:
 			// 	err = c.updateDisplayCommand(fullPayload)
 			default:
-				slog.Debug("unsupported frame type", "type", fullPayload[0], "length", len(fullPayload))
+				slog.Warn("unsupported frame type", "type", fullPayload[0], "length", len(fullPayload))
 			}
 			if err != nil {
 				return fmt.Errorf("failed parsing frame: %w", err)
