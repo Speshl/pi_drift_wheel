@@ -72,7 +72,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 	//Start CRSF read/write
 	//dmesg | grep "tty"
-	crsf := crsf.NewCRSF("/dev/ttyUSB0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0
+	crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
 		BaudRate: 5250000,
 	})
 	group.Go(func() error {
