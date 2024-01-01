@@ -118,12 +118,12 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 			}
 
 			if lengthByte == 0 {
-				slog.Warn("payload has no length")
+				slog.Debug("payload has no length")
 				continue
 			}
 
 			if lengthByte > 62 {
-				slog.Warn("payload length to high")
+				slog.Debug("payload length to high")
 				continue
 			}
 
