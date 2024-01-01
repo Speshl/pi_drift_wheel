@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"strconv"
 	"sync"
 
 	"github.com/albenik/go-serial/v2"
@@ -94,7 +95,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port, readChan chan
 		if err != nil {
 			log.Fatal(err)
 		}
-		//slog.Info("read bytes", "num", n, "bytes", buff[:n])
+		slog.Info("read bytes", "num", n, "bytes", PrintBytes(buff[:n]))
 		for i := range buff[:n] {
 			readChan <- buff[i]
 		}
@@ -222,4 +223,12 @@ func (c *CRSF) getByte(ctx context.Context, readChan chan byte) (byte, error) {
 			return readByte, nil
 		}
 	}
+}
+
+func PrintBytes(data []byte) string {
+	returnString := ""
+	for i := range data {
+		returnString = fmt.Sprintf("%s,0x%s", returnString, strconv.FormatInt(int64(data[i]), 16))
+	}
+	return returnString
 }
