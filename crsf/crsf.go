@@ -191,7 +191,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 				return fmt.Errorf("failed parsing frame: %w", err)
 			}
 		} else {
-			slog.Warn("unsupported address", "byte", addressByte)
+			//slog.Warn("unsupported address", "byte", addressByte)
 		}
 	}
 }
