@@ -131,6 +131,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 			//first byte of the full payload should be the frame type
 			switch FrameType(fullPayload[0]) {
 			case FrameTypeChannels:
+				slog.Info("found channel update")
 				err = c.updateChannels(fullPayload)
 			//telemetry
 			case FrameTypeGPS:
