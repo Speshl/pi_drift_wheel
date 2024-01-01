@@ -94,6 +94,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port, readChan chan
 		if err != nil {
 			log.Fatal(err)
 		}
+		slog.Info("read bytes", "num", n, "bytes", buff[:n])
 		for i := range buff[:n] {
 			readChan <- buff[i]
 		}
