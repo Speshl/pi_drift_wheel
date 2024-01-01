@@ -71,7 +71,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 	// }
 
 	//Start CRSF read/write
-	crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{
+	//dmesg | grep "tty"
+	crsf := crsf.NewCRSF("/dev/ttyUSB0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0
 		BaudRate: 5250000,
 	})
 	group.Go(func() error {
