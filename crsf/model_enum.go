@@ -12,60 +12,21 @@ import (
 )
 
 const (
-	// AddressTypeBroadcast is a AddressType of type Broadcast.
-	AddressTypeBroadcast AddressType = iota
-	// AddressTypeUsb is a AddressType of type Usb.
-	AddressTypeUsb AddressType = iota + 15
-	// AddressTypeBluetooth is a AddressType of type Bluetooth.
-	AddressTypeBluetooth AddressType = iota + 16
-	// AddressTypeTbsCore is a AddressType of type TbsCore.
-	AddressTypeTbsCore AddressType = iota + 125
-	// AddressTypeReserved1 is a AddressType of type Reserved1.
-	AddressTypeReserved1 AddressType = iota + 134
-	// AddressTypeCurrentSensor is a AddressType of type CurrentSensor.
-	AddressTypeCurrentSensor AddressType = iota + 187
-	// AddressTypeGps is a AddressType of type Gps.
-	AddressTypeGps AddressType = iota + 188
-	// AddressTypeBlackBox is a AddressType of type BlackBox.
-	AddressTypeBlackBox AddressType = iota + 189
 	// AddressTypeFlightController is a AddressType of type FlightController.
 	// Most should have this address
-	AddressTypeFlightController AddressType = iota + 192
-	// AddressTypeReserved2 is a AddressType of type Reserved2.
-	AddressTypeReserved2 AddressType = iota + 193
-	// AddressTypeRacetag is a AddressType of type Racetag.
-	AddressTypeRacetag AddressType = iota + 194
-	// AddressTypeRadioTransmitter is a AddressType of type RadioTransmitter.
-	AddressTypeRadioTransmitter AddressType = iota + 223
-	// AddressTypeReceiver is a AddressType of type Receiver.
-	AddressTypeReceiver AddressType = iota + 224
+	AddressTypeFlightController AddressType = iota + 200
 	// AddressTypeTransmitter is a AddressType of type Transmitter.
 	// channels should have this address
-	AddressTypeTransmitter AddressType = iota + 225
-	// AddressTypeElrsLua is a AddressType of type ElrsLua.
-	AddressTypeElrsLua
+	AddressTypeTransmitter AddressType = iota + 237
 )
 
 var ErrInvalidAddressType = errors.New("not a valid AddressType")
 
-const _AddressTypeName = "BroadcastUsbBluetoothTbsCoreReserved1CurrentSensorGpsBlackBoxFlightControllerReserved2RacetagRadioTransmitterReceiverTransmitterElrsLua"
+const _AddressTypeName = "FlightControllerTransmitter"
 
 var _AddressTypeMap = map[AddressType]string{
-	AddressTypeBroadcast:        _AddressTypeName[0:9],
-	AddressTypeUsb:              _AddressTypeName[9:12],
-	AddressTypeBluetooth:        _AddressTypeName[12:21],
-	AddressTypeTbsCore:          _AddressTypeName[21:28],
-	AddressTypeReserved1:        _AddressTypeName[28:37],
-	AddressTypeCurrentSensor:    _AddressTypeName[37:50],
-	AddressTypeGps:              _AddressTypeName[50:53],
-	AddressTypeBlackBox:         _AddressTypeName[53:61],
-	AddressTypeFlightController: _AddressTypeName[61:77],
-	AddressTypeReserved2:        _AddressTypeName[77:86],
-	AddressTypeRacetag:          _AddressTypeName[86:93],
-	AddressTypeRadioTransmitter: _AddressTypeName[93:109],
-	AddressTypeReceiver:         _AddressTypeName[109:117],
-	AddressTypeTransmitter:      _AddressTypeName[117:128],
-	AddressTypeElrsLua:          _AddressTypeName[128:135],
+	AddressTypeFlightController: _AddressTypeName[0:16],
+	AddressTypeTransmitter:      _AddressTypeName[16:27],
 }
 
 // String implements the Stringer interface.
@@ -84,21 +45,8 @@ func (x AddressType) IsValid() bool {
 }
 
 var _AddressTypeValue = map[string]AddressType{
-	_AddressTypeName[0:9]:     AddressTypeBroadcast,
-	_AddressTypeName[9:12]:    AddressTypeUsb,
-	_AddressTypeName[12:21]:   AddressTypeBluetooth,
-	_AddressTypeName[21:28]:   AddressTypeTbsCore,
-	_AddressTypeName[28:37]:   AddressTypeReserved1,
-	_AddressTypeName[37:50]:   AddressTypeCurrentSensor,
-	_AddressTypeName[50:53]:   AddressTypeGps,
-	_AddressTypeName[53:61]:   AddressTypeBlackBox,
-	_AddressTypeName[61:77]:   AddressTypeFlightController,
-	_AddressTypeName[77:86]:   AddressTypeReserved2,
-	_AddressTypeName[86:93]:   AddressTypeRacetag,
-	_AddressTypeName[93:109]:  AddressTypeRadioTransmitter,
-	_AddressTypeName[109:117]: AddressTypeReceiver,
-	_AddressTypeName[117:128]: AddressTypeTransmitter,
-	_AddressTypeName[128:135]: AddressTypeElrsLua,
+	_AddressTypeName[0:16]:  AddressTypeFlightController,
+	_AddressTypeName[16:27]: AddressTypeTransmitter,
 }
 
 // ParseAddressType attempts to convert a string to a AddressType.

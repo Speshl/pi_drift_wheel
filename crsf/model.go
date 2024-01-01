@@ -5,6 +5,14 @@ package crsf
 
 /*
 ENUM(
+	FlightController = 0xC8, //Most should have this address
+	Transmitter = 0xEE //channels should have this address
+)
+*/
+type AddressType byte
+
+//unused addresses
+/*
 Broadcast = 0x00
 Usb = 0x10,
 Bluetooth = 0x12
@@ -13,16 +21,14 @@ Reserved1 = 0x8A,
 CurrentSensor = 0xC0,
 Gps = 0xC2,
 BlackBox = 0xC4,
-FlightController = 0xC8, //Most should have this address
+
 Reserved2 = 0xCA,
 Racetag = 0xCC,
 RadioTransmitter = 0xEA,
 Receiver = 0xEC,
-Transmitter = 0xEE //channels should have this address
+
 ElrsLua = 0xEF
-)
 */
-type AddressType byte
 
 /*
 ENUM(
@@ -40,6 +46,7 @@ FlightMode = 0x21
 */
 type FrameType byte
 
+//unsed frametypes
 /*
 OpenTxSync = 0x10
 DevicePing = 0x28
