@@ -61,7 +61,7 @@ func (c *CRSF) Start(ctx context.Context) error {
 
 	crsfGroup, ctx := errgroup.WithContext(ctx)
 
-	readChan := make(chan byte, 1024)
+	readChan := make(chan byte, 4096)
 
 	crsfGroup.Go(func() error {
 		defer close(readChan)
@@ -86,7 +86,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port, readChan chan
 	}()
 
 	slog.Info("start reading from crsf", "path", c.path)
-	buff := make([]byte, 64)
+	buff := make([]byte, 128)
 	for {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -110,7 +110,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 		}
 		//[sync] [len] [type] [payload] [crc8]
 		if AddressType(addressByte).IsValid() {
-			slog.Info("found address type", "type", AddressType(addressByte).String())
+			//slog.Info("found address type", "type", AddressType(addressByte).String())
 			//next byte should be the length of the payload
 			lengthByte, err := c.getByte(ctx, readChan)
 			if err != nil {
@@ -134,7 +134,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 			}
 
 			//first byte of the full payload should be the frame type
-			slog.Info("update looking for frame", "length", int(lengthByte), "frame", fullPayload[0], "type", FrameType(fullPayload[0]))
+			//slog.Info("update looking for frame", "length", int(lengthByte), "frame", fullPayload[0], "type", FrameType(fullPayload[0]))
 			switch FrameType(fullPayload[0]) {
 			case FrameTypeChannels:
 				err = c.updateChannels(fullPayload)
@@ -185,11 +185,13 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 			// case FrameTypeDisplayCommand:
 			// 	err = c.updateDisplayCommand(fullPayload)
 			default:
-				slog.Warn("unsupported frame type", "type", fullPayload[0], "length", len(fullPayload))
+				//slog.Warn("unsupported frame type", "type", fullPayload[0], "length", len(fullPayload))
 			}
 			if err != nil {
 				return fmt.Errorf("failed parsing frame: %w", err)
 			}
+		} else {
+			slog.Warn("unsupported address", "byte", addressByte)
 		}
 	}
 }
