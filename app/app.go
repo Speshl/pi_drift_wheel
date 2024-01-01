@@ -72,7 +72,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 	//Start CRSF read/write
 	crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{
-		BaudRate: 420000,
+		BaudRate: 921600,
 	})
 	group.Go(func() error {
 		return crsf.Start(ctx)
