@@ -15,18 +15,24 @@ const (
 	// AddressTypeFlightController is a AddressType of type FlightController.
 	// Most should have this address
 	AddressTypeFlightController AddressType = iota + 200
+	// AddressTypeRadioTransmitter is a AddressType of type RadioTransmitter.
+	AddressTypeRadioTransmitter AddressType = iota + 233
+	// AddressTypeReceiver is a AddressType of type Receiver.
+	AddressTypeReceiver AddressType = iota + 234
 	// AddressTypeTransmitter is a AddressType of type Transmitter.
 	// channels should have this address
-	AddressTypeTransmitter AddressType = iota + 237
+	AddressTypeTransmitter AddressType = iota + 235
 )
 
 var ErrInvalidAddressType = errors.New("not a valid AddressType")
 
-const _AddressTypeName = "FlightControllerTransmitter"
+const _AddressTypeName = "FlightControllerRadioTransmitterReceiverTransmitter"
 
 var _AddressTypeMap = map[AddressType]string{
 	AddressTypeFlightController: _AddressTypeName[0:16],
-	AddressTypeTransmitter:      _AddressTypeName[16:27],
+	AddressTypeRadioTransmitter: _AddressTypeName[16:32],
+	AddressTypeReceiver:         _AddressTypeName[32:40],
+	AddressTypeTransmitter:      _AddressTypeName[40:51],
 }
 
 // String implements the Stringer interface.
@@ -46,7 +52,9 @@ func (x AddressType) IsValid() bool {
 
 var _AddressTypeValue = map[string]AddressType{
 	_AddressTypeName[0:16]:  AddressTypeFlightController,
-	_AddressTypeName[16:27]: AddressTypeTransmitter,
+	_AddressTypeName[16:32]: AddressTypeRadioTransmitter,
+	_AddressTypeName[32:40]: AddressTypeReceiver,
+	_AddressTypeName[40:51]: AddressTypeTransmitter,
 }
 
 // ParseAddressType attempts to convert a string to a AddressType.
