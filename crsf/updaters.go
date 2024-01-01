@@ -1,6 +1,10 @@
 package crsf
 
-import "github.com/Speshl/pi_drift_wheel/crsf/frames"
+import (
+	"log/slog"
+
+	"github.com/Speshl/pi_drift_wheel/crsf/frames"
+)
 
 func (c *CRSF) updateGps(data []byte) error {
 	dataStruct, err := frames.UnmarshalGps(data)
@@ -102,6 +106,7 @@ func (c *CRSF) updateChannels(data []byte) error {
 }
 
 func (c *CRSF) SetChannels(data frames.ChannelsData) {
+	slog.Info("setting channels", "data", data.String())
 	c.dataLock.Lock()
 	defer c.dataLock.Unlock()
 	c.data.Channels = data
