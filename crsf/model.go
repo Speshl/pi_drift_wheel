@@ -40,6 +40,7 @@ BatterySensor = 0x08
 Barometer = 0x09
 LinkStats = 0x14
 Channels = 0x16
+ChannelSubSet = 0x17
 LinkRx = 0x1C
 LinkTx = 0x1D
 Attitude = 0x1E
