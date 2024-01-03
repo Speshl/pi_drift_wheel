@@ -54,7 +54,7 @@ def handleCrsfPacket(ptype, data):
         #print(f"Attitude: Pitch={pitch} Roll={roll} Yaw={yaw}")
     elif ptype == PacketsTypes.FLIGHT_MODE:
         packet = ''.join(map(chr, data[3:-2]))
-        #print(f"Flight Mode: {packet}")
+        print(f"Flight Mode: {packet}")
     elif ptype == PacketsTypes.BATTERY_SENSOR:
         vbat = data[3] << 8 | data[4]
         curr = data[5] << 8 | data[6]
@@ -63,7 +63,7 @@ def handleCrsfPacket(ptype, data):
         print(f"Battery: {vbat/10.0}V {curr}A {pct}% {mah}mAh")
     elif ptype == PacketsTypes.DEVICE_INFO:
         packet = ' '.join(map(hex, data))
-        #print(f"Device Info: {packet}")
+        print(f"Device Info: {packet}")
     elif data[2] == PacketsTypes.GPS:
         lat = int.from_bytes(data[3:7], byteorder='big', signed=True) / 1e7
         lon = int.from_bytes(data[7:11], byteorder='big', signed=True) / 1e7

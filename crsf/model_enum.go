@@ -78,19 +78,21 @@ const (
 	FrameTypeLinkStats FrameType = iota + 16
 	// FrameTypeChannels is a FrameType of type Channels.
 	FrameTypeChannels FrameType = iota + 17
+	// FrameTypeChannelSubSet is a FrameType of type ChannelSubSet.
+	FrameTypeChannelSubSet
 	// FrameTypeLinkRx is a FrameType of type LinkRx.
-	FrameTypeLinkRx FrameType = iota + 22
+	FrameTypeLinkRx FrameType = iota + 21
 	// FrameTypeLinkTx is a FrameType of type LinkTx.
 	FrameTypeLinkTx
 	// FrameTypeAttitude is a FrameType of type Attitude.
 	FrameTypeAttitude
 	// FrameTypeFlightMode is a FrameType of type FlightMode.
-	FrameTypeFlightMode FrameType = iota + 24
+	FrameTypeFlightMode FrameType = iota + 23
 )
 
 var ErrInvalidFrameType = errors.New("not a valid FrameType")
 
-const _FrameTypeName = "GPSVarioBatterySensorBarometerLinkStatsChannelsLinkRxLinkTxAttitudeFlightMode"
+const _FrameTypeName = "GPSVarioBatterySensorBarometerLinkStatsChannelsChannelSubSetLinkRxLinkTxAttitudeFlightMode"
 
 var _FrameTypeMap = map[FrameType]string{
 	FrameTypeGPS:           _FrameTypeName[0:3],
@@ -99,10 +101,11 @@ var _FrameTypeMap = map[FrameType]string{
 	FrameTypeBarometer:     _FrameTypeName[21:30],
 	FrameTypeLinkStats:     _FrameTypeName[30:39],
 	FrameTypeChannels:      _FrameTypeName[39:47],
-	FrameTypeLinkRx:        _FrameTypeName[47:53],
-	FrameTypeLinkTx:        _FrameTypeName[53:59],
-	FrameTypeAttitude:      _FrameTypeName[59:67],
-	FrameTypeFlightMode:    _FrameTypeName[67:77],
+	FrameTypeChannelSubSet: _FrameTypeName[47:60],
+	FrameTypeLinkRx:        _FrameTypeName[60:66],
+	FrameTypeLinkTx:        _FrameTypeName[66:72],
+	FrameTypeAttitude:      _FrameTypeName[72:80],
+	FrameTypeFlightMode:    _FrameTypeName[80:90],
 }
 
 // String implements the Stringer interface.
@@ -127,10 +130,11 @@ var _FrameTypeValue = map[string]FrameType{
 	_FrameTypeName[21:30]: FrameTypeBarometer,
 	_FrameTypeName[30:39]: FrameTypeLinkStats,
 	_FrameTypeName[39:47]: FrameTypeChannels,
-	_FrameTypeName[47:53]: FrameTypeLinkRx,
-	_FrameTypeName[53:59]: FrameTypeLinkTx,
-	_FrameTypeName[59:67]: FrameTypeAttitude,
-	_FrameTypeName[67:77]: FrameTypeFlightMode,
+	_FrameTypeName[47:60]: FrameTypeChannelSubSet,
+	_FrameTypeName[60:66]: FrameTypeLinkRx,
+	_FrameTypeName[66:72]: FrameTypeLinkTx,
+	_FrameTypeName[72:80]: FrameTypeAttitude,
+	_FrameTypeName[80:90]: FrameTypeFlightMode,
 }
 
 // ParseFrameType attempts to convert a string to a FrameType.

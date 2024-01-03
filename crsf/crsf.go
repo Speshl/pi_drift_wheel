@@ -110,7 +110,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 		}
 		//[sync] [len] [type] [payload] [crc8]
 		if AddressType(addressByte).IsValid() {
-			//slog.Info("found address type", "type", AddressType(addressByte).String())
+			slog.Info("found address type", "type", AddressType(addressByte).String())
 			//next byte should be the length of the payload
 			lengthByte, err := c.getByte(ctx, readChan)
 			if err != nil {
@@ -158,33 +158,6 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 				err = c.updateAttitude(fullPayload)
 			case FrameTypeFlightMode:
 				err = c.updateFlightMode(fullPayload)
-			//unused
-			// case FrameTypeOpenTxSync:
-			// 	err = c.updateOpenTxSync(fullPayload)
-			// case FrameTypeDevicePing:
-			// 	err = c.updateDevicePing(fullPayload)
-			// case FrameTypeDeviceInfo:
-			// 	err = c.updateDeviceInfo(fullPayload)
-			// case FrameTypeRequestSettings:
-			// 	err = c.updateRequestSettings(fullPayload)
-			// case FrameTypeParameterEntry:
-			// 	err = c.updateParameterEntry(fullPayload)
-			// case FrameTypeParameterRead:
-			// 	err = c.updateParameterRead(fullPayload)
-			// case FrameTypeParameterWrite:
-			// 	err = c.updateParameterWrite(fullPayload)
-			// case FrameTypeCommand:
-			// 	err = c.updateCommand(fullPayload)
-			// case FrameTypeRadioId:
-			// 	err = c.updateRadioId(fullPayload)
-			// case FrameTypeMspRequest:
-			// 	err = c.updateMspRequest(fullPayload)
-			// case FrameTypeMspResponse:
-			// 	err = c.updateMspResponse(fullPayload)
-			// case FrameTypeMspWrite:
-			// 	err = c.updateMspWrite(fullPayload)
-			// case FrameTypeDisplayCommand:
-			// 	err = c.updateDisplayCommand(fullPayload)
 			default:
 				//slog.Warn("unsupported frame type", "type", fullPayload[0], "length", len(fullPayload))
 			}
