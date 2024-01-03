@@ -39,8 +39,8 @@ def crsf_validate_frame(frame) -> bool:
 
 def handleCrsfPacket(ptype, data):
     if ptype == PacketsTypes.RADIO_ID and data[5] == 0x10:
-        #print(f"OTX sync")
-        pass
+        print(f"OTX sync")
+        #pass
     elif ptype == PacketsTypes.LINK_STATISTICS:
         rssi1 = int.from_bytes(data[3:4], byteorder='big', signed=True)
         rssi2 = int.from_bytes(data[4:5], byteorder='big', signed=True)
@@ -77,7 +77,7 @@ def handleCrsfPacket(ptype, data):
         #print(f"VSpd: {vspd:0.1f}m/s")
     elif ptype == PacketsTypes.RC_CHANNELS_PACKED:
         print(f"Channels: (data)")
-        pass
+        #pass
     else:
         packet = ' '.join(map(hex, data))
         print(f"Unknown 0x{ptype:02x}{PacketsTypes.LINK_STATISTICS:02x}: {packet}")
