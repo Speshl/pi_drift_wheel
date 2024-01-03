@@ -51,10 +51,10 @@ def handleCrsfPacket(ptype, data):
         pitch = data[3] << 8 | data[4]
         roll = data[5] << 8 | data[6]
         yaw = data[7] << 8 | data[8]
-        print(f"Attitude: Pitch={pitch} Roll={roll} Yaw={yaw}")
+        #print(f"Attitude: Pitch={pitch} Roll={roll} Yaw={yaw}")
     elif ptype == PacketsTypes.FLIGHT_MODE:
         packet = ''.join(map(chr, data[3:-2]))
-        print(f"Flight Mode: {packet}")
+        #print(f"Flight Mode: {packet}")
     elif ptype == PacketsTypes.BATTERY_SENSOR:
         vbat = data[3] << 8 | data[4]
         curr = data[5] << 8 | data[6]
@@ -63,7 +63,7 @@ def handleCrsfPacket(ptype, data):
         print(f"Battery: {vbat/10.0}V {curr}A {pct}% {mah}mAh")
     elif ptype == PacketsTypes.DEVICE_INFO:
         packet = ' '.join(map(hex, data))
-        print(f"Device Info: {packet}")
+        #print(f"Device Info: {packet}")
     elif data[2] == PacketsTypes.GPS:
         lat = int.from_bytes(data[3:7], byteorder='big', signed=True) / 1e7
         lon = int.from_bytes(data[7:11], byteorder='big', signed=True) / 1e7
@@ -71,12 +71,12 @@ def handleCrsfPacket(ptype, data):
         hdg =  (data[13] << 8 | data[14]) / 100.0
         alt = (data[15] << 8 | data[16]) - 1000
         sats = data[17]
-        print(f"GPS: Pos={lat} {lon} GSpd={gspd:0.1f}m/s Hdg={hdg:0.1f} Alt={alt}m Sats={sats}")
+        #print(f"GPS: Pos={lat} {lon} GSpd={gspd:0.1f}m/s Hdg={hdg:0.1f} Alt={alt}m Sats={sats}")
     elif ptype == PacketsTypes.VARIO:
         vspd = int.from_bytes(data[3:5], byteorder='big', signed=True) / 10.0
-        print(f"VSpd: {vspd:0.1f}m/s")
+        #print(f"VSpd: {vspd:0.1f}m/s")
     elif ptype == PacketsTypes.RC_CHANNELS_PACKED:
-        #print(f"Channels: (data)")
+        print(f"Channels: (data)")
         pass
     else:
         packet = ' '.join(map(hex, data))
