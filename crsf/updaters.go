@@ -6,6 +6,12 @@ import (
 	"github.com/Speshl/pi_drift_wheel/crsf/frames"
 )
 
+func (c *CRSF) SetData(data CRSFData) {
+	c.dataLock.Lock()
+	defer c.dataLock.Unlock()
+	c.data = data
+}
+
 func (c *CRSF) updateGps(data []byte) error {
 	dataStruct, err := frames.UnmarshalGps(data)
 	if err != nil {

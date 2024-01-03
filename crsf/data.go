@@ -9,19 +9,6 @@ import (
 type CRSFData struct {
 	Channels frames.ChannelsData
 	CRSFTelemetry
-	//OpenTxSync frames.OpenTxSyncData
-	// DevicePing      frames.DevicePingData
-	// DeviceInfo      frames.DeviceInfoData
-	// RequestSettings frames.RequestSettingsData
-	// ParameterEntry  frames.ParameterEntryData
-	// ParameterRead   frames.ParameterReadData
-	// ParameterWrite  frames.ParameterWriteData
-	// Command         frames.CommandData
-	// RadioId         frames.RadioIdData
-	// MspRequest      frames.MspRequestData
-	// MspResponse     frames.MspResponseData
-	// MspWrite        frames.MspWriteData
-	// DisplayCommand  frames.DisplayCommandData
 }
 
 type CRSFTelemetry struct {

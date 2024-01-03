@@ -2,6 +2,12 @@ package crsf
 
 import "github.com/Speshl/pi_drift_wheel/crsf/frames"
 
+func (c *CRSF) GetData() CRSFData {
+	c.dataLock.RLock()
+	defer c.dataLock.RUnlock()
+	return c.data
+}
+
 func (c *CRSF) GetGps() frames.GpsData {
 	c.dataLock.RLock()
 	defer c.dataLock.RUnlock()
