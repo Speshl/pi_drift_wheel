@@ -110,7 +110,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 		}
 		//[sync] [len] [type] [payload] [crc8]
 		if AddressType(addressByte).IsValid() {
-			slog.Info("found address type", "type", AddressType(addressByte).String())
+			//slog.Info("found address type", "type", AddressType(addressByte).String())
 			//next byte should be the length of the payload
 			lengthByte, err := c.getByte(ctx, readChan)
 			if err != nil {
@@ -118,23 +118,24 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 			}
 
 			if lengthByte == 0 {
-				slog.Debug("payload has no length")
+				slog.Info("payload has no length")
 				continue
 			}
 
 			if lengthByte > 62 {
-				slog.Debug("payload length to high")
+				slog.Info("payload length to high")
 				continue
 			}
 
 			//length should be the type + payload + CRC
 			fullPayload, err := c.getBytes(ctx, readChan, int(lengthByte))
 			if err != nil {
+				slog.Info("failed getting more bytes")
 				return err
 			}
 
 			//first byte of the full payload should be the frame type
-			//slog.Info("update looking for frame", "length", int(lengthByte), "frame", fullPayload[0], "type", FrameType(fullPayload[0]))
+			slog.Info("update looking for frame", "length", int(lengthByte), "frame", fullPayload[0], "type", FrameType(fullPayload[0]))
 			switch FrameType(fullPayload[0]) {
 			case FrameTypeChannels:
 				err = c.updateChannels(fullPayload)
