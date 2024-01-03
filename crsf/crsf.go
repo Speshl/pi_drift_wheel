@@ -95,7 +95,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port, readChan chan
 		if err != nil {
 			log.Fatal(err)
 		}
-		//slog.Info("read bytes", "num", n, "bytes", buff[:n] /*PrintBytes(buff[:n])*/)
+		slog.Info("read bytes", "num", n, "bytes", buff[:n] /*PrintBytes(buff[:n])*/)
 		for i := range buff[:n] {
 			readChan <- buff[i]
 		}
@@ -110,7 +110,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 		}
 		//[sync] [len] [type] [payload] [crc8]
 		if AddressType(addressByte).IsValid() {
-			//slog.Info("found address type", "type", AddressType(addressByte).String())
+			slog.Info("found address type", "type", AddressType(addressByte).String())
 			//next byte should be the length of the payload
 			lengthByte, err := c.getByte(ctx, readChan)
 			if err != nil {
