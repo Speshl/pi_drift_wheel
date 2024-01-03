@@ -83,7 +83,7 @@ def handleCrsfPacket(ptype, data):
         print(f"Unknown 0x{ptype:02x}{PacketsTypes.LINK_STATISTICS:02x}: {packet}")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-P', '--port', default='COM4', required=False)
+parser.add_argument('-P', '--port', default='/dev/ttyACM0', required=False)
 parser.add_argument('-b', '--baud', default=921600, required=False)
 args = parser.parse_args()
 
