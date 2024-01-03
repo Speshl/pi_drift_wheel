@@ -139,7 +139,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-logTicker.C:
-				slog.Info("crsf update", "full", crsf)
+				//slog.Info("crsf update", "full", crsf)
+				fmt.Println(crsf)
 			}
 		}
 	})

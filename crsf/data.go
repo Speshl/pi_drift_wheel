@@ -41,7 +41,8 @@ func NewCRSFData() CRSFData {
 }
 
 func (d *CRSFData) String() string {
-	return fmt.Sprintf("GPS: {%s}\nVario: {%s}\nBattery: {%s}\nBarometer: {%s}\nLinkStats: {%s}\nLinkRx: {%s}\nLinkTx: {%s}\nAttitude: {%s}\nFlightMode: {%s}",
+	return fmt.Sprintf("Channels: {%s}\nGPS: {%s}\nVario: {%s}\nBattery: {%s}\nBarometer: {%s}\nLinkStats: {%s}\nLinkRx: {%s}\nLinkTx: {%s}\nAttitude: {%s}\nFlightMode: {%s}",
+		d.Channels.String(),
 		d.Gps.String(),
 		d.Vario.String(),
 		d.BatterySensor.String(),

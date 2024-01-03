@@ -37,5 +37,6 @@ func UnmarshalBatterySensor(data []byte) (BatterySensorData, error) {
 }
 
 func (d *BatterySensorData) String() string {
-	return fmt.Sprintf("Voltage: %ddv Current: %dda Used: %dmAh Remaining: %d%%", d.Voltage, d.Current, d.Used, d.Remaining)
+	voltage := int(d.Voltage) * 10
+	return fmt.Sprintf("Voltage: %dV Current: %dda Used: %dmAh Remaining: %d%%", voltage, d.Current, d.Used, d.Remaining)
 }
