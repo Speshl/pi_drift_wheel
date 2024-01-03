@@ -30,7 +30,7 @@ type CRSFOptions struct {
 func NewCRSF(path string, opts *CRSFOptions) *CRSF {
 	if opts == nil {
 		opts = &CRSFOptions{
-			BaudRate: 400000,
+			BaudRate: 921600,
 		}
 	}
 
@@ -95,7 +95,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port, readChan chan
 		if err != nil {
 			log.Fatal(err)
 		}
-		slog.Info("read bytes", "num", n, "bytes", buff[:n] /*PrintBytes(buff[:n])*/)
+		//slog.Info("read bytes", "num", n, "bytes", buff[:n] /*PrintBytes(buff[:n])*/)
 		for i := range buff[:n] {
 			readChan <- buff[i]
 		}
