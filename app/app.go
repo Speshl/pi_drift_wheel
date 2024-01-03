@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	sbus "github.com/Speshl/go-sbus"
 	"github.com/Speshl/pi_drift_wheel/config"
@@ -130,18 +131,18 @@ func (a *App) Start(ctx context.Context) (err error) {
 	// 	}
 	// })
 
-	// group.Go(func() error {
-	// 	time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-	// 	logTicker := time.NewTicker(1 * time.Second)
-	// 	for {
-	// 		select {
-	// 		case <-ctx.Done():
-	// 			return ctx.Err()
-	// 		case <-logTicker.C:
-	// 			slog.Info("crsf update", "full", crsf)
-	// 		}
-	// 	}
-	// })
+	group.Go(func() error {
+		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
+		logTicker := time.NewTicker(1 * time.Second)
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-logTicker.C:
+				slog.Info("crsf update", "full", crsf)
+			}
+		}
+	})
 
 	//kill listener
 	group.Go(func() error {
