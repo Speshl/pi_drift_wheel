@@ -133,7 +133,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 	group.Go(func() error {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-		logTicker := time.NewTicker(100 * time.Millisecond)
+		logTicker := time.NewTicker(10 * time.Millisecond)
 		for {
 			select {
 			case <-ctx.Done():
