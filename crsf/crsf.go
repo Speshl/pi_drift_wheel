@@ -135,7 +135,7 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 			}
 
 			//first byte of the full payload should be the frame type
-			//slog.Info("update looking for frame", "length", int(lengthByte), "frame", fullPayload[0], "type", FrameType(fullPayload[0]))
+			slog.Info("update looking for frame", "length", int(lengthByte), "frame", fullPayload[0], "type", FrameType(fullPayload[0]))
 			switch FrameType(fullPayload[0]) {
 			case FrameTypeChannels:
 				err = c.updateChannels(fullPayload)
