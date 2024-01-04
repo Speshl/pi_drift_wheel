@@ -140,8 +140,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 				return ctx.Err()
 			case <-logTicker.C:
 				//fmt.Println(crsf)
-				chanData := crsf.GetChannels()
-				slog.Info("channel data", "len", len(chanData.Channels), "data", chanData.String())
+				attitude := crsf.GetAttitude()
+				slog.Info("attitude data", "data", attitude.String())
 			}
 		}
 	})
