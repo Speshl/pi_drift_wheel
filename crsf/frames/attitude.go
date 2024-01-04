@@ -4,6 +4,7 @@ package frames
 import (
 	"encoding/binary"
 	"fmt"
+	"log/slog"
 )
 
 const (
@@ -18,6 +19,7 @@ type AttitudeData struct {
 }
 
 func UnmarshalAttitude(data []byte) (AttitudeData, error) {
+	slog.Info("parsing attitude", "data", data)
 	d := AttitudeData{}
 	if len(data) != AttitudeFrameLength {
 		return d, fmt.Errorf("incorrect frame length")
