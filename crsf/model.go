@@ -1,6 +1,6 @@
 package crsf
 
-//Run below command to regenerate model_enum file
+//Run below command to generate model_enum file
 //go-enum -f ./crsf/model.go
 
 /*
@@ -12,25 +12,6 @@ ENUM(
 )
 */
 type AddressType byte
-
-//unused addresses
-/*
-Broadcast = 0x00
-Usb = 0x10,
-Bluetooth = 0x12
-TbsCore = 0x80,
-Reserved1 = 0x8A,
-CurrentSensor = 0xC0,
-Gps = 0xC2,
-BlackBox = 0xC4,
-
-Reserved2 = 0xCA,
-Racetag = 0xCC,
-
-Receiver = 0xEC,
-
-ElrsLua = 0xEF
-*/
 
 /*
 ENUM(
@@ -48,21 +29,3 @@ FlightMode = 0x21
 )
 */
 type FrameType byte
-
-//unsed frametypes
-/*
-OpenTxSync = 0x10
-DevicePing = 0x28
-DeviceInfo = 0x29
-RequestSettings = 0x2A
-ParameterEntry = 0x2B
-ParameterRead = 0x2C
-ParameterWrite = 0x2D
-Command = 0x32
-RadioId = 0x3A
-MspRequest = 0x7A
-MspResponse = 0x7B
-MspWrite = 0x7C
-DisplayCommand = 0x7D
-*/
-//Unused FrameTypes

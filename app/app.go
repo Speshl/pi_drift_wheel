@@ -133,13 +133,12 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 	group.Go(func() error {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-		logTicker := time.NewTicker(1 * time.Second)
+		logTicker := time.NewTicker(100 * time.Millisecond)
 		for {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-logTicker.C:
-				//fmt.Println(crsf)
 				attitude := crsf.GetAttitude()
 				slog.Info("attitude data", "data", attitude.String())
 			}

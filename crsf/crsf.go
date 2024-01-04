@@ -118,24 +118,24 @@ func (c *CRSF) startReadParser(ctx context.Context, readChan chan byte) error {
 			}
 
 			if lengthByte == 0 {
-				slog.Info("payload has no length")
+				slog.Warn("payload has no length")
 				continue
 			}
 
 			if lengthByte > 62 {
-				slog.Info("payload length to high")
+				slog.Warn("payload length to high")
 				continue
 			}
 
 			//length should be the type + payload + CRC
 			fullPayload, err := c.getBytes(ctx, readChan, int(lengthByte))
 			if err != nil {
-				slog.Info("failed getting more bytes")
+				slog.Error("failed getting more bytes")
 				return err
 			}
 
 			//first byte of the full payload should be the frame type
-			slog.Info("update looking for frame", "length", int(lengthByte), "frame", fullPayload[0], "type", FrameType(fullPayload[0]))
+			//slog.Info("update looking for frame", "length", int(lengthByte), "frame", fullPayload[0], "type", FrameType(fullPayload[0]))
 			switch FrameType(fullPayload[0]) {
 			case FrameTypeChannels:
 				err = c.updateChannels(fullPayload)

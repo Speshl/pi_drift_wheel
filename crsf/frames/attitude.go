@@ -4,7 +4,6 @@ package frames
 import (
 	"encoding/binary"
 	"fmt"
-	"log/slog"
 )
 
 const (
@@ -19,16 +18,15 @@ type AttitudeData struct {
 }
 
 func UnmarshalAttitude(data []byte) (AttitudeData, error) {
-	slog.Info("parsing attitude", "data", data)
 	d := AttitudeData{}
 	if len(data) != AttitudeFrameLength {
 		return d, fmt.Errorf("incorrect frame length")
 	}
 	//TODO check correct type?
 
-	d.Pitch = int16(binary.LittleEndian.Uint16(data[1:3]))
-	d.Roll = int16(binary.LittleEndian.Uint16(data[3:5]))
-	d.Yaw = int16(binary.LittleEndian.Uint16(data[5:7]))
+	d.Pitch = int16(binary.BigEndian.Uint16(data[1:3]))
+	d.Roll = int16(binary.BigEndian.Uint16(data[3:5]))
+	d.Yaw = int16(binary.BigEndian.Uint16(data[5:7]))
 
 	//TODO CRC byte?
 	return d, nil
