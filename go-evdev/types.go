@@ -140,11 +140,11 @@ type Trigger struct {
 }
 
 type EffectType struct {
-	Constant  Constant
-	Ramp      Ramp
-	Periodic  Periodic
-	Condition Condition
-	Rumble    Rumble
+	Constant Constant //10 bytes
+	// Ramp      Ramp //8 bytes
+	// Periodic  Periodic //20 bytes
+	// Condition [2]Condition //one for each axis 12 (24)
+	// Rumble    Rumble //4 bytes
 }
 
 type Effect struct {
