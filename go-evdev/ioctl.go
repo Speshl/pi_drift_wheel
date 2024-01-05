@@ -47,6 +47,7 @@ func doIoctl(fd uintptr, code uint32, ptr unsafe.Pointer) error {
 }
 
 func doIoctlWithReturn(fd uintptr, code uint32, ptr unsafe.Pointer) error {
+	slog.Info("attempting syscall")
 	r1, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(code), uintptr(ptr))
 	if errno != 0 {
 		return errors.New(errno.Error())
