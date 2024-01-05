@@ -86,14 +86,14 @@ type UinputUserDevice struct {
 }
 
 // Used to build up force feedback effects
-type Envelope struct {
+type Envelope struct { // 8 bytes
 	AttackLength uint16
 	AttackLevel  uint16
 	FadeLength   uint16
 	FadeLevel    uint16
 }
 
-type Constant struct {
+type Constant struct { //10 bytes, padded to 24
 	Level    int16
 	Envelope Envelope
 
@@ -135,25 +135,25 @@ type Ramp struct {
 	Envelope Envelope
 }
 
-type Replay struct {
+type Replay struct { //4 bytes
 	Length uint16
 	Delay  uint16
 }
 
-type Trigger struct {
+type Trigger struct { //4 bytes
 	Button   uint16
 	Interval uint16
 }
 
 type EffectType struct {
-	Constant Constant //10 bytes
+	Constant Constant //10 bytes, padded to 24
 	// Ramp      Ramp //8 bytes
 	// Periodic  Periodic //20 bytes
 	// Condition [2]Condition //one for each axis 12 (24)
 	// Rumble    Rumble //4 bytes
 }
 
-type Effect struct {
+type Effect struct { //38 bytes
 	Type       uint16
 	Id         int16
 	Direction  uint16
