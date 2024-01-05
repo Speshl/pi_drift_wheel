@@ -9,11 +9,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	sbus "github.com/Speshl/go-sbus"
 	"github.com/Speshl/pi_drift_wheel/config"
-	"github.com/Speshl/pi_drift_wheel/crsf"
+	"github.com/Speshl/pi_drift_wheel/controllers"
 	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
 )
@@ -33,15 +32,15 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group, ctx := errgroup.WithContext(ctx)
 
 	//Start Getting controller inputs
-	// controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg, controllers.WheelMixer, controllers.ControllerOptions{UseHPattern: true})
-	// err = controllerManager.LoadControllers()
-	// if err != nil {
-	// 	return fmt.Errorf("failed loading controllers: %w", err)
-	// }
-	// group.Go(func() error {
-	// 	defer cancel()
-	// 	return controllerManager.Start(ctx)
-	// })
+	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg, controllers.WheelMixer, controllers.ControllerOptions{UseHPattern: true})
+	err = controllerManager.LoadControllers()
+	if err != nil {
+		return fmt.Errorf("failed loading controllers: %w", err)
+	}
+	group.Go(func() error {
+		defer cancel()
+		return controllerManager.Start(ctx)
+	})
 
 	//Start Sbus read/write
 	// sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
@@ -55,9 +54,10 @@ func (a *App) Start(ctx context.Context) (err error) {
 	// 		},
 	// 	)
 	// 	if err != nil { //TODO: Remove when more channels supported
-	// 		if i != 0 {
-	// 			continue
+	// 		if !errors.Is(err, sbus.ErrNoPath) {
+	// 			slog.Error("failed starting sbus conn", "index", i, "error", err)
 	// 		}
+	// 		continue
 	// 	}
 
 	// 	sBusConns = append(sBusConns, sBus)
@@ -73,21 +73,21 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 	//Start CRSF read/write
 	//dmesg | grep "tty"
-	crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
-		BaudRate: 921600,
-	})
-	group.Go(func() error {
-		return crsf.Start(ctx)
-	})
+	// crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
+	// 	BaudRate: 921600,
+	// })
+	// group.Go(func() error {
+	// 	return crsf.Start(ctx)
+	// })
 
 	// Process data
 	// group.Go(func() error {
 	// 	time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-
 	// 	framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-	// 	//mergeTicker := time.NewTicker(6 * time.Millisecond)
-	// 	mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
+	// 	mergeTicker := time.NewTicker(6 * time.Millisecond)
+	// 	//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 	// 	logTicker := time.NewTicker(1 * time.Second)
+	// 	ffbackTicker := time.NewTicker(12 * time.Millisecond)
 	// 	mergedFrame := sbus.NewFrame()
 	// 	for {
 	// 		select {
@@ -115,35 +115,23 @@ func (a *App) Start(ctx context.Context) (err error) {
 	// 				if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
 	// 					framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
 	// 				} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
-	// 					slog.Debug("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
+	// 					slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
 	// 				}
 	// 			}
-
 	// 			mergedFrame = MergeFrames(framesToMerge)
-
 	// 			for i := range sBusConns {
 	// 				if sBusConns[i].IsTransmitting() {
 	// 					sBusConns[i].SetWriteFrame(mergedFrame)
 	// 				}
 	// 			}
 	// 			slog.Debug("frame sent", "frame", mergedFrame)
+	// 		case <-ffbackTicker.C:
+	// 			attitude := crsf.GetAttitude()
+	// 			yaw := attitude.YawDegree()
+	// 			slog.Info("yaw degree", "value", yaw)
 	// 		}
 	// 	}
 	// })
-
-	group.Go(func() error {
-		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-		logTicker := time.NewTicker(10 * time.Millisecond)
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-logTicker.C:
-				attitude := crsf.GetAttitude()
-				slog.Info("attitude data", "data", attitude.String())
-			}
-		}
-	})
 
 	//kill listener
 	group.Go(func() error {

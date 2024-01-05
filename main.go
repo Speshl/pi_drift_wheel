@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	"github.com/Speshl/pi_drift_wheel/app"
 	"github.com/Speshl/pi_drift_wheel/config"
@@ -15,8 +15,8 @@ func main() {
 
 	err := app.Start(context.Background())
 	if err != nil {
-		log.Printf("client shutdown with error: %s", err.Error())
+		slog.Error("client shutdown with error", "error", err.Error())
 	} else {
-		log.Println("client shutdown successfully")
+		slog.Info("client shutdown successfully")
 	}
 }

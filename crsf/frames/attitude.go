@@ -33,9 +33,25 @@ func UnmarshalAttitude(data []byte) (AttitudeData, error) {
 }
 
 func (d *AttitudeData) String() string {
-	pitch := (float32(d.Pitch) / 10000) * (180 / 3.14159)
-	roll := (float32(d.Roll) / 10000) * (180 / 3.14159)
-	yaw := (float32(d.Yaw) / 10000) * (180 / 3.14159)
+	pitch := getAsDegree(d.Pitch)
+	roll := getAsDegree(d.Roll)
+	yaw := getAsDegree(d.Yaw)
 
 	return fmt.Sprintf("Pitch: %.2f Roll: %.2f Yaw: %.2f", pitch, roll, yaw)
+}
+
+func (d *AttitudeData) PitchDegree() float64 {
+	return getAsDegree(d.Pitch)
+}
+
+func (d *AttitudeData) RollDegree() float64 {
+	return getAsDegree(d.Roll)
+}
+
+func (d *AttitudeData) YawDegree() float64 {
+	return getAsDegree(d.Yaw)
+}
+
+func getAsDegree(value int16) float64 {
+	return (float64(value) / 10000) * (180 / 3.14159)
 }

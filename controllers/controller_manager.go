@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	MaxControllers = 8
+	MaxControllers = 128
 )
 
 type Input struct {
@@ -117,7 +117,7 @@ func (c *ControllerManager) LoadControllers() error {
 		}
 
 		controller := NewController(inputPath, device, keyMap)
-		//controller.ShowCaps()
+		controller.ShowCaps()
 		c.Controllers = append(c.Controllers, controller)
 	}
 	return nil
