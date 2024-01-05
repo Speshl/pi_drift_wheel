@@ -3,7 +3,6 @@ package evdev
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -42,25 +41,6 @@ func doIoctl(fd uintptr, code uint32, ptr unsafe.Pointer) error {
 	if errno != 0 {
 		return errors.New(errno.Error())
 	}
-
-	return nil
-}
-
-func doIoctlWithReturn(fd uintptr, code uint32, ptr unsafe.Pointer) error {
-	slog.Info("attempting syscall")
-	r1, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(code), uintptr(ptr))
-	if errno != 0 {
-		slog.Error("got syscall error", "error", errno.Error())
-		return errors.New(errno.Error())
-	}
-
-	r1Value := 0
-	r1Pointer := unsafe.Pointer(r1)
-	if r1Pointer != nil {
-		r1Value = *((*int)(r1Pointer))
-	}
-
-	slog.Info("ioctl return", "r1", r1Value)
 
 	return nil
 }
@@ -212,8 +192,7 @@ func ioctlEVIOCSABS(fd uintptr, abs int, info AbsInfo) error {
 // ForceFeedback
 func ioctlEVIOCSFF(fd uintptr, effect Effect) error {
 	code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, unsafe.Sizeof(effect))
-	slog.Info("effect size", "size", unsafe.Sizeof(effect), "constant_size", unsafe.Sizeof(effect.EffectType.Constant), "envelope_size", unsafe.Sizeof(effect.EffectType.Constant.Envelope))
-	return doIoctlWithReturn(fd, code, unsafe.Pointer(&effect))
+	return doIoctl(fd, code, unsafe.Pointer(&effect))
 }
 
 func ioctlEVIOCGRAB(fd uintptr, p int32) error {
