@@ -38,7 +38,7 @@ func ioctlMakeCode(dir, typ, nr int, size uintptr) uint32 {
 }
 
 func doIoctl(fd uintptr, code uint32, ptr unsafe.Pointer) error {
-	r1, r2, errno := syscall.SyscallN(syscall.SYS_IOCTL, fd, uintptr(code), uintptr(ptr))
+	r1, r2, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(code), uintptr(ptr))
 	if errno != 0 {
 		return errors.New(errno.Error())
 	}
