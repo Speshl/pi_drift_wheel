@@ -144,6 +144,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-logTicker.C:
+				slog.Info("sending FF")
 				err := controllerManager.SetForceFeedback()
 				if err != nil {
 					return err

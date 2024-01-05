@@ -38,6 +38,15 @@ func ioctlMakeCode(dir, typ, nr int, size uintptr) uint32 {
 }
 
 func doIoctl(fd uintptr, code uint32, ptr unsafe.Pointer) error {
+	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(code), uintptr(ptr))
+	if errno != 0 {
+		return errors.New(errno.Error())
+	}
+
+	return nil
+}
+
+func doIoctlWithReturn(fd uintptr, code uint32, ptr unsafe.Pointer) error {
 	r1, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(code), uintptr(ptr))
 	if errno != 0 {
 		return errors.New(errno.Error())
@@ -201,7 +210,7 @@ func ioctlEVIOCSABS(fd uintptr, abs int, info AbsInfo) error {
 // ForceFeedback
 func ioctlEVIOCSFF(fd uintptr, effect Effect) error {
 	code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, unsafe.Sizeof(effect))
-	return doIoctl(fd, code, unsafe.Pointer(&effect))
+	return doIoctlWithReturn(fd, code, unsafe.Pointer(&effect))
 }
 
 func ioctlEVIOCGRAB(fd uintptr, p int32) error {
