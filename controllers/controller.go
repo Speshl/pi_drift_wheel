@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/holoplot/go-evdev"
+	"github.com/Speshl/pi_drift_wheel/go-evdev"
 )
 
 type Mapping struct {
@@ -141,6 +141,34 @@ func (c *Controller) ShowCaps() {
 			}
 		}
 	}
+}
+
+func (c *Controller) SetForceFeedback() error {
+	effect := evdev.Effect{
+		Type:      evdev.FF_CONSTANT,
+		Id:        -1,
+		Direction: 20000,
+		Trigger: evdev.Trigger{
+			Button:   0,
+			Interval: 0,
+		},
+		Replay: evdev.Replay{
+			Length: 0,
+			Delay:  0,
+		},
+		EffectType: evdev.EffectType{
+			Constant: evdev.Constant{
+				Level: int16(-1 * (65535 / 2)), //force is -1
+				Envelope: evdev.Envelope{
+					AttackLength: 0,
+					AttackLevel:  0,
+					FadeLength:   0,
+					FadeLevel:    0,
+				},
+			},
+		},
+	}
+	return c.device.UploadEffect(effect)
 }
 
 func MapToRangeWithDeadzoneMid(value, min, max, minReturn, maxReturn, deadzone int) int {

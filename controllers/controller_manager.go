@@ -6,7 +6,9 @@ import (
 	"log/slog"
 
 	"github.com/Speshl/pi_drift_wheel/config"
-	"github.com/holoplot/go-evdev"
+	"github.com/Speshl/pi_drift_wheel/go-evdev"
+
+	//"github.com/holoplot/go-evdev"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -140,4 +142,8 @@ func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
 	default:
 		return nil, fmt.Errorf("no keymap found")
 	}
+}
+
+func (c *ControllerManager) SetForceFeedback() error {
+	return c.Controllers[0].SetForceFeedback()
 }
