@@ -96,6 +96,8 @@ type Envelope struct { // 8 bytes
 type Constant struct { //10 bytes, padded to 24
 	Level    int16
 	Envelope Envelope
+
+	unused [14]byte
 }
 
 type Rumble struct {
