@@ -14,7 +14,7 @@ envelope = ff.Envelope(0, 0, 0, 0)  # Attack time, Attack level, Fade time, Fade
 constant = ff.Constant(int(force * (65535 / 2)), envelope)
 
 effect = ff.Effect(
-  ecodes.FF_CONSTANT, 0, 20000, #16384
+  ecodes.FF_CONSTANT, -1, 20000, #16384
   ff.Trigger(0, 0),
   ff.Replay(0, 0),
   ff.EffectType(ff_constant_effect=constant)
