@@ -45,6 +45,15 @@ func doIoctl(fd uintptr, code uint32, ptr unsafe.Pointer) error {
 	return nil
 }
 
+func doIoctl2(fd uintptr, code uint32, ptr unsafe.Pointer) error {
+	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(0x80), uintptr(ptr))
+	if errno != 0 {
+		return errors.New(errno.Error())
+	}
+
+	return nil
+}
+
 func ioctlEVIOCGVERSION(fd uintptr) (int32, error) {
 	version := int32(0)
 	code := ioctlMakeCode(ioctlDirRead, 'E', 0x01, unsafe.Sizeof(version))
@@ -192,7 +201,7 @@ func ioctlEVIOCSABS(fd uintptr, abs int, info AbsInfo) error {
 // ForceFeedback
 func ioctlEVIOCSFF(fd uintptr, effect Effect) error {
 	code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, unsafe.Sizeof(effect))
-	return doIoctl(fd, code, unsafe.Pointer(&effect))
+	return doIoctl2(fd, code, unsafe.Pointer(&effect))
 }
 
 func ioctlEVIOCGRAB(fd uintptr, p int32) error {
@@ -209,7 +218,7 @@ func ioctlEVIOCREVOKE(fd uintptr) error {
 	return doIoctl(fd, code, nil)
 }
 
-func ioctlUISETEVBIT(fd uintptr, ev uintptr) error {
+func ioctlUISETEVBIT(fd uintptr, ev uintptr) error { //example
 	var p int32
 	code := ioctlMakeCode(ioctlDirWrite, 'U', 100, unsafe.Sizeof(p))
 	return doIoctl(fd, code, unsafe.Pointer(ev))
