@@ -46,3 +46,4 @@ print(f"effect id {effect_id}")
 
 repeat_count = 1
 dev.write(ecodes.EV_FF, effect_id, repeat_count)
+time.sleep(2)
