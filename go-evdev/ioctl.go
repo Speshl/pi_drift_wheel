@@ -212,6 +212,7 @@ func ioctlEVIOCSABS(fd uintptr, abs int, info AbsInfo) error {
 // ForceFeedback
 func ioctlEVIOCSFF(fd uintptr, effect Effect) error {
 	code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, unsafe.Sizeof(effect))
+	slog.Info("effect size", "size", unsafe.Sizeof(effect))
 	return doIoctlWithReturn(fd, code, unsafe.Pointer(&effect))
 }
 
