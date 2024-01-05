@@ -20,3 +20,5 @@ func main() {
 		slog.Info("client shutdown successfully")
 	}
 }
+
+//https://www.kernel.org/doc/html/v4.12/input/ff.html
