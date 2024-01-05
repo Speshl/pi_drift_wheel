@@ -201,7 +201,7 @@ func ioctlEVIOCSABS(fd uintptr, abs int, info AbsInfo) error {
 // ForceFeedback
 func ioctlEVIOCSFF(fd uintptr, effect Effect) error {
 	code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, 38)
-	return doIoctl2(fd, code, unsafe.Pointer(&effect))
+	return doIoctl2(fd, code, nil)
 }
 
 func ioctlEVIOCGRAB(fd uintptr, p int32) error {
