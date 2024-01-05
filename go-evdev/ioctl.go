@@ -38,7 +38,7 @@ func ioctlMakeCode(dir, typ, nr int, size uintptr) uint32 {
 }
 
 func doIoctl(fd uintptr, code uint32, ptr unsafe.Pointer) error {
-	r1, r2, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(code), uintptr(ptr))
+	r1, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(code), uintptr(ptr))
 	if errno != 0 {
 		return errors.New(errno.Error())
 	}
@@ -49,13 +49,7 @@ func doIoctl(fd uintptr, code uint32, ptr unsafe.Pointer) error {
 		r1Value = *((*int)(r1Pointer))
 	}
 
-	r2Value := 0
-	r2Pointer := unsafe.Pointer(r2)
-	if r2Pointer != nil {
-		r1Value = *((*int)(r2Pointer))
-	}
-
-	slog.Info("ioctl return", "r1", r1Value, "r2", r2Value)
+	slog.Info("ioctl return", "r1", r1Value)
 
 	return nil
 }
