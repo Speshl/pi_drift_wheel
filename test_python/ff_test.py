@@ -1,5 +1,6 @@
 from evdev import ecodes, InputDevice, ff, list_devices
 import time
+import sys
 
 # Find first EV_FF capable event device (that we have permissions to use).
 dev = None
@@ -42,7 +43,7 @@ effect = ff.Effect(
 
 effect_id = dev.upload_effect(effect)
 
-print(f"effect id {effect_id}")
+print(f"effect id {effect_id} with effect size {sys.getsizeof(effect)}")
 
 repeat_count = 1
 #dev.write(ecodes.EV_FF, effect_id, repeat_count)
