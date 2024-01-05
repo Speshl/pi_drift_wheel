@@ -147,6 +147,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				slog.Info("sending FF")
 				err := controllerManager.SetForceFeedback()
 				if err != nil {
+					slog.Error("ff error", "error", err)
 					return err
 				}
 			}
@@ -173,7 +174,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	err = group.Wait()
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			slog.Info("app context was cancelled")
+			slog.Info("app context was cancelled", "error", err)
 			return nil
 		} else {
 			return fmt.Errorf("app stopping due to error - %w", err)
