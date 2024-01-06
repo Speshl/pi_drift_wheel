@@ -27,16 +27,19 @@ int upload_effect(uintptr_t fd,  void *effect_data){
         return -2;
     }
 
-    // struct input_event play_event = {
-    //     .type = EV_FF,
-    //     .code = effect.id,
-    //     .value = 1, // 1 for start playing, 0 for stop
-    // };
+    struct input_event event;
+    struct timeval tval;
+    //memset(&event, 0, sizeof(event));
+    gettimeofday(&tval, 0);
+    event.input_event_usec = tval.tv_usec;
+    event.input_event_sec = tval.tv_sec;
+    event.type = 0x15;
+    event.code = effect.id;
+    event.value = 1;
 
-    // error = write(fd, &play_event, sizeof(play_event));
-    // if (error != 0) {
-    //     return -3;
-    // }
+    if (write(fd, &event, sizeof(event)) != sizeof(event)) {
+        return -3;
+    }
 
     return effect.id;
 }
