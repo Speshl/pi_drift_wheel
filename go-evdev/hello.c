@@ -24,7 +24,7 @@ int upload_effect(uintptr_t fd,  void *effect_data){
     effect.u.constant.level = 0x8000; // Example: Constant force level (signed 16-bit)
     int error = ioctl(fd, EVIOCSFF, &effect);
     if(error != 0){
-        return -1;
+        return -2;
     }
 
     struct input_event play_event = {
@@ -35,7 +35,7 @@ int upload_effect(uintptr_t fd,  void *effect_data){
 
     error = write(fd, &play_event, sizeof(play_event));
     if (error != 0) {
-        return -1;
+        return -3;
     }
 
     return effect.id;
