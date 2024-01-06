@@ -6,7 +6,7 @@ void Hello(){
     printf("Hello world\n");
 }
 
-int upload_effect(uintptr_t fd,  void *data){
+int upload_effect(uintptr_t fd,  void *effect_data){
     struct ff_effect effect = {};
     memmove(&effect, effect_data, sizeof(struct ff_effect));
     return ioctl(fd, EVIOCSFF, &effect);
