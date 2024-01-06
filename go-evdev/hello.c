@@ -21,11 +21,23 @@ int upload_effect(uintptr_t fd,  void *effect_data){
 
     // Parameters specific to the constant effect
     effect.u.constant.level = 0x8000; // Example: Constant force level (signed 16-bit)
-    int retId = ioctl(fd, EVIOCSFF, &effect);
-    if(retId == 0) {
-        retId = -2;
+    int error = ioctl(fd, EVIOCSFF, &effect);
+    if(error != 0){
+        return -1;
     }
-    return retId;
+
+    struct input_event play_event = {
+        .type = EV_FF,
+        .code = effect.id,
+        .value = 1, // 1 for start playing, 0 for stop
+    };
+
+    ret = write(fd, &play_event, sizeof(play_event));
+    if (ret != 0) {
+        return -1;
+    }
+
+    return effect.id;
 }
 
 /*
