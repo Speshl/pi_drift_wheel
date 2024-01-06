@@ -274,5 +274,5 @@ func (d *InputDevice) UploadEffect(effect Effect) error {
 		return err
 	}
 	slog.Info("c output", "return", val)
-	return ioctlEVIOCSFF(d.file.Fd(), effect)
+	return nil
 }
