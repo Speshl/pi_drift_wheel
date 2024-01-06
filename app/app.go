@@ -139,13 +139,15 @@ func (a *App) Start(ctx context.Context) (err error) {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(1 * time.Second)
+		dir := 1
 		for {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-logTicker.C:
 				slog.Info("sending FF")
-				err := controllerManager.SetForceFeedback()
+				dir = dir * -1
+				err := controllerManager.SetForceFeedback(int16(dir * (65535 / 2)))
 				if err != nil {
 					slog.Error("ff error", "error", err)
 					return err

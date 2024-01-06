@@ -143,33 +143,8 @@ func (c *Controller) ShowCaps() {
 	}
 }
 
-func (c *Controller) SetForceFeedback() error {
-	effect := evdev.Effect{
-		Type:      evdev.FF_CONSTANT,
-		Id:        -1,
-		Direction: 20000,
-		Trigger: evdev.Trigger{
-			Button:   0,
-			Interval: 0,
-		},
-		Replay: evdev.Replay{
-			Length: 0,
-			Delay:  0,
-		},
-		EffectType: evdev.EffectType{
-			Constant: evdev.Constant{
-				Level: int16(-1 * (65535 / 2)), //force is -1
-				Envelope: evdev.Envelope{
-					AttackLength: 0,
-					AttackLevel:  0,
-					FadeLength:   0,
-					FadeLevel:    0,
-				},
-			},
-		},
-	}
-
-	err := c.device.UploadEffect(effect)
+func (c *Controller) SetForceFeedback(level int16) error {
+	err := c.device.UploadEffect(level)
 	if err != nil {
 		return err
 	}

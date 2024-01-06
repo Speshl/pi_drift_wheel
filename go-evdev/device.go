@@ -11,8 +11,6 @@ import (
 	"log/slog"
 	"os"
 	"syscall"
-	"time"
-	"unsafe"
 )
 
 // InputDevice represent a Linux kernel input device in userspace.
@@ -269,26 +267,26 @@ func (d *InputDevice) WriteOne(event *InputEvent) error {
 }
 
 // TESTING forcefeedback
-func (d *InputDevice) UploadEffect(effect Effect) error {
-	val, err := C.upload_effect(C.uintptr_t(d.file.Fd()), unsafe.Pointer(&effect))
+func (d *InputDevice) UploadEffect(level int16) error {
+	val, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16(level))
 	if err != nil {
 		return err
 	}
 
-	now := time.Now()
-	seconds := now.Unix()
-	microseconds := now.Nanosecond() / 1000
-	timeVal := syscall.Timeval{
-		Sec:  int64(seconds),
-		Usec: int64(microseconds),
-	}
+	// now := time.Now()
+	// seconds := now.Unix()
+	// microseconds := now.Nanosecond() / 1000
+	// timeVal := syscall.Timeval{
+	// 	Sec:  int64(seconds),
+	// 	Usec: int64(microseconds),
+	// }
 
-	err = d.WriteOne(&InputEvent{
-		Time:  timeVal,
-		Type:  EV_FF,
-		Code:  EvCode(val),
-		Value: int32(val),
-	})
+	// err = d.WriteOne(&InputEvent{
+	// 	Time:  timeVal,
+	// 	Type:  EV_FF,
+	// 	Code:  EvCode(val),
+	// 	Value: int32(val),
+	// })
 	slog.Info("c output", "return", val, "error", err)
 	return err
 }

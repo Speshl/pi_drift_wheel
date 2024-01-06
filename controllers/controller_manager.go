@@ -144,8 +144,8 @@ func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
 	}
 }
 
-func (c *ControllerManager) SetForceFeedback() error {
-	err := c.Controllers[0].SetForceFeedback()
+func (c *ControllerManager) SetForceFeedback(level int16) error {
+	err := c.Controllers[0].SetForceFeedback(level)
 	if err != nil {
 		return err
 	}
