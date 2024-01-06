@@ -164,7 +164,7 @@ func (c *ControllerManager) SetForceFeedback() error {
 		Time:  timeVal,
 		Type:  evdev.EV_FF,
 		Code:  0,
-		Value: 0,
+		Value: 1,
 	})
 
 	return err
