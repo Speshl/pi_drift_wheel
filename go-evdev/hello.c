@@ -25,8 +25,7 @@ int upload_effect(uintptr_t fd,  void *effect_data){
     if(retId == 0) {
         retId = -2;
     }
-
-    return retId
+    return retId;
 }
 
 /*
