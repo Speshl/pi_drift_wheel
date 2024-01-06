@@ -33,7 +33,7 @@ int upload_effect(uintptr_t fd,  void *effect_data){
     };
 
     error = write(fd, &play_event, sizeof(play_event));
-    if (ret != 0) {
+    if (error != 0) {
         return -1;
     }
 
