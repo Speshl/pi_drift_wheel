@@ -269,7 +269,7 @@ func (d *InputDevice) WriteOne(event *InputEvent) error {
 
 // TESTING forcefeedback
 func (d *InputDevice) UploadEffect(effect Effect) error {
-	val, err := C.upload_effect(C.uintptr_t(fd), unsafe.Pointer(&effect))
+	val, err := C.upload_effect(C.uintptr_t(d.file.Fd()), unsafe.Pointer(&effect))
 	if err != nil {
 		return err
 	}
