@@ -27,16 +27,16 @@ int upload_effect(uintptr_t fd,  void *effect_data){
         return -2;
     }
 
-    struct input_event play_event = {
-        .type = EV_FF,
-        .code = effect.id,
-        .value = 1, // 1 for start playing, 0 for stop
-    };
+    // struct input_event play_event = {
+    //     .type = EV_FF,
+    //     .code = effect.id,
+    //     .value = 1, // 1 for start playing, 0 for stop
+    // };
 
-    error = write(fd, &play_event, sizeof(play_event));
-    if (error != 0) {
-        return -3;
-    }
+    // error = write(fd, &play_event, sizeof(play_event));
+    // if (error != 0) {
+    //     return -3;
+    // }
 
     return effect.id;
 }

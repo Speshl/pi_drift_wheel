@@ -1,14 +1,8 @@
 package evdev
 
-/*
-  #include "hello.c"
-*/
-import "C"
-
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -206,10 +200,10 @@ func ioctlEVIOCSABS(fd uintptr, abs int, info AbsInfo) error {
 
 // ForceFeedback
 func ioctlEVIOCSFF(fd uintptr, effect Effect) error {
-	// code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, 38)
-	// return doIoctl2(fd, code, nil)
-	val, err := C.upload_effect(C.uintptr_t(fd), unsafe.Pointer(&effect))
-	slog.Info("c output", "return", val)
+	code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, 38)
+	return doIoctl2(fd, code, nil)
+	// val, err := C.upload_effect(C.uintptr_t(fd), unsafe.Pointer(&effect))
+	// slog.Info("c output", "return", val)
 	return err
 }
 

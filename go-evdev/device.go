@@ -1,10 +1,17 @@
 package evdev
 
+/*
+  #include "hello.c"
+*/
+import "C"
+
 import (
 	"encoding/binary"
 	"fmt"
+	"log/slog"
 	"os"
 	"syscall"
+	"unsafe"
 )
 
 // InputDevice represent a Linux kernel input device in userspace.
@@ -262,5 +269,10 @@ func (d *InputDevice) WriteOne(event *InputEvent) error {
 
 // TESTING forcefeedback
 func (d *InputDevice) UploadEffect(effect Effect) error {
+	val, err := C.upload_effect(C.uintptr_t(fd), unsafe.Pointer(&effect))
+	if err != nil {
+		return err
+	}
+	slog.Info("c output", "return", val)
 	return ioctlEVIOCSFF(d.file.Fd(), effect)
 }

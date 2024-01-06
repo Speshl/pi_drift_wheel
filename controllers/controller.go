@@ -168,7 +168,13 @@ func (c *Controller) SetForceFeedback() error {
 			},
 		},
 	}
-	return c.device.UploadEffect(effect)
+
+	id, err := c.device.UploadEffect(effect)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func MapToRangeWithDeadzoneMid(value, min, max, minReturn, maxReturn, deadzone int) int {
