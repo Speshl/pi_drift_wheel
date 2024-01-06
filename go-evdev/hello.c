@@ -10,18 +10,18 @@ void Hello(){
 
 int upload_effect(uintptr_t fd,  void *effect_data){
     struct ff_effect effect = {};
-    //memmove(&effect, effect_data, sizeof(struct ff_effect));
+    memmove(&effect, effect_data, sizeof(struct ff_effect));
 
-    effect.type = FF_CONSTANT;
-    effect.id = -1;           // Unique ID for the effect (use -1 for auto-assignment)
-    effect.direction = 20000;     // Direction of the effect (0 for omni-directional)
-    effect.trigger.button = 0; // Button that triggers the effect (0 for no button)
-    effect.trigger.interval = 0; // Interval between triggers (0 for continuous)
-    effect.replay.length = 0;  // Duration of the effect in milliseconds
-    effect.replay.delay = 0;     // Delay before replaying the effect (0 for no delay)
+    // effect.type = FF_CONSTANT;
+    // effect.id = -1;           // Unique ID for the effect (use -1 for auto-assignment)
+    // effect.direction = 20000;     // Direction of the effect (0 for omni-directional)
+    // effect.trigger.button = 0; // Button that triggers the effect (0 for no button)
+    // effect.trigger.interval = 0; // Interval between triggers (0 for continuous)
+    // effect.replay.length = 0;  // Duration of the effect in milliseconds
+    // effect.replay.delay = 0;     // Delay before replaying the effect (0 for no delay)
 
-    // Parameters specific to the constant effect
-    effect.u.constant.level = -32767; // Example: Constant force level (signed 16-bit)
+    // // Parameters specific to the constant effect
+    // effect.u.constant.level = -32767; // Example: Constant force level (signed 16-bit)
     int error = ioctl(fd, EVIOCSFF, &effect);
     if(error != 0){
         return -2;
