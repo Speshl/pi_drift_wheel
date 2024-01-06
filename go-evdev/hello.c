@@ -6,8 +6,10 @@ void Hello(){
     printf("Hello world\n");
 }
 
-uint32_t upload_effect(int fd,  uint8_t *data){
+int upload_effect(uintptr_t fd,  void *data){
     struct ff_effect effect = {};
+    memmove(&effect, effect_data, sizeof(struct ff_effect));
+    return ioctl(fd, EVIOCSFF, &effect);
 }
 
 /*
