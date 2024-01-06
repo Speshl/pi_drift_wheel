@@ -19,6 +19,7 @@ import (
 type InputDevice struct {
 	file          *os.File
 	driverVersion int32
+	firstFF       bool
 }
 
 // Open creates a new InputDevice from the given path. Returns an error if
@@ -268,9 +269,13 @@ func (d *InputDevice) WriteOne(event *InputEvent) error {
 
 // TESTING forcefeedback
 func (d *InputDevice) UploadEffect(level int16) error {
-	val, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16_t(level))
+	val, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16_t(level), C.bool(d.firstFF))
 	if err != nil {
 		return err
+	}
+
+	if !d.firstFF {
+		d.firstFF = true
 	}
 
 	// now := time.Now()

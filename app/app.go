@@ -138,7 +138,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group.Go(func() error {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-		logTicker := time.NewTicker(1 * time.Second)
+		logTicker := time.NewTicker(5 * time.Second)
 		dir := 1
 		for {
 			select {

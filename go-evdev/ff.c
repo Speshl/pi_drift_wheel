@@ -8,11 +8,16 @@ void Hello(){
     printf("Hello world\n");
 }
 
-int upload_effect(uintptr_t fd,  int16_t level){
+int upload_effect(uintptr_t fd,  int16_t level, bool first){
     struct ff_effect effect = {};
 
     effect.type = FF_CONSTANT;
-    effect.id = -1;           // Unique ID for the effect (use -1 for auto-assignment)
+    if(first){
+        effect.id = -1;           // Unique ID for the effect (use -1 for auto-assignment)
+    }else{
+        effect.id = 0;
+    }
+   
     effect.direction = 20000;     // Direction of the effect (0 for omni-directional)
     effect.trigger.button = 0; // Button that triggers the effect (0 for no button)
     effect.trigger.interval = 0; // Interval between triggers (0 for continuous)
