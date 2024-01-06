@@ -1,7 +1,7 @@
 package evdev
 
 /*
-  #include "hello.c"
+  #include "ff.c"
 */
 import "C"
 

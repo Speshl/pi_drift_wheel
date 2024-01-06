@@ -10,8 +10,7 @@ void Hello(){
 
 int upload_effect(uintptr_t fd,  int level){
     struct ff_effect effect = {};
-    memmove(&effect, effect_data, sizeof(struct ff_effect));
-
+    
     effect.type = FF_CONSTANT;
     effect.id = -1;           // Unique ID for the effect (use -1 for auto-assignment)
     effect.direction = 20000;     // Direction of the effect (0 for omni-directional)
