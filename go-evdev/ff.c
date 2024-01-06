@@ -8,9 +8,9 @@ void Hello(){
     printf("Hello world\n");
 }
 
-int upload_effect(uintptr_t fd,  int level){
+int upload_effect(uintptr_t fd,  int16_t level){
     struct ff_effect effect = {};
-    
+
     effect.type = FF_CONSTANT;
     effect.id = -1;           // Unique ID for the effect (use -1 for auto-assignment)
     effect.direction = 20000;     // Direction of the effect (0 for omni-directional)
