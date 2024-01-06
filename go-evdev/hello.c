@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <unistd.h>  // Include for the write() function
 #include <linux/input.h>
 
 void Hello(){
