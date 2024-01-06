@@ -1,4 +1,3 @@
-//hello.c
 #include <stdio.h>
 
 void Hello(){
