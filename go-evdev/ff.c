@@ -45,7 +45,6 @@ int upload_effect(uintptr_t fd,  int16_t level, bool effectExists){
     if (write(fd, &event, sizeof(event)) != sizeof(event)) {
         return -3;
     }
-
     return effect.id;
 }
 
