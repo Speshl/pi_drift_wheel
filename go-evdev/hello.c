@@ -21,8 +21,12 @@ int upload_effect(uintptr_t fd,  void *effect_data){
 
     // Parameters specific to the constant effect
     effect.u.constant.level = 0x8000; // Example: Constant force level (signed 16-bit)
+    int retId = ioctl(fd, EVIOCSFF, &effect);
+    if(retId == 0) {
+        retId = -2
+    }
 
-    return ioctl(fd, EVIOCSFF, &effect);
+    return retId
 }
 
 /*

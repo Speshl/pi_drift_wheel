@@ -160,12 +160,12 @@ func (c *ControllerManager) SetForceFeedback() error {
 		Usec: int64(microseconds),
 	}
 
-	c.Controllers[0].device.WriteOne(&evdev.InputEvent{
+	err = c.Controllers[0].device.WriteOne(&evdev.InputEvent{
 		Time:  timeVal,
 		Type:  evdev.EV_FF,
 		Code:  0,
 		Value: 0,
 	})
 
-	return nil
+	return err
 }
