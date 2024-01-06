@@ -32,7 +32,7 @@ int upload_effect(uintptr_t fd,  void *effect_data){
         .value = 1, // 1 for start playing, 0 for stop
     };
 
-    ret = write(fd, &play_event, sizeof(play_event));
+    error = write(fd, &play_event, sizeof(play_event));
     if (ret != 0) {
         return -1;
     }
