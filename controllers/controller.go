@@ -146,7 +146,7 @@ func (c *Controller) ShowCaps() {
 func (c *Controller) SetForceFeedback() error {
 	effect := evdev.Effect{
 		Type:      evdev.FF_CONSTANT,
-		Id:        -1,
+		Id:        0,
 		Direction: 20000,
 		Trigger: evdev.Trigger{
 			Button:   0,
