@@ -286,7 +286,7 @@ func (d *InputDevice) UploadEffect(effect Effect) error {
 	err = d.WriteOne(&InputEvent{
 		Time:  timeVal,
 		Type:  EV_FF,
-		Code:  uint16(val),
+		Code:  EvCode(val),
 		Value: int32(val),
 	})
 	slog.Info("c output", "return", val, "error", err)
