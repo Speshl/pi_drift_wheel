@@ -156,8 +156,8 @@ func (c *ControllerManager) SetForceFeedback() error {
 	seconds := now.Unix()
 	microseconds := now.Nanosecond() / 1000
 	timeVal := syscall.Timeval{
-		Sec:  int32(seconds),
-		Usec: int32(microseconds),
+		Sec:  int64(seconds),
+		Usec: int64(microseconds),
 	}
 
 	c.Controllers[0].device.WriteOne(&evdev.InputEvent{
