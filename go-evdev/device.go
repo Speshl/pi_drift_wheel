@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"os"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -273,6 +274,21 @@ func (d *InputDevice) UploadEffect(effect Effect) error {
 	if err != nil {
 		return err
 	}
-	slog.Info("c output", "return", val)
-	return nil
+
+	now := time.Now()
+	seconds := now.Unix()
+	microseconds := now.Nanosecond() / 1000
+	timeVal := syscall.Timeval{
+		Sec:  int64(seconds),
+		Usec: int64(microseconds),
+	}
+
+	err = d.WriteOne(&InputEvent{
+		Time:  timeVal,
+		Type:  EV_FF,
+		Code:  0,
+		Value: 0,
+	})
+	slog.Info("c output", "return", val, "error", err)
+	return err
 }
