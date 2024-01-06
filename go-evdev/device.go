@@ -268,7 +268,7 @@ func (d *InputDevice) WriteOne(event *InputEvent) error {
 
 // TESTING forcefeedback
 func (d *InputDevice) UploadEffect(level int16) error {
-	val, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16(level))
+	val, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16_t(level))
 	if err != nil {
 		return err
 	}
