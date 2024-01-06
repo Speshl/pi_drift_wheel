@@ -1,5 +1,10 @@
 package evdev
 
+/*
+  #include "hello.c"
+*/
+import "C"
+
 import (
 	"errors"
 	"fmt"
@@ -200,8 +205,10 @@ func ioctlEVIOCSABS(fd uintptr, abs int, info AbsInfo) error {
 
 // ForceFeedback
 func ioctlEVIOCSFF(fd uintptr, effect Effect) error {
-	code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, 38)
-	return doIoctl2(fd, code, nil)
+	// code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, 38)
+	// return doIoctl2(fd, code, nil)
+	_, err := C.Hello()
+	return err
 }
 
 func ioctlEVIOCGRAB(fd uintptr, p int32) error {
