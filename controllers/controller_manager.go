@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"syscall"
+	"time"
 
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/go-evdev"
@@ -145,5 +147,25 @@ func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
 }
 
 func (c *ControllerManager) SetForceFeedback() error {
-	return c.Controllers[0].SetForceFeedback()
+	err := c.Controllers[0].SetForceFeedback()
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	seconds := now.Unix()
+	microseconds := now.Nanosecond() / 1000
+	timeVal := syscall.Timeval{
+		Sec:  int32(seconds),
+		Usec: int32(microseconds),
+	}
+
+	c.Controllers[0].device.WriteOne(&evdev.InputEvent{
+		Time:  timeVal,
+		Type:  evdev.EV_FF,
+		Code:  0,
+		Value: 0,
+	})
+
+	return nil
 }

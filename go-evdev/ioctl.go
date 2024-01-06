@@ -8,6 +8,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -207,7 +208,8 @@ func ioctlEVIOCSABS(fd uintptr, abs int, info AbsInfo) error {
 func ioctlEVIOCSFF(fd uintptr, effect Effect) error {
 	// code := ioctlMakeCode(ioctlDirWrite, 'E', 0x80, 38)
 	// return doIoctl2(fd, code, nil)
-	_, err := C.upload_effect(C.uintptr_t(fd), unsafe.Pointer(&effect))
+	val, err := C.upload_effect(C.uintptr_t(fd), unsafe.Pointer(&effect))
+	slog.Info("c output", "return", val)
 	return err
 }
 
