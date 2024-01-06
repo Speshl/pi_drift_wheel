@@ -169,7 +169,7 @@ func (c *Controller) SetForceFeedback() error {
 		},
 	}
 
-	id, err := c.device.UploadEffect(effect)
+	err := c.device.UploadEffect(effect)
 	if err != nil {
 		return err
 	}
