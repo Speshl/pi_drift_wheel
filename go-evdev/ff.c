@@ -9,11 +9,11 @@ void Hello(){
     printf("Hello world\n");
 }
 
-int upload_effect(uintptr_t fd,  int16_t level, bool first){
+int upload_effect(uintptr_t fd,  int16_t level, bool effectExists){
     struct ff_effect effect = {};
 
     effect.type = FF_CONSTANT;
-    if(first){
+    if(!effectExists){
         effect.id = -1;           // Unique ID for the effect (use -1 for auto-assignment)
     }else{
         effect.id = 0;
