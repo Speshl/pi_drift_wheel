@@ -21,7 +21,7 @@ int upload_effect(uintptr_t fd,  void *effect_data){
     effect.replay.delay = 0;     // Delay before replaying the effect (0 for no delay)
 
     // Parameters specific to the constant effect
-    effect.u.constant.level = 32767; // Example: Constant force level (signed 16-bit)
+    effect.u.constant.level = -32767; // Example: Constant force level (signed 16-bit)
     int error = ioctl(fd, EVIOCSFF, &effect);
     if(error != 0){
         return -2;
