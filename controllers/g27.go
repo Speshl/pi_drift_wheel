@@ -123,7 +123,7 @@ func GetG27KeyMap() map[string]Mapping {
 		Label:    "6th",
 		CodeName: "705",
 		Type:     1,
-		Code:     704,
+		Code:     705,
 		RawInput: 15,
 		Min:      0,
 		Max:      1,
@@ -156,11 +156,11 @@ func GetG27KeyMap() map[string]Mapping {
 		Inverted: false,
 	}
 
-	keyMap["1:710"] = Mapping{
+	keyMap["1:294"] = Mapping{
 		Label:    "downshift",
 		CodeName: "710",
 		Type:     1,
-		Code:     710,
+		Code:     294,
 		RawInput: 20,
 		Min:      0,
 		Max:      1,
