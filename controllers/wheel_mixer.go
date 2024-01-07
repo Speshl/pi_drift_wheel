@@ -72,12 +72,15 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				if i == 19 {
 					mixState.gear = -1
 				} else if i > 15 {
-					mixState.gear = 0
-					continue //g27 is only 6 speed
+					mixState.gear = 0 //set neutral when unsupported gear pressed
+					continue
 				} else {
 					mixState.gear = i - 9
 				}
-				break //only 1 gear can be active at a time
+				break //only 1 gear can be active at a time, so stop when one found
+			}
+			if i == 10 {
+				mixState.gear = 0 //no gear button pressed, set to neutral
 			}
 		}
 
