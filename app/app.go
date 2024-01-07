@@ -145,14 +145,14 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				controllerManager.SetForceFeedback(int16(level * (65535 / 2)))
 
-				if level < 0 {
-					slog.Info("ff info", "direction", "left", "level", level, "mappedYaw", mappedYaw, "steer", mergedFrame.Ch[1])
-				} else {
-					slog.Info("ff info", "direction", "right", "level", level, "mappedYaw", mappedYaw, "steer", mergedFrame.Ch[1])
-				}
+				// if level < 0 {
+				// 	slog.Info("ff info", "direction", "left", "level", level, "mappedYaw", mappedYaw, "steer", mergedFrame.Ch[1])
+				// } else {
+				// 	slog.Info("ff info", "direction", "right", "level", level, "mappedYaw", mappedYaw, "steer", mergedFrame.Ch[1])
+				// }
 
-				slog.Debug("FF Extra Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
-				slog.Debug("frame sent", "frame", mergedFrame)
+				//slog.Debug("FF Extra Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
+				slog.Info("frame sent", "frame", mergedFrame)
 
 			}
 		}
