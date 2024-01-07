@@ -70,12 +70,12 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		for i := 10; i < 20; i++ {
 			if inputs[i].Value > inputs[i].Min {
 				if i == 19 {
-					mixState.gear = -1
+					mixState.gear = -1 //reverse
 				} else if i > 15 {
 					mixState.gear = 0 //set neutral when unsupported gear pressed
 					continue
 				} else {
-					mixState.gear = i - 9
+					mixState.gear = i - 9 //supported gears
 				}
 				break //only 1 gear can be active at a time, so stop when one found
 			} else if i == 19 {
@@ -83,7 +83,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			}
 		}
 
-		slog.Info("building frame", "gear", mixState.gear, "esc_state", currentState, "options", opts)
+		slog.Info("building frame", "reverse", inputs[19], "gear", mixState.gear, "esc_state", currentState, "options", opts)
 
 		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
 			if mixState.gear == 0 { //Neutral so keep esc at center value
