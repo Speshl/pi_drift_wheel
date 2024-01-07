@@ -126,24 +126,24 @@ func (a *App) Start(ctx context.Context) (err error) {
 					}
 				}
 
-				attitude := crsf.GetAttitude()
-				yaw := int(attitude.YawDegree()) //expect value between -90 and 90
-				mappedYaw := controllers.MapToRange(yaw, -90, 90, sbus.MinValue, sbus.MaxValue)
-				diff := int(mergedFrame.Ch[1]) - mappedYaw
-				diffPercent := float64(diff) / float64(sbus.MaxValue-sbus.MinValue)
+				// attitude := crsf.GetAttitude()
+				// yaw := int(attitude.YawDegree()) //expect value between -90 and 90
+				// mappedYaw := controllers.MapToRange(yaw, -90, 90, sbus.MinValue, sbus.MaxValue)
+				// diff := int(mergedFrame.Ch[1]) - mappedYaw
+				// diffPercent := float64(diff) / float64(sbus.MaxValue-sbus.MinValue)
 
-				level := 0.0
-				if diffPercent > 0.03 || diffPercent < -0.03 {
-					level = diffPercent * 0.75
-				}
+				// level := 0.0
+				// if diffPercent > 0.03 || diffPercent < -0.03 {
+				// 	level = diffPercent * 0.75
+				// }
 
-				if level > 1.0 {
-					level = 1.0
-				} else if level < -1.0 {
-					level = -1.0
-				}
+				// if level > 1.0 {
+				// 	level = 1.0
+				// } else if level < -1.0 {
+				// 	level = -1.0
+				// }
 
-				controllerManager.SetForceFeedback(int16(level * (65535 / 2)))
+				// controllerManager.SetForceFeedback(int16(level * (65535 / 2)))
 
 				// if level < 0 {
 				// 	slog.Info("ff info", "direction", "left", "level", level, "mappedYaw", mappedYaw, "steer", mergedFrame.Ch[1])
