@@ -151,7 +151,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				// }
 
 				//slog.Debug("FF Extra Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
-				slog.Debug("frame sent", "frame", mergedFrame)
+				slog.Info("frame sent", "frame", mergedFrame)
 
 			}
 		}
