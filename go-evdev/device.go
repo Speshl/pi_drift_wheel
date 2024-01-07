@@ -8,7 +8,6 @@ import "C"
 import (
 	"encoding/binary"
 	"fmt"
-	"log/slog"
 	"os"
 	"syscall"
 )
@@ -269,7 +268,7 @@ func (d *InputDevice) WriteOne(event *InputEvent) error {
 
 // TESTING forcefeedback
 func (d *InputDevice) UploadEffect(level int16) error {
-	val, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16_t(level), C.bool(d.firstFF))
+	_, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16_t(level), C.bool(d.firstFF))
 	if err != nil {
 		return err
 	}
@@ -277,21 +276,5 @@ func (d *InputDevice) UploadEffect(level int16) error {
 	if !d.firstFF {
 		d.firstFF = true
 	}
-
-	// now := time.Now()
-	// seconds := now.Unix()
-	// microseconds := now.Nanosecond() / 1000
-	// timeVal := syscall.Timeval{
-	// 	Sec:  int64(seconds),
-	// 	Usec: int64(microseconds),
-	// }
-
-	// err = d.WriteOne(&InputEvent{
-	// 	Time:  timeVal,
-	// 	Type:  EV_FF,
-	// 	Code:  EvCode(val),
-	// 	Value: int32(val),
-	// })
-	slog.Info("c output", "return", val, "error", err)
 	return err
 }

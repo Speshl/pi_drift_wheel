@@ -14,6 +14,7 @@ import (
 	sbus "github.com/Speshl/go-sbus"
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
+	"github.com/Speshl/pi_drift_wheel/crsf"
 	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
 )
@@ -44,117 +45,122 @@ func (a *App) Start(ctx context.Context) (err error) {
 	})
 
 	//Start Sbus read/write
-	// sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
-	// for i := 0; i < config.MaxSbus; i++ {
-	// 	sBus, err := sbus.NewSBus(
-	// 		a.cfg.SbusCfgs[i].SBusPath,
-	// 		a.cfg.SbusCfgs[i].SBusRx,
-	// 		a.cfg.SbusCfgs[i].SBusTx,
-	// 		&sbus.SBusCfgOpts{
-	// 			Type: sbus.RxTypeControl,
-	// 		},
-	// 	)
-	// 	if err != nil { //TODO: Remove when more channels supported
-	// 		if !errors.Is(err, sbus.ErrNoPath) {
-	// 			slog.Error("failed starting sbus conn", "index", i, "error", err)
-	// 		}
-	// 		continue
-	// 	}
+	sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
+	for i := 0; i < config.MaxSbus; i++ {
+		sBus, err := sbus.NewSBus(
+			a.cfg.SbusCfgs[i].SBusPath,
+			a.cfg.SbusCfgs[i].SBusRx,
+			a.cfg.SbusCfgs[i].SBusTx,
+			&sbus.SBusCfgOpts{
+				Type: sbus.RxTypeControl,
+			},
+		)
+		if err != nil { //TODO: Remove when more channels supported
+			if !errors.Is(err, sbus.ErrNoPath) {
+				slog.Error("failed starting sbus conn", "index", i, "error", err)
+			}
+			continue
+		}
 
-	// 	sBusConns = append(sBusConns, sBus)
-	// 	group.Go(func() error {
-	// 		defer cancel()
-	// 		err := ListPorts()
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		return sBus.Start(ctx)
-	// 	})
-	// }
+		sBusConns = append(sBusConns, sBus)
+		group.Go(func() error {
+			defer cancel()
+			err := ListPorts()
+			if err != nil {
+				return err
+			}
+			return sBus.Start(ctx)
+		})
+	}
 
 	//Start CRSF read/write
 	//dmesg | grep "tty"
-	// crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
-	// 	BaudRate: 921600,
-	// })
-	// group.Go(func() error {
-	// 	return crsf.Start(ctx)
-	// })
+	crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
+		BaudRate: 921600,
+	})
+	group.Go(func() error {
+		return crsf.Start(ctx)
+	})
 
-	// Process data
-	// group.Go(func() error {
-	// 	time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-	// 	framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-	// 	mergeTicker := time.NewTicker(6 * time.Millisecond)
-	// 	//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-	// 	logTicker := time.NewTicker(1 * time.Second)
-	// 	ffbackTicker := time.NewTicker(12 * time.Millisecond)
-	// 	mergedFrame := sbus.NewFrame()
-	// 	for {
-	// 		select {
-	// 		case <-ctx.Done():
-	// 			return ctx.Err()
-	// 		case <-logTicker.C:
-	// 			slog.Info("frame details",
-	// 				"esc", mergedFrame.Ch[0],
-	// 				"steer", mergedFrame.Ch[1],
-	// 				"gyro_gain", mergedFrame.Ch[2],
-	// 				"head_tilt", mergedFrame.Ch[3],
-	// 				"head_roll", mergedFrame.Ch[4],
-	// 				"head_pan", mergedFrame.Ch[5],
-	// 			)
-	// 		case <-mergeTicker.C:
-	// 			framesToMerge = framesToMerge[:0] //clear out frames before next merge
-
-	// 			controllerFrame, err := controllerManager.GetMixedFrame()
-	// 			if err != nil {
-	// 				return err
-	// 			}
-	// 			framesToMerge = append(framesToMerge, controllerFrame)
-
-	// 			for i := range sBusConns {
-	// 				if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
-	// 					framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
-	// 				} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
-	// 					slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
-	// 				}
-	// 			}
-	// 			mergedFrame = MergeFrames(framesToMerge)
-	// 			for i := range sBusConns {
-	// 				if sBusConns[i].IsTransmitting() {
-	// 					sBusConns[i].SetWriteFrame(mergedFrame)
-	// 				}
-	// 			}
-	// 			slog.Debug("frame sent", "frame", mergedFrame)
-	// 		case <-ffbackTicker.C:
-	// 			attitude := crsf.GetAttitude()
-	// 			yaw := attitude.YawDegree()
-	// 			slog.Info("yaw degree", "value", yaw)
-	// 		}
-	// 	}
-	// })
-
-	// Test Force feedback
+	//Process data
 	group.Go(func() error {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-		logTicker := time.NewTicker(250 * time.Millisecond)
-		dir := 1
+		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
+		mergeTicker := time.NewTicker(1000 * time.Millisecond)
+		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
+		logTicker := time.NewTicker(1 * time.Second)
+		mergedFrame := sbus.NewFrame()
 		for {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-logTicker.C:
-				slog.Info("sending FF")
-				dir = dir * -1
-				err := controllerManager.SetForceFeedback(int16(dir * (65535 / 2)))
+				slog.Info("frame details",
+					"esc", mergedFrame.Ch[0],
+					"steer", mergedFrame.Ch[1],
+					"gyro_gain", mergedFrame.Ch[2],
+					"head_tilt", mergedFrame.Ch[3],
+					"head_roll", mergedFrame.Ch[4],
+					"head_pan", mergedFrame.Ch[5],
+				)
+			case <-mergeTicker.C:
+				framesToMerge = framesToMerge[:0] //clear out frames before next merge
+
+				controllerFrame, err := controllerManager.GetMixedFrame()
 				if err != nil {
-					slog.Error("ff error", "error", err)
 					return err
 				}
+				framesToMerge = append(framesToMerge, controllerFrame)
+
+				for i := range sBusConns {
+					if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
+						framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
+					} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
+						slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
+					}
+				}
+				mergedFrame = MergeFrames(framesToMerge)
+				for i := range sBusConns {
+					if sBusConns[i].IsTransmitting() {
+						sBusConns[i].SetWriteFrame(mergedFrame)
+					}
+				}
+
+				attitude := crsf.GetAttitude()
+				yaw := int(attitude.YawDegree()) //expect value between -90 and 90
+				mappedYaw := controllers.MapToRange(yaw, -90, 90, sbus.MinValue, sbus.MaxValue)
+				diff := mergedFrame.Ch[1] - uint16(mappedYaw)
+				diffPercent := float64(diff) / float64(sbus.MaxValue-sbus.MinValue)
+				//level := 1.0 * diffPercent
+
+				slog.Info("FF Info", "yaw", yaw, "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent)
+				slog.Debug("frame sent", "frame", mergedFrame)
 
 			}
 		}
 	})
+
+	// Test Force feedback
+	// group.Go(func() error {
+	// 	time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
+	// 	logTicker := time.NewTicker(250 * time.Millisecond)
+	// 	dir := 1
+	// 	for {
+	// 		select {
+	// 		case <-ctx.Done():
+	// 			return ctx.Err()
+	// 		case <-logTicker.C:
+	// 			slog.Info("sending FF")
+	// 			dir = dir * -1
+	// 			err := controllerManager.SetForceFeedback(int16(dir * (65535 / 2)))
+	// 			if err != nil {
+	// 				slog.Error("ff error", "error", err)
+	// 				return err
+	// 			}
+
+	// 		}
+	// 	}
+	// })
 
 	//kill listener
 	group.Go(func() error {
