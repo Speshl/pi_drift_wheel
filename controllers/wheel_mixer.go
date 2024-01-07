@@ -71,16 +71,17 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			if inputs[i].Value > inputs[i].Min {
 				if i == 19 {
 					mixState.gear = -1
-				} else if i >= 15 && i < 19 {
+				} else if i > 15 {
+					mixState.gear = 0
 					continue //g27 is only 6 speed
 				} else {
-					mixState.gear = i - 10
+					mixState.gear = i - 9
 				}
-				break
+				break //only 1 gear can be active at a time
 			}
 		}
 
-		slog.Info("building frame", "inputs", inputs, "gear", mixState.gear, "esc_state", currentState, "options", opts)
+		slog.Info("building frame", "gear", mixState.gear, "esc_state", currentState, "options", opts)
 
 		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
 			if mixState.gear == 0 { //Neutral so keep esc at center value
