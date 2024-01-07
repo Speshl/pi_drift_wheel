@@ -86,7 +86,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group.Go(func() error {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		mergeTicker := time.NewTicker(200 * time.Millisecond)
+		mergeTicker := time.NewTicker(6 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(5 * time.Second)
 		mergedFrame := sbus.NewFrame()
@@ -145,7 +145,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				controllerManager.SetForceFeedback(int16(level * (65535 / 2)))
 
-				slog.Info("FF Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
+				//slog.Info("FF Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
 				slog.Debug("frame sent", "frame", mergedFrame)
 
 			}
