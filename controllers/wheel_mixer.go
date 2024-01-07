@@ -83,8 +83,6 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			}
 		}
 
-		slog.Info("building frame", "reverse", inputs[19], "first", inputs[10], "gear", mixState.gear, "esc_state", currentState, "options", opts)
-
 		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
 			if mixState.gear == 0 { //Neutral so keep esc at center value
 				frame.Ch[1] = uint16(sbus.MidValue)
@@ -208,7 +206,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		sbus.MaxValue,
 	))
 
-	slog.Debug("mixed frame", "gear", mixState.gear, "esc_state", currentState, "esc", frame.Ch[0], "steer", frame.Ch[1])
+	slog.Info("mixed frame", "gear", mixState.gear, "esc_state", currentState, "steer", frame.Ch[0], "esc", frame.Ch[1])
 
 	return frame, mixState
 }
