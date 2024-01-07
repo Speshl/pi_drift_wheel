@@ -86,9 +86,9 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group.Go(func() error {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		mergeTicker := time.NewTicker(1000 * time.Millisecond)
+		mergeTicker := time.NewTicker(200 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-		logTicker := time.NewTicker(1 * time.Second)
+		logTicker := time.NewTicker(5 * time.Second)
 		mergedFrame := sbus.NewFrame()
 		for {
 			select {

@@ -8,6 +8,7 @@ import (
 	"github.com/Speshl/pi_drift_wheel/config"
 )
 
+// go build --ldflags '-extldflags "-Wl,--allow-multiple-definition"'
 func main() {
 	cfg := config.GetConfig()
 
