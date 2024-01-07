@@ -29,6 +29,6 @@ func GenerateCrc8Value(data []uint8) uint8 {
 
 func ValidateFrame(frame []uint8) bool {
 	frameSize := len(frame)
-	crc := GenerateCrc8Value(frame[2 : frameSize-1])
+	crc := GenerateCrc8Value(frame[0 : frameSize-1])
 	return crc == frame[frameSize-1]
 }
