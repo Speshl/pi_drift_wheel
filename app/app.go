@@ -14,7 +14,6 @@ import (
 	sbus "github.com/Speshl/go-sbus"
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
-	"github.com/Speshl/pi_drift_wheel/crsf"
 	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
 )
@@ -75,12 +74,12 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 	//Start CRSF read/write
 	//dmesg | grep "tty"
-	crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
-		BaudRate: 921600,
-	})
-	group.Go(func() error {
-		return crsf.Start(ctx)
-	})
+	// crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
+	// 	BaudRate: 921600,
+	// })
+	// group.Go(func() error {
+	// 	return crsf.Start(ctx)
+	// })
 
 	//Process data
 	group.Go(func() error {
