@@ -129,7 +129,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				attitude := crsf.GetAttitude()
 				yaw := int(attitude.YawDegree()) //expect value between -90 and 90
 				mappedYaw := controllers.MapToRange(yaw, -90, 90, sbus.MinValue, sbus.MaxValue)
-				diff := mergedFrame.Ch[1] - uint16(mappedYaw)
+				diff := int(mergedFrame.Ch[1]) - mappedYaw
 				diffPercent := float64(diff) / float64(sbus.MaxValue-sbus.MinValue)
 				//level := 1.0 * diffPercent
 
