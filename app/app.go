@@ -131,9 +131,21 @@ func (a *App) Start(ctx context.Context) (err error) {
 				mappedYaw := controllers.MapToRange(yaw, -90, 90, sbus.MinValue, sbus.MaxValue)
 				diff := int(mergedFrame.Ch[1]) - mappedYaw
 				diffPercent := float64(diff) / float64(sbus.MaxValue-sbus.MinValue)
-				//level := 1.0 * diffPercent
 
-				slog.Info("FF Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent)
+				level := 0.0
+				if diffPercent > 0.03 || diffPercent < -0.03 {
+					level = diffPercent * 2
+				}
+
+				if level > 1.0 {
+					level = 1.0
+				} else if level < -1.0 {
+					level = -1.0
+				}
+
+				controllerManager.SetForceFeedback(int16(level * (65535 / 2)))
+
+				slog.Info("FF Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
 				slog.Debug("frame sent", "frame", mergedFrame)
 
 			}
