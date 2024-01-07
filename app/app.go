@@ -95,8 +95,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 				return ctx.Err()
 			case <-logTicker.C:
 				slog.Info("frame details",
-					"esc", mergedFrame.Ch[0],
-					"steer", mergedFrame.Ch[1],
+					"steer", mergedFrame.Ch[0],
+					"esc", mergedFrame.Ch[1],
 					"gyro_gain", mergedFrame.Ch[2],
 					"head_tilt", mergedFrame.Ch[3],
 					"head_roll", mergedFrame.Ch[4],
@@ -151,7 +151,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				// }
 
 				//slog.Debug("FF Extra Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
-				slog.Info("frame sent", "frame", mergedFrame)
+				slog.Debug("frame sent", "frame", mergedFrame)
 
 			}
 		}
