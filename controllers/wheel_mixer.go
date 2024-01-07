@@ -79,8 +79,8 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				}
 				break //only 1 gear can be active at a time, so stop when one found
 			}
-			if i == 10 {
-				mixState.gear = 0 //no gear button pressed, set to neutral
+			if i == 19 {
+				mixState.gear = -2 //no gear button pressed, set to neutral
 			}
 		}
 
