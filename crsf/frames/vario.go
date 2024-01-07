@@ -17,13 +17,14 @@ type VarioData struct {
 func UnmarshalVario(data []byte) (VarioData, error) {
 	d := VarioData{}
 	if len(data) != VarioFrameLength {
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 
 	d.Speed = int16(binary.LittleEndian.Uint16(data[1:3]))
-
-	//TODO CRC byte?
 	return d, nil
 }
 

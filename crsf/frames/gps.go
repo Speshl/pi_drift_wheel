@@ -22,7 +22,11 @@ type GpsData struct {
 func UnmarshalGps(data []byte) (GpsData, error) {
 	d := GpsData{}
 	if len(data) != GpsFrameLength {
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 
 	//TODO check correct type?
@@ -33,8 +37,6 @@ func UnmarshalGps(data []byte) (GpsData, error) {
 	d.Course = int16(binary.BigEndian.Uint16(data[11:13]))
 	d.Altitude = binary.BigEndian.Uint16(data[13:15])
 	d.SatelliteCount = data[15]
-
-	//TODO CRC byte?
 
 	return d, nil
 }

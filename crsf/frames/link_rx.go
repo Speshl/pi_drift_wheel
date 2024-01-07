@@ -19,7 +19,11 @@ type LinkRxData struct {
 func UnmarshalLinkRx(data []byte) (LinkRxData, error) {
 	d := LinkRxData{}
 	if len(data) != LinkRxFrameLength {
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 
@@ -27,8 +31,6 @@ func UnmarshalLinkRx(data []byte) (LinkRxData, error) {
 	d.Unknown1 = uint8(data[2])
 	d.Unknown2 = uint8(data[3])
 	d.PowerIndex = int8(data[4])
-
-	//TODO CRC byte?
 	return d, nil
 }
 

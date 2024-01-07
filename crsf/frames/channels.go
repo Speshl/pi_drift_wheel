@@ -28,7 +28,10 @@ func UnmarshalChannels(data []byte) (ChannelsData, error) {
 
 	if len(data) != ChannelsFrameLength {
 		slog.Error("Invalid frame length")
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 
@@ -49,7 +52,6 @@ func UnmarshalChannels(data []byte) (ChannelsData, error) {
 	d.Channels[14] = ((uint16(data[20])>>2 | uint16(data[21])<<6) & ChannelsMask)
 	d.Channels[15] = ((uint16(data[21])>>5 | uint16(data[22])<<3) & ChannelsMask)
 
-	//TODO CRC byte?
 	return d, nil
 }
 

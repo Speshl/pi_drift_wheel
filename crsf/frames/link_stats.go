@@ -25,7 +25,11 @@ type LinkStatsData struct {
 func UnmarshalLinkStats(data []byte) (LinkStatsData, error) {
 	d := LinkStatsData{}
 	if len(data) != LinkStatsFrameLength {
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 
@@ -39,8 +43,6 @@ func UnmarshalLinkStats(data []byte) (LinkStatsData, error) {
 	d.DownlinkRssi = data[8]
 	d.DownlinkQuality = data[9]
 	d.DownlinkSnr = data[10]
-
-	//TODO CRC byte?
 	return d, nil
 }
 

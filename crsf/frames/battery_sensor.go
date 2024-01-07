@@ -20,7 +20,11 @@ type BatterySensorData struct {
 func UnmarshalBatterySensor(data []byte) (BatterySensorData, error) {
 	d := BatterySensorData{}
 	if len(data) != BatterySensorFrameLength {
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 	d.Voltage = int16(binary.BigEndian.Uint16(data[1:3]))

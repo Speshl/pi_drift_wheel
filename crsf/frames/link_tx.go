@@ -20,7 +20,10 @@ type LinkTxData struct {
 func UnmarshalLinkTx(data []byte) (LinkTxData, error) {
 	d := LinkTxData{}
 	if len(data) != LinkTxFrameLength {
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 
@@ -30,7 +33,6 @@ func UnmarshalLinkTx(data []byte) (LinkTxData, error) {
 	d.PowerIndex = data[4]
 	d.PacketRate = data[5]
 
-	//TODO CRC byte?
 	return d, nil
 }
 

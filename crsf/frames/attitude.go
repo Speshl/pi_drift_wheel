@@ -20,7 +20,11 @@ type AttitudeData struct {
 func UnmarshalAttitude(data []byte) (AttitudeData, error) {
 	d := AttitudeData{}
 	if len(data) != AttitudeFrameLength {
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 
@@ -28,7 +32,6 @@ func UnmarshalAttitude(data []byte) (AttitudeData, error) {
 	d.Roll = int16(binary.BigEndian.Uint16(data[3:5]))
 	d.Yaw = int16(binary.BigEndian.Uint16(data[5:7]))
 
-	//TODO CRC byte?
 	return d, nil
 }
 

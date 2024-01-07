@@ -23,14 +23,15 @@ type BarometerData struct {
 func UnmarshalBarometer(data []byte) (BarometerData, error) {
 	d := BarometerData{}
 	if len(data) != BarometerFrameLength {
-		return d, fmt.Errorf("incorrect frame length")
+		return d, ErrFrameLength
+	}
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 
 	d.Altitude = binary.LittleEndian.Uint16(data[1:3])
 	d.Speed = int16(binary.LittleEndian.Uint16(data[3:5]))
-
-	//TODO CRC byte?
 	return d, nil
 }
 

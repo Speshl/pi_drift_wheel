@@ -15,12 +15,15 @@ type FlightModeData struct {
 
 func UnmarshalFlightMode(data []byte) (FlightModeData, error) {
 	d := FlightModeData{}
-	if len(data) > 3 {
-		return d, fmt.Errorf("incorrect frame length")
+	if len(data) > FlightModeFrameLength {
+		return d, ErrFrameLength
+	}
+	if !ValidateFrame(data) {
+		return d, ErrInvalidCRC8
 	}
 	//TODO check correct type?
 
-	for i := range data[1:15] {
+	for i := range data[1 : len(data)-1] {
 		if i == 0x00 { //null terminator for string
 			break
 		}

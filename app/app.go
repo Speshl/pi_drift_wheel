@@ -133,7 +133,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				diffPercent := float64(diff) / float64(sbus.MaxValue-sbus.MinValue)
 				//level := 1.0 * diffPercent
 
-				slog.Info("FF Info", "yaw", yaw, "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent)
+				slog.Info("FF Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent)
 				slog.Debug("frame sent", "frame", mergedFrame)
 
 			}
