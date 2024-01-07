@@ -134,7 +134,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				level := 0.0
 				if diffPercent > 0.03 || diffPercent < -0.03 {
-					level = diffPercent / 2
+					level = diffPercent * 0.75
 				}
 
 				if level > 1.0 {
