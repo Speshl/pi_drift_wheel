@@ -112,7 +112,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 						sbus.MinValue,
 						sbus.MidValue,
 					)
-					frame.Ch[0] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
+					frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 				}
 
 			} else if mixState.gear > 0 && mixState.gear <= 6 {
