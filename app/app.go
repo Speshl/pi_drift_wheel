@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	sbus "github.com/Speshl/go-sbus"
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
+	sbus "github.com/Speshl/pi_drift_wheel/sbus"
 	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
 )
@@ -46,6 +46,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	//Start Sbus read/write
 	sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
 	for i := 0; i < config.MaxSbus; i++ {
+		i := i
 		sBus, err := sbus.NewSBus(
 			a.cfg.SbusCfgs[i].SBusPath,
 			a.cfg.SbusCfgs[i].SBusRx,
@@ -68,6 +69,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 			if err != nil {
 				return err
 			}
+			slog.Info("starting sbus", "index", i, "path", a.cfg.SbusCfgs[i].SBusPath)
 			return sBus.Start(ctx)
 		})
 	}

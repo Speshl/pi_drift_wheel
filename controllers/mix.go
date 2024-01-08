@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/Speshl/go-sbus"
+	"github.com/Speshl/pi_drift_wheel/sbus"
 )
 
 type Mixer func([]Input, MixState, ControllerOptions) (sbus.Frame, MixState)

@@ -3,7 +3,7 @@ package controllers
 import (
 	"log/slog"
 
-	sbus "github.com/Speshl/go-sbus"
+	sbus "github.com/Speshl/pi_drift_wheel/sbus"
 )
 
 //Mapping - 0 steer, 1 esc, 2 gyro gain
