@@ -93,15 +93,15 @@ func (a *App) Start(ctx context.Context) (err error) {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case <-logTicker.C:
-				slog.Info("frame details",
-					"steer", mergedFrame.Ch[0],
-					"esc", mergedFrame.Ch[1],
-					"gyro_gain", mergedFrame.Ch[2],
-					"head_tilt", mergedFrame.Ch[3],
-					"head_roll", mergedFrame.Ch[4],
-					"head_pan", mergedFrame.Ch[5],
-				)
+			// case <-logTicker.C:
+			// 	slog.Info("frame details",
+			// 		"steer", mergedFrame.Ch[0],
+			// 		"esc", mergedFrame.Ch[1],
+			// 		"gyro_gain", mergedFrame.Ch[2],
+			// 		"head_tilt", mergedFrame.Ch[3],
+			// 		"head_roll", mergedFrame.Ch[4],
+			// 		"head_pan", mergedFrame.Ch[5],
+			// 	)
 			case <-mergeTicker.C:
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
 
