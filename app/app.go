@@ -113,7 +113,14 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				for i := range sBusConns {
 					if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
-						framesToMerge = append(framesToMerge, sBusConns[i].GetReadFrame())
+
+						readFrame := sBusConns[i].GetReadFrame()
+						newFrame := sbus.NewFrame()
+						for j := range a.cfg.SbusCfgs[i].SBusChannels { //Only pull over values we care about
+							newFrame.Ch[j] = readFrame.Ch[j]
+						}
+
+						framesToMerge = append(framesToMerge, newFrame)
 					} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
 						slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
 					}

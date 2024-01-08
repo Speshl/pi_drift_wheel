@@ -25,6 +25,11 @@ var (
 		true,
 		false,
 	}
+
+	DefaultSBusChannels = []string{
+		"4,5,6",
+		"",
+	}
 )
 
 type Config struct {
@@ -40,8 +45,9 @@ type AppConfig struct {
 type ControllerManagerConfig struct{}
 
 type SBusConfig struct {
-	SBusPath string
-	SBusType string
-	SBusRx   bool
-	SBusTx   bool
+	SBusPath     string
+	SBusType     string
+	SBusRx       bool
+	SBusTx       bool
+	SBusChannels []int
 }
