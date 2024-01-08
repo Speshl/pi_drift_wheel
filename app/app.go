@@ -87,7 +87,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
 		mergeTicker := time.NewTicker(6 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-		logTicker := time.NewTicker(5 * time.Second)
+		//logTicker := time.NewTicker(5 * time.Second)
 		mergedFrame := sbus.NewFrame()
 		for {
 			select {
@@ -111,20 +111,20 @@ func (a *App) Start(ctx context.Context) (err error) {
 				}
 				framesToMerge = append(framesToMerge, controllerFrame)
 
-				for i := range sBusConns {
-					if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
+				// for i := range sBusConns {
+				// 	if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
 
-						readFrame := sBusConns[i].GetReadFrame()
-						newFrame := sbus.NewFrame()
-						for j := range a.cfg.SbusCfgs[i].SBusChannels { //Only pull over values we care about
-							newFrame.Ch[j] = readFrame.Ch[j]
-						}
+				// 		readFrame := sBusConns[i].GetReadFrame()
+				// 		newFrame := sbus.NewFrame()
+				// 		for j := range a.cfg.SbusCfgs[i].SBusChannels { //Only pull over values we care about
+				// 			newFrame.Ch[j] = readFrame.Ch[j]
+				// 		}
 
-						framesToMerge = append(framesToMerge, newFrame)
-					} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
-						slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
-					}
-				}
+				// 		framesToMerge = append(framesToMerge, newFrame)
+				// 	} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
+				// 		slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
+				// 	}
+				// }
 				mergedFrame = MergeFrames(framesToMerge)
 				for i := range sBusConns {
 					if sBusConns[i].IsTransmitting() {
