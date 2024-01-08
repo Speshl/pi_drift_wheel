@@ -119,7 +119,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 						for _, j := range a.cfg.SbusCfgs[i].SBusChannels { //Only pull over values we care about
 							newFrame.Ch[j] = readFrame.Ch[j]
 						}
-						slog.Info("sbus frame", "port", i, "channels", a.cfg.SbusCfgs[i].SBusChannels, "read", readFrame, "newFrame", newFrame)
+						slog.Debug("sbus frame", "port", i, "channels", a.cfg.SbusCfgs[i].SBusChannels, "read", readFrame, "newFrame", newFrame)
 						framesToMerge = append(framesToMerge, newFrame)
 					} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
 						slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
@@ -158,7 +158,15 @@ func (a *App) Start(ctx context.Context) (err error) {
 				// }
 
 				//slog.Debug("FF Extra Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
-				slog.Info("frame sent", "frame", mergedFrame)
+				slog.Debug("frame sent", "frame", mergedFrame)
+				slog.Info("details",
+					"steer", mergedFrame.Ch[0],
+					"esc", mergedFrame.Ch[1],
+					"gyro_gain", mergedFrame.Ch[2],
+					"tilt", mergedFrame.Ch[3],
+					"roll", mergedFrame.Ch[4],
+					"pan", mergedFrame.Ch[5],
+				)
 
 			}
 		}
