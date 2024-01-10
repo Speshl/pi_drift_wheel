@@ -20,11 +20,11 @@ import (
 )
 
 const (
-	DefaultMinPitch = 0
-	DefaultMaxPitch = 0
+	DefaultMinPitch = -164 //-180   //traxxas with gyro -164 - 173
+	DefaultMaxPitch = 173  //180
 
-	DefaultMinYaw = 0
-	DefaultMaxYaw = 0
+	DefaultMinYaw = -180 //102 / 117
+	DefaultMaxYaw = 180  //-124/109
 )
 
 type App struct {
@@ -143,11 +143,10 @@ func (a *App) Start(ctx context.Context) (err error) {
 					"feedbackLevel", a.feedbackLevel,
 					"mappedFeedback", a.mappedFeedback,
 					"diffFeedback", a.diffFeedback,
-					// "mappedPitch", mappedPitch,
+					"pitch", a.feedback,
 					"minPitch", a.setMinPitch,
 					"maxPitch", a.setMaxPitch,
 					"yaw", a.gyro,
-					// "mappedYaw", mappedYaw,
 					"minYaw", a.setMinYaw,
 					"maxYaw", a.setMaxYaw,
 				)
@@ -182,16 +181,16 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				//Get a ff level from the servo feedback
 				a.feedback = int(attitude.PitchDegree()) //expect value between -180 and 180
-				a.mappedFeedback = controllers.MapToRange(a.feedback, -180, 180, sbus.MinValue, sbus.MaxValue)
+				a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMinPitch, a.setMaxPitch, sbus.MinValue, sbus.MaxValue)
 				diffPitch := int(mergedFrame.Ch[1]) - a.mappedFeedback
 				a.diffFeedback = float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
 
 				a.feedbackLevel = 0.0
-				if a.diffFeedback > 0.03 || a.diffFeedback < -0.03 {
-					a.feedbackLevel = a.diffFeedback
+				if a.diffFeedback > 0.03 || a.diffFeedback < -0.03 { //deadzone
+					a.feedbackLevel = a.diffFeedback * 2
 				}
 
-				if a.feedbackLevel > 1.0 {
+				if a.feedbackLevel > 1.0 { //limit
 					a.feedbackLevel = 1.0
 				} else if a.feedbackLevel < -1.0 {
 					a.feedbackLevel = -1.0
@@ -206,7 +205,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				a.gyroLevel = 0.0
 				if a.diffGyro > 0.03 || a.diffGyro < -0.03 {
-					a.gyroLevel = a.diffGyro
+					a.gyroLevel = a.diffGyro * 2
 				}
 
 				if a.gyroLevel > 1.0 {
