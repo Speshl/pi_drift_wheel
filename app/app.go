@@ -25,7 +25,8 @@ const (
 	DefaultMaxPitch = 173 //180
 
 	DefaultMinYaw = -180 //102 / 117
-	DefaultMaxYaw = 180  //-124/109
+	DefaultMidYaw = 0
+	DefaultMaxYaw = 180 //-124/109
 )
 
 type App struct {
@@ -54,8 +55,10 @@ func NewApp(cfg config.Config) *App {
 	return &App{
 		cfg:         cfg,
 		setMinPitch: DefaultMinPitch,
+		setMidPitch: DefaultMidPitch,
 		setMaxPitch: DefaultMaxPitch,
 		setMinYaw:   DefaultMinYaw,
+		setMidYaw:   DefaultMidYaw,
 		setMaxYaw:   DefaultMaxYaw,
 	}
 }
