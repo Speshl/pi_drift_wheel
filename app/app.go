@@ -182,7 +182,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				//Get a ff level from the servo feedback
 				a.feedback = int(attitude.PitchDegree()) //expect value between -180 and 180
 				a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMinPitch, a.setMaxPitch, sbus.MinValue, sbus.MaxValue)
-				diffPitch := int(mergedFrame.Ch[1]) - a.mappedFeedback
+				diffPitch := int(mergedFrame.Ch[0]) - a.mappedFeedback
 				a.diffFeedback = float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
 
 				a.feedbackLevel = 0.0
@@ -200,7 +200,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				//Get a ff level from the gyro
 				a.gyro = int(attitude.YawDegree()) //expect value between -180 and 180
 				a.mappedGyro = controllers.MapToRange(a.gyro, -180, 180, sbus.MinValue, sbus.MaxValue)
-				diffYaw := int(mergedFrame.Ch[1]) - a.mappedGyro
+				diffYaw := int(mergedFrame.Ch[0]) - a.mappedGyro
 				a.diffGyro = float64(diffYaw) / float64(sbus.MaxValue-sbus.MinValue)
 
 				a.gyroLevel = 0.0
