@@ -185,7 +185,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				a.diffFeedback = float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
 
 				a.feedbackLevel = 0.0
-				if a.feedbackLevel > 0.03 || a.feedbackLevel < -0.03 {
+				if a.diffFeedback > 0.03 || a.diffFeedback < -0.03 {
 					a.feedbackLevel = a.diffFeedback
 				}
 
@@ -203,7 +203,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				a.diffGyro = float64(diffYaw) / float64(sbus.MaxValue-sbus.MinValue)
 
 				a.gyroLevel = 0.0
-				if a.gyroLevel > 0.03 || a.gyroLevel < -0.03 {
+				if a.diffGyro > 0.03 || a.diffGyro < -0.03 {
 					a.gyroLevel = a.diffGyro
 				}
 
