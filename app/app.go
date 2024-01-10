@@ -20,8 +20,9 @@ import (
 )
 
 const (
-	DefaultMinPitch = -164 //-180   //traxxas with gyro -164 - 173
-	DefaultMaxPitch = 173  //180
+	DefaultMinPitch = -164 //-180   //traxxas with gyro -164 - 173 (-122-122 without gyro)
+	DefaultMidPitch = -40
+	DefaultMaxPitch = 173 //180
 
 	DefaultMinYaw = -180 //102 / 117
 	DefaultMaxYaw = 180  //-124/109
@@ -31,9 +32,11 @@ type App struct {
 	cfg config.Config
 
 	setMinPitch int
+	setMidPitch int
 	setMaxPitch int
 
 	setMinYaw int
+	setMidYaw int
 	setMaxYaw int
 
 	gyro       int
@@ -180,7 +183,12 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				//Get a ff level from the servo feedback
 				a.feedback = int(attitude.PitchDegree()) //expect value between -180 and 180
-				a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMinPitch, a.setMaxPitch, sbus.MinValue, sbus.MaxValue)
+				if a.feedback >= a.setMidPitch {
+					a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMidPitch, a.setMaxPitch, sbus.MidValue, sbus.MaxValue)
+				} else {
+					a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMinPitch, a.setMidPitch, sbus.MinValue, sbus.MidValue)
+				}
+
 				diffPitch := int(mergedFrame.Ch[0]) - a.mappedFeedback
 				a.diffFeedback = float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
 
@@ -215,19 +223,25 @@ func (a *App) Start(ctx context.Context) (err error) {
 				//end
 
 				red1 := controlState.Buttons["red1"]
-				dpadValue := controlState.Buttons["left/right"]
+				lrValue := controlState.Buttons["left/right"]
+				udValue := controlState.Buttons["up/down"]
 
 				if red1 == 1 {
-					if dpadValue > 0 { //Set right end point
+					if lrValue > 0 { //Set right end point
 						disableFF = true
 						a.setMaxPitch = a.feedback
 						//a.setMaxYaw = a.gyro
 						slog.Info("setting max (right) ff endpoint", "max_pitch", a.mappedFeedback, "max_yaw", a.gyro)
-					} else if dpadValue < 0 { //Set left end point
+					} else if lrValue < 0 { //Set left end point
 						disableFF = true
 						a.setMinPitch = a.feedback
 						//a.setMinYaw = a.gyro
 						slog.Info("setting min (left) ff endpoint", "min_pitch", a.mappedFeedback, "min_yaw", a.mappedFeedback)
+					} else if udValue > 0 { //Set left end point
+						disableFF = true
+						a.setMidPitch = a.feedback
+						//a.setMinYaw = a.gyro
+						slog.Info("setting mid (center) ff endpoint", "mid_pitch", a.setMidPitch, "mid_yaw", a.setMidYaw)
 					} else {
 						disableFF = false
 					}
