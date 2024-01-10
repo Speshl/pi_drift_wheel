@@ -20,9 +20,6 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 	//Check for button state changes
 	for i := range inputs {
 		if inputs[i].Value == mixState.Buttons[inputs[i].Label] {
-			if inputs[i].Label == "top_right" {
-				slog.Error("top right got here", "input", inputs[i])
-			}
 			continue
 		}
 
