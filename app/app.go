@@ -198,7 +198,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				//Get a ff level from the gyro
 				a.gyro = int(attitude.YawDegree()) //expect value between -180 and 180
-				a.mappedGyro = controllers.MapToRange(a.gyro, -180, 180, sbus.MinValue, sbus.MaxValue)
+				a.mappedGyro = controllers.MapToRange(a.gyro, a.setMinYaw, a.setMaxYaw, sbus.MinValue, sbus.MaxValue)
 				diffYaw := int(mergedFrame.Ch[0]) - a.mappedGyro
 				a.diffGyro = float64(diffYaw) / float64(sbus.MaxValue-sbus.MinValue)
 
@@ -220,13 +220,13 @@ func (a *App) Start(ctx context.Context) (err error) {
 				if red1 == 1 {
 					if dpadValue > 0 { //Set right end point
 						disableFF = true
-						a.setMaxPitch = a.mappedFeedback
-						a.setMaxYaw = a.mappedGyro
+						a.setMaxPitch = a.feedback
+						//a.setMaxYaw = a.gyro
 						slog.Info("setting max (right) ff endpoint", "max_pitch", a.mappedFeedback, "max_yaw", a.gyro)
 					} else if dpadValue < 0 { //Set left end point
 						disableFF = true
-						a.setMinPitch = a.mappedFeedback
-						a.setMinYaw = a.mappedGyro
+						a.setMinPitch = a.feedback
+						//a.setMinYaw = a.gyro
 						slog.Info("setting min (left) ff endpoint", "min_pitch", a.mappedFeedback, "min_yaw", a.mappedFeedback)
 					} else {
 						disableFF = false
