@@ -19,13 +19,34 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	DefaultMinPitch = 0
+	DefaultMaxPitch = 0
+
+	DefaultMinYaw = 0
+	DefaultMaxYaw = 0
+)
+
 type App struct {
 	cfg config.Config
+
+	setMinPitch int
+	setMaxPitch int
+
+	setMinYaw int
+	setMaxYaw int
+
+	gyroLevel     float64
+	feedbackLevel float64
 }
 
 func NewApp(cfg config.Config) *App {
 	return &App{
-		cfg: cfg,
+		cfg:         cfg,
+		setMinPitch: DefaultMinPitch,
+		setMaxPitch: DefaultMaxPitch,
+		setMinYaw:   DefaultMinYaw,
+		setMaxYaw:   DefaultMaxYaw,
 	}
 }
 
@@ -90,18 +111,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
 		mergeTicker := time.NewTicker(6 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-		//logTicker := time.NewTicker(5 * time.Second)
+		logTicker := time.NewTicker(1 * time.Second)
 		mergedFrame := sbus.NewFrame()
-
-		defaultMinPitch := 0
-		setMinPitch := defaultMinPitch
-		defaultMaxPitch := 0
-		setMaxPitch := defaultMaxPitch
-
-		defaultMinYaw := 0
-		setMinYaw := defaultMinYaw
-		defaultMaxYaw := 0
-		setMaxYaw := defaultMaxYaw
 
 		disableFF := false
 
@@ -109,18 +120,28 @@ func (a *App) Start(ctx context.Context) (err error) {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			// case <-logTicker.C:
-			// 	slog.Info("frame details",
-			// 		"steer", mergedFrame.Ch[0],
-			// 		"esc", mergedFrame.Ch[1],
-			// 		"gyro_gain", mergedFrame.Ch[2],
-			// 		"head_tilt", mergedFrame.Ch[3],
-			// 		"head_roll", mergedFrame.Ch[4],
-			// 		"head_pan", mergedFrame.Ch[5],
-			// 	)
+			case <-logTicker.C:
+				slog.Info("details",
+					"steer", mergedFrame.Ch[0],
+					"esc", mergedFrame.Ch[1],
+					"gyro_gain", mergedFrame.Ch[2],
+					"tilt", mergedFrame.Ch[3],
+					"roll", mergedFrame.Ch[4],
+					"pan", mergedFrame.Ch[5],
+					"levelFromGyro", a.gyroLevel,
+					"levelFromFeedback", a.feedbackLevel,
+					// "pitch", pitch,
+					// "mappedPitch", mappedPitch,
+					"minPitch", a.setMinPitch,
+					"maxPitch", a.setMaxPitch,
+					// "yaw", yaw,
+					// "mappedYaw", mappedYaw,
+					"minYaw", a.setMinYaw,
+					"maxYaw", a.setMaxYaw,
+				)
 			case <-mergeTicker.C:
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
-
+				//Input
 				controllerFrame, err := controllerManager.GetMixedFrame()
 				if err != nil {
 					return err
@@ -142,46 +163,46 @@ func (a *App) Start(ctx context.Context) (err error) {
 					}
 				}
 				mergedFrame = MergeFrames(framesToMerge)
-				for i := range sBusConns {
-					if sBusConns[i].IsTransmitting() {
-						sBusConns[i].SetWriteFrame(mergedFrame)
-					}
-				}
-
 				controlState := controllerManager.GetMixState()
 
+				//Process
 				attitude := crsf.GetAttitude()
+
+				//Get a ff level from the servo feedback
 				pitch := int(attitude.PitchDegree()) //expect value between -180 and 180
 				mappedPitch := controllers.MapToRange(pitch, -180, 180, sbus.MinValue, sbus.MaxValue)
 				diffPitch := int(mergedFrame.Ch[1]) - mappedPitch
 				diffPitchPercent := float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
 
-				levelFromFeedback := 0.0
+				a.feedbackLevel = 0.0
 				if diffPitchPercent > 0.03 || diffPitchPercent < -0.03 {
-					levelFromFeedback = diffPitchPercent
+					a.feedbackLevel = diffPitchPercent
 				}
 
-				if levelFromFeedback > 1.0 {
-					levelFromFeedback = 1.0
-				} else if levelFromFeedback < -1.0 {
-					levelFromFeedback = -1.0
+				if a.feedbackLevel > 1.0 {
+					a.feedbackLevel = 1.0
+				} else if a.feedbackLevel < -1.0 {
+					a.feedbackLevel = -1.0
 				}
+				//end
 
+				//Get a ff level from the gyro
 				yaw := int(attitude.YawDegree()) //expect value between -180 and 180
 				mappedYaw := controllers.MapToRange(yaw, -180, 180, sbus.MinValue, sbus.MaxValue)
 				diffYaw := int(mergedFrame.Ch[1]) - mappedYaw
 				diffYawPercent := float64(diffYaw) / float64(sbus.MaxValue-sbus.MinValue)
 
-				levelFromGyro := 0.0
-				if levelFromGyro > 0.03 || levelFromGyro < -0.03 {
-					levelFromGyro = diffYawPercent
+				a.gyroLevel = 0.0
+				if a.gyroLevel > 0.03 || a.gyroLevel < -0.03 {
+					a.gyroLevel = diffYawPercent
 				}
 
-				if levelFromGyro > 1.0 {
-					levelFromGyro = 1.0
-				} else if levelFromGyro < -1.0 {
-					levelFromGyro = -1.0
+				if a.gyroLevel > 1.0 {
+					a.gyroLevel = 1.0
+				} else if a.gyroLevel < -1.0 {
+					a.gyroLevel = -1.0
 				}
+				//end
 
 				red1 := controlState.Buttons["red1"]
 				dpadValue := controlState.Buttons["left/right"]
@@ -189,12 +210,14 @@ func (a *App) Start(ctx context.Context) (err error) {
 				if red1 == 1 {
 					if dpadValue > 0 { //Set right end point
 						disableFF = true
-						setMaxPitch = mappedPitch
-						setMaxYaw = mappedYaw
+						a.setMaxPitch = mappedPitch
+						a.setMaxYaw = mappedYaw
+						slog.Info("setting max (right) ff endpoint")
 					} else if dpadValue < 0 { //Set left end point
 						disableFF = true
-						setMinPitch = mappedPitch
-						setMaxYaw = mappedYaw
+						a.setMinPitch = mappedPitch
+						a.setMinYaw = mappedYaw
+						slog.Info("setting min (left) ff endpoint")
 					} else {
 						disableFF = false
 					}
@@ -206,25 +229,33 @@ func (a *App) Start(ctx context.Context) (err error) {
 					//controllerManager.SetForceFeedback(int16(levelFromGyro * (65535 / 2)))
 				}
 
-				slog.Info("details",
-					"steer", mergedFrame.Ch[0],
-					"esc", mergedFrame.Ch[1],
-					"gyro_gain", mergedFrame.Ch[2],
-					"tilt", mergedFrame.Ch[3],
-					"roll", mergedFrame.Ch[4],
-					"pan", mergedFrame.Ch[5],
-					"levelFromGyro", levelFromGyro,
-					"levelFromFeedback", levelFromFeedback,
-					"pitch", pitch,
-					"mappedPitch", mappedPitch,
-					"minPitch", setMinPitch,
-					"maxPitch", setMaxPitch,
-					"yaw", yaw,
-					"mappedYaw", mappedYaw,
-					"minYaw", setMinYaw,
-					"maxYaw", setMaxYaw,
-				)
+				//Output
+				mergedFrame = InvertChannels(mergedFrame, a.cfg.AppCfg.InvertOutputs)
 
+				for i := range sBusConns {
+					if sBusConns[i].IsTransmitting() {
+						sBusConns[i].SetWriteFrame(mergedFrame)
+					}
+				}
+
+				// slog.Info("details",
+				// 	"steer", mergedFrame.Ch[0],
+				// 	"esc", mergedFrame.Ch[1],
+				// 	"gyro_gain", mergedFrame.Ch[2],
+				// 	"tilt", mergedFrame.Ch[3],
+				// 	"roll", mergedFrame.Ch[4],
+				// 	"pan", mergedFrame.Ch[5],
+				// 	"levelFromGyro", a.gyroLevel,
+				// 	"levelFromFeedback", a.feedbackLevel,
+				// 	"pitch", pitch,
+				// 	"mappedPitch", mappedPitch,
+				// 	"minPitch", a.setMinPitch,
+				// 	"maxPitch", a.setMaxPitch,
+				// 	"yaw", yaw,
+				// 	"mappedYaw", mappedYaw,
+				// 	"minYaw", a.setMinYaw,
+				// 	"maxYaw", a.setMaxYaw,
+				// )
 			}
 		}
 	})
@@ -298,6 +329,18 @@ func MergeFrames(frames []sbus.Frame) sbus.Frame {
 		}
 	}
 	return mergedFrame
+}
+
+func InvertChannels(inputFrame sbus.Frame, invertChannels []bool) sbus.Frame {
+	returnFrame := inputFrame
+	for i := range invertChannels {
+		if invertChannels[i] {
+			midOffset := returnFrame.Ch[i] - uint16(sbus.MidValue)
+			inverted := uint16(sbus.MidValue) - midOffset
+			returnFrame.Ch[i] = inverted
+		}
+	}
+	return returnFrame
 }
 
 func ListPorts() error {

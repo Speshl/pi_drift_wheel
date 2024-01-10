@@ -30,6 +30,25 @@ var (
 		"3,4,5",
 		"",
 	}
+
+	DefaultInvertOutputs = []bool{
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+	}
 )
 
 type Config struct {
@@ -39,10 +58,12 @@ type Config struct {
 }
 
 type AppConfig struct {
-	UpdateRate int
+	UpdateRate    int
+	InvertOutputs []bool
 }
 
-type ControllerManagerConfig struct{}
+type ControllerManagerConfig struct {
+}
 
 type SBusConfig struct {
 	SBusPath     string

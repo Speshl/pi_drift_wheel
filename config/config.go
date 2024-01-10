@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"strconv"
 	"strings"
+
+	"github.com/Speshl/pi_drift_wheel/sbus"
 )
 
 func GetConfig() Config {
@@ -20,8 +22,16 @@ func GetConfig() Config {
 }
 
 func GetAppConfig() AppConfig {
+	invertOutputs := make([]bool, sbus.MaxChannels)
+
+	for i := range invertOutputs {
+		varName := fmt.Sprintf("INVERT_OUTPUT_%d", i)
+		invertOutputs[i] = GetBoolEnv(varName, DefaultInvertOutputs[i])
+	}
+
 	return AppConfig{
-		UpdateRate: AppUpdateRate, // value in milliseconds
+		UpdateRate:    AppUpdateRate, // value in milliseconds
+		InvertOutputs: invertOutputs,
 	}
 }
 
