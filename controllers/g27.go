@@ -252,7 +252,7 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	keyMap["1:296"] = Mapping{
-		Label:    "red1",
+		Label:    "red2",
 		CodeName: "BTN_BASE3",
 		Type:     1,
 		Code:     296,
@@ -264,7 +264,7 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	keyMap["1:297"] = Mapping{
-		Label:    "red1",
+		Label:    "red3",
 		CodeName: "BTN_BASE4",
 		Type:     1,
 		Code:     297,
@@ -276,7 +276,7 @@ func GetG27KeyMap() map[string]Mapping {
 	}
 
 	keyMap["1:298"] = Mapping{
-		Label:    "red1",
+		Label:    "red4",
 		CodeName: "BTN_BASE5",
 		Type:     1,
 		Code:     298,

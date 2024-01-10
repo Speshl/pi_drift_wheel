@@ -13,6 +13,7 @@ import (
 
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
+	"github.com/Speshl/pi_drift_wheel/crsf"
 	sbus "github.com/Speshl/pi_drift_wheel/sbus"
 	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
@@ -74,14 +75,14 @@ func (a *App) Start(ctx context.Context) (err error) {
 		})
 	}
 
-	//Start CRSF read/write
-	//dmesg | grep "tty"
-	// crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
-	// 	BaudRate: 921600,
-	// })
-	// group.Go(func() error {
-	// 	return crsf.Start(ctx)
-	// })
+	// Start CRSF read/write
+	// dmesg | grep "tty"
+	crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
+		BaudRate: 921600,
+	})
+	group.Go(func() error {
+		return crsf.Start(ctx)
+	})
 
 	//Process data
 	group.Go(func() error {
@@ -91,6 +92,19 @@ func (a *App) Start(ctx context.Context) (err error) {
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		//logTicker := time.NewTicker(5 * time.Second)
 		mergedFrame := sbus.NewFrame()
+
+		defaultMinPitch := 0
+		setMinPitch := defaultMinPitch
+		defaultMaxPitch := 0
+		setMaxPitch := defaultMaxPitch
+
+		defaultMinYaw := 0
+		setMinYaw := defaultMinYaw
+		defaultMaxYaw := 0
+		setMaxYaw := defaultMaxYaw
+
+		disableFF := false
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -134,33 +148,64 @@ func (a *App) Start(ctx context.Context) (err error) {
 					}
 				}
 
-				// attitude := crsf.GetAttitude()
-				// yaw := int(attitude.YawDegree()) //expect value between -90 and 90
-				// mappedYaw := controllers.MapToRange(yaw, -90, 90, sbus.MinValue, sbus.MaxValue)
-				// diff := int(mergedFrame.Ch[1]) - mappedYaw
-				// diffPercent := float64(diff) / float64(sbus.MaxValue-sbus.MinValue)
+				controlState := controllerManager.GetMixState()
 
-				// level := 0.0
-				// if diffPercent > 0.03 || diffPercent < -0.03 {
-				// 	level = diffPercent * 0.75
-				// }
+				attitude := crsf.GetAttitude()
+				pitch := int(attitude.PitchDegree()) //expect value between -180 and 180
+				mappedPitch := controllers.MapToRange(pitch, -180, 180, sbus.MinValue, sbus.MaxValue)
+				diffPitch := int(mergedFrame.Ch[1]) - mappedPitch
+				diffPitchPercent := float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
 
-				// if level > 1.0 {
-				// 	level = 1.0
-				// } else if level < -1.0 {
-				// 	level = -1.0
-				// }
+				levelFromFeedback := 0.0
+				if diffPitchPercent > 0.03 || diffPitchPercent < -0.03 {
+					levelFromFeedback = diffPitchPercent
+				}
 
-				// controllerManager.SetForceFeedback(int16(level * (65535 / 2)))
+				if levelFromFeedback > 1.0 {
+					levelFromFeedback = 1.0
+				} else if levelFromFeedback < -1.0 {
+					levelFromFeedback = -1.0
+				}
 
-				// if level < 0 {
-				// 	slog.Info("ff info", "direction", "left", "level", level, "mappedYaw", mappedYaw, "steer", mergedFrame.Ch[1])
-				// } else {
-				// 	slog.Info("ff info", "direction", "right", "level", level, "mappedYaw", mappedYaw, "steer", mergedFrame.Ch[1])
-				// }
+				yaw := int(attitude.YawDegree()) //expect value between -180 and 180
+				mappedYaw := controllers.MapToRange(yaw, -180, 180, sbus.MinValue, sbus.MaxValue)
+				diffYaw := int(mergedFrame.Ch[1]) - mappedYaw
+				diffYawPercent := float64(diffYaw) / float64(sbus.MaxValue-sbus.MinValue)
 
-				//slog.Debug("FF Extra Info", "yaw", yaw, "steer", mergedFrame.Ch[1], "mappedYaw", mappedYaw, "diff", diff, "percent", diffPercent, "level", level)
-				slog.Debug("frame sent", "frame", mergedFrame)
+				levelFromGyro := 0.0
+				if levelFromGyro > 0.03 || levelFromGyro < -0.03 {
+					levelFromGyro = diffYawPercent
+				}
+
+				if levelFromGyro > 1.0 {
+					levelFromGyro = 1.0
+				} else if levelFromGyro < -1.0 {
+					levelFromGyro = -1.0
+				}
+
+				red1 := controlState.Buttons["red1"]
+				dpadValue := controlState.Buttons["left/right"]
+
+				if red1 == 1 {
+					if dpadValue > 0 { //Set right end point
+						disableFF = true
+						setMaxPitch = mappedPitch
+						setMaxYaw = mappedYaw
+					} else if dpadValue < 0 { //Set left end point
+						disableFF = true
+						setMinPitch = mappedPitch
+						setMaxYaw = mappedYaw
+					} else {
+						disableFF = false
+					}
+				} else {
+					disableFF = false
+				}
+
+				if !disableFF {
+					//controllerManager.SetForceFeedback(int16(levelFromGyro * (65535 / 2)))
+				}
+
 				slog.Info("details",
 					"steer", mergedFrame.Ch[0],
 					"esc", mergedFrame.Ch[1],
@@ -168,6 +213,16 @@ func (a *App) Start(ctx context.Context) (err error) {
 					"tilt", mergedFrame.Ch[3],
 					"roll", mergedFrame.Ch[4],
 					"pan", mergedFrame.Ch[5],
+					"levelFromGyro", levelFromGyro,
+					"levelFromFeedback", levelFromFeedback,
+					"pitch", pitch,
+					"mappedPitch", mappedPitch,
+					"minPitch", setMinPitch,
+					"maxPitch", setMaxPitch,
+					"yaw", yaw,
+					"mappedYaw", mappedYaw,
+					"minYaw", setMinYaw,
+					"maxYaw", setMaxYaw,
 				)
 
 			}

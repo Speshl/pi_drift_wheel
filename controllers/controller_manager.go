@@ -133,6 +133,10 @@ func (c *ControllerManager) isSupported(name string) bool {
 	return true
 }
 
+func (c *ControllerManager) GetMixState() MixState {
+	return c.mixState
+}
+
 func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
 	switch name {
 	case "G27 Racing Wheel":

@@ -13,41 +13,45 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 
 	if mixState.IsEmpty() {
 		mixState = NewMixState()
-		mixState.esc = "forward"
-		mixState.gear = 0
+		mixState.Esc = "forward"
+		mixState.Gear = 0
 	}
 
 	//Check for button state changes
 	for i := range inputs {
-		if inputs[i].Value == mixState.buttons[inputs[i].Label] {
+		if inputs[i].Value == mixState.Buttons[inputs[i].Label] {
 			if inputs[i].Label == "top_right" {
 				slog.Error("top right got here", "input", inputs[i])
 			}
 			continue
 		}
 
-		mixState.buttons[inputs[i].Label] = inputs[i].Value
+		mixState.Buttons[inputs[i].Label] = inputs[i].Value
 
-		if inputs[i].Value != inputs[i].Max { //button presses are considered to be a value equal to the max possible value
-			continue //TODO update this to properly handle hats where -1 can be a press also or if something is resting high
+		if inputs[i].Value == inputs[i].Min && inputs[i].Rests == "low" ||
+			inputs[i].Value == inputs[i].Max && inputs[i].Rests == "high" ||
+			inputs[i].Value == 0 && inputs[i].Rests == "mid" {
+			continue //input is at its resting value (not pressed)
 		}
 
 		switch inputs[i].Label {
 		case "upshift":
-			if mixState.gear >= -1 {
-				mixState.gear++
+			slog.Info("mixing upshift")
+			if mixState.Gear >= -1 {
+				mixState.Gear++
 			}
 		case "downshift":
-			if mixState.gear <= 6 {
-				mixState.gear--
+			slog.Info("mixing downshift")
+			if mixState.Gear <= 6 {
+				mixState.Gear--
 			}
 		case "top_left":
-			if mixState.trims["gyro_gain"] > -100 {
-				mixState.trims["gyro_gain"]--
+			if mixState.Trims["gyro_gain"] > -100 {
+				mixState.Trims["gyro_gain"]--
 			}
 		case "top_right":
-			if mixState.trims["gyro_gain"] < 100 {
-				mixState.trims["gyro_gain"]++
+			if mixState.Trims["gyro_gain"] < 100 {
+				mixState.Trims["gyro_gain"]++
 			}
 		}
 	}
@@ -65,28 +69,28 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 	))
 
 	//ESC Value
-	currentState := mixState.esc
+	currentState := mixState.Esc
 	if opts.UseHPattern {
 		for i := 10; i < 20; i++ {
 			if inputs[i].Value > inputs[i].Min {
 				if i == 19 {
-					mixState.gear = -1 //reverse
+					mixState.Gear = -1 //reverse
 				} else if i > 15 {
-					mixState.gear = 0 //set neutral when unsupported gear pressed
+					mixState.Gear = 0 //set neutral when unsupported gear pressed
 					continue
 				} else {
-					mixState.gear = i - 9 //supported gears
+					mixState.Gear = i - 9 //supported gears
 				}
 				break //only 1 gear can be active at a time, so stop when one found
 			} else if i == 19 {
-				mixState.gear = 0 //no gear button pressed, set to neutral
+				mixState.Gear = 0 //no gear button pressed, set to neutral
 			}
 		}
 
 		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
-			if mixState.gear == 0 { //Neutral so keep esc at center value
+			if mixState.Gear == 0 { //Neutral so keep esc at center value
 				frame.Ch[1] = uint16(sbus.MidValue)
-			} else if mixState.gear == -1 { //Reverse
+			} else if mixState.Gear == -1 { //Reverse
 				switch currentState {
 				case "forward": //Going to reverse from forward needs to turn on brakes first then reverse to get esc into reverse mode
 					value := MapToRange( //Map throttle to bottom half of esc channel
@@ -98,11 +102,11 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 					)
 					frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 					if frame.Ch[1] < uint16(sbus.MidValue) {
-						mixState.esc = "brake"
+						mixState.Esc = "brake"
 					}
 				case "brake":
 					frame.Ch[1] = uint16(sbus.MidValue) //set mid to get the esc out of brake
-					mixState.esc = "reverse"
+					mixState.Esc = "reverse"
 					slog.Debug("setting esc center to get out of brake and prepare for reverse")
 				case "reverse":
 					value := MapToRange( //Map throttle to bottom half of esc channel
@@ -115,9 +119,9 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 					frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 				}
 
-			} else if mixState.gear > 0 && mixState.gear <= 6 {
-				value := int(float64(inputs[1].Value) / float64(6) * float64(mixState.gear)) //Scale throttle to gear
-				if mixState.gear == 6 {
+			} else if mixState.Gear > 0 && mixState.Gear <= 6 {
+				value := int(float64(inputs[1].Value) / float64(6) * float64(mixState.Gear)) //Scale throttle to gear
+				if mixState.Gear == 6 {
 					value = inputs[1].Value //let top gear have full range without rounding issues
 				}
 
@@ -130,7 +134,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				)
 				frame.Ch[1] = uint16(value)
 				if frame.Ch[1] > uint16(sbus.MidValue) {
-					mixState.esc = "forward"
+					mixState.Esc = "forward"
 				}
 			} else {
 				slog.Warn("gear out of bounds")
@@ -148,7 +152,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				)
 				frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 				if frame.Ch[1] < uint16(sbus.MidValue) {
-					mixState.esc = "brake"
+					mixState.Esc = "brake"
 				}
 
 			case "brake":
@@ -163,13 +167,13 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 				if frame.Ch[1] > uint16(sbus.MidValue-10) {                 //brakes not/or barely pushed
 					frame.Ch[1] = uint16(sbus.MidValue + 10) //set enough forward keep esc out of reverse
-					mixState.esc = "forward"
+					mixState.Esc = "forward"
 					slog.Debug("keeping brakes from going to reverse, by setting slightly forward")
 				}
 
 			case "reverse":
 				frame.Ch[1] = uint16(sbus.MidValue + 10) //set enough forward to get the esc out of reverse
-				mixState.esc = "forward"
+				mixState.Esc = "forward"
 				slog.Debug("getting esc out of reverse before pressing the brakes")
 			}
 
@@ -199,14 +203,14 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 
 	//Gyro Gain
 	frame.Ch[2] = uint16(MapToRange(
-		mixState.trims["gyro_gain"],
+		mixState.Trims["gyro_gain"],
 		-100,
 		100,
 		sbus.MinValue,
 		sbus.MaxValue,
 	))
 
-	slog.Debug("mixed frame", "gear", mixState.gear, "esc_state", currentState, "steer", frame.Ch[0], "esc", frame.Ch[1])
+	slog.Debug("mixed frame", "gear", mixState.Gear, "esc_state", currentState, "steer", frame.Ch[0], "esc", frame.Ch[1])
 
 	return frame, mixState
 }
