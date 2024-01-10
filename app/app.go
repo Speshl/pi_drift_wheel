@@ -135,9 +135,11 @@ func (a *App) Start(ctx context.Context) (err error) {
 					"tilt", mergedFrame.Ch[3],
 					"roll", mergedFrame.Ch[4],
 					"pan", mergedFrame.Ch[5],
+					"gyro", a.gyro,
 					"gyroLevel", a.gyroLevel,
 					"mappedGyro", a.mappedGyro,
 					"diffGyro", a.diffGyro,
+					"feedback", a.feedback,
 					"feedbackLevel", a.feedbackLevel,
 					"mappedFeedback", a.mappedFeedback,
 					"diffFeedback", a.diffFeedback,
@@ -222,12 +224,12 @@ func (a *App) Start(ctx context.Context) (err error) {
 						disableFF = true
 						a.setMaxPitch = a.mappedFeedback
 						a.setMaxYaw = a.mappedGyro
-						slog.Info("setting max (right) ff endpoint")
+						slog.Info("setting max (right) ff endpoint", "max_pitch", a.mappedFeedback, "max_yaw", a.gyro)
 					} else if dpadValue < 0 { //Set left end point
 						disableFF = true
 						a.setMinPitch = a.mappedFeedback
 						a.setMinYaw = a.mappedGyro
-						slog.Info("setting min (left) ff endpoint")
+						slog.Info("setting min (left) ff endpoint", "min_pitch", a.mappedFeedback, "min_yaw", a.mappedFeedback)
 					} else {
 						disableFF = false
 					}
@@ -236,7 +238,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				}
 
 				if !disableFF {
-					//controllerManager.SetForceFeedback(int16(levelFromGyro * (65535 / 2)))
+					controllerManager.SetForceFeedback(int16(a.feedbackLevel * (65535 / 2)))
 				}
 
 				//Output
