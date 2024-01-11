@@ -4,7 +4,6 @@ package crsf
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"strconv"
 	"sync"
@@ -93,7 +92,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port, readChan chan
 		}
 		n, err := port.Read(buff)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("failed reading from %s: %w", c.path, err)
 		}
 		//slog.Info("read bytes", "num", n, "bytes", buff[:n] /*PrintBytes(buff[:n])*/)
 		for i := range buff[:n] {

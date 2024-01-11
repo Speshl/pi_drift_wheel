@@ -3,7 +3,6 @@ package sbus
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"sync"
 	"time"
@@ -116,7 +115,7 @@ func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 		}
 		n, err := port.Read(buff)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("failed reading from %s: %w", s.path, err)
 		}
 
 		for i := range buff[:n] {
