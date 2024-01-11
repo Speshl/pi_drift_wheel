@@ -20,9 +20,9 @@ import (
 )
 
 const (
-	DefaultMinPitch = 50 //
+	DefaultMinPitch = 50 //300
 	DefaultMidPitch = 500
-	DefaultMaxPitch = 950 //180
+	DefaultMaxPitch = 950 //745
 
 	DefaultMinYaw = -180 //102 / 117
 	DefaultMidYaw = 0
@@ -110,7 +110,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group.Go(func() error {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		mergeTicker := time.NewTicker(6 * time.Millisecond)
+		mergeTicker := time.NewTicker(5 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(1 * time.Second)
 		mergedFrame := sbus.NewFrame()
@@ -166,7 +166,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				attitude := crsf.GetAttitude()
 
 				//Get a ff level from the servo feedback
-				a.feedback = int(attitude.Pitch) //expect value between -180 and 180
+				a.feedback = int(attitude.Pitch)
 				if a.feedback >= a.setMidPitch {
 					a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMidPitch, a.setMaxPitch, sbus.MidValue, sbus.MaxValue)
 				} else {
