@@ -168,7 +168,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 	}()
 
 	slog.Info("start writing to sbus", "path", s.Path)
-	ticker := time.NewTicker(5 * time.Millisecond) //TODO sync with config
+	ticker := time.NewTicker(6 * time.Millisecond) //TODO sync with config
 	lastWriteTime := time.Now()
 	var writeBytes []byte
 	for {
@@ -180,7 +180,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 			writeBytes = s.txFrame.Marshal()
 			s.txLock.RUnlock()
 
-			if time.Since(lastWriteTime) > (6 * time.Millisecond) {
+			if time.Since(lastWriteTime) > (7 * time.Millisecond) {
 				slog.Warn("slow sbus write", "delay", time.Since(lastWriteTime))
 			}
 			lastWriteTime = time.Now()
