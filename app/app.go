@@ -112,7 +112,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
 		mergeTicker := time.NewTicker(10 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-		logTicker := time.NewTicker(1 * time.Second)
+		logTicker := time.NewTicker(100 * time.Millisecond)
 		mergedFrame := sbus.NewFrame()
 
 		disableFF := false
@@ -130,12 +130,12 @@ func (a *App) Start(ctx context.Context) (err error) {
 					// "tilt", mergedFrame.Ch[3],
 					// "roll", mergedFrame.Ch[4],
 					// "pan", mergedFrame.Ch[5],
-					"mappedFeedback", a.mappedFeedback,
-					"diffFeedback", a.diffFeedback,
-					"feedback", a.feedback,
-					"feedbackLevel", a.feedbackLevel,
-					"minPitch", a.setMinPitch,
-					"maxPitch", a.setMaxPitch,
+					// "mappedFeedback", a.mappedFeedback,
+					// "diffFeedback", a.diffFeedback,
+					// "feedback", a.feedback,
+					// "feedbackLevel", a.feedbackLevel,
+					// "minPitch", a.setMinPitch,
+					// "maxPitch", a.setMaxPitch,
 				)
 			case <-mergeTicker.C:
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
