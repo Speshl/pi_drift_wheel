@@ -110,13 +110,14 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group.Go(func() error {
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		mergeTicker := time.NewTicker(5 * time.Millisecond)
+		mergeTicker := time.NewTicker(10 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(1 * time.Second)
 		mergedFrame := sbus.NewFrame()
 
 		disableFF := false
 
+		lastWriteTime := time.Now()
 		for {
 			select {
 			case <-ctx.Done():
@@ -218,6 +219,11 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 				//Output
 				mergedFrame = InvertChannels(mergedFrame, a.cfg.AppCfg.InvertOutputs)
+
+				if time.Since(lastWriteTime) > (11 * time.Millisecond) {
+					slog.Warn("slow processing", "duration", time.Since(lastWriteTime))
+				}
+				lastWriteTime = time.Now()
 
 				for i := range sBusConns {
 					if sBusConns[i].IsTransmitting() {
