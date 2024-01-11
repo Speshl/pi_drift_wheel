@@ -112,7 +112,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
 		mergeTicker := time.NewTicker(10 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-		logTicker := time.NewTicker(100 * time.Millisecond)
+		//logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
+		logTicker := time.NewTicker(1 * time.Second) //slow logger
 		mergedFrame := sbus.NewFrame()
 
 		disableFF := false

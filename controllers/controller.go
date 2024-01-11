@@ -76,7 +76,7 @@ func (c *Controller) Sync() error {
 		return fmt.Errorf("failed reading from device: %w", err)
 	}
 
-	slog.Debug("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
+	slog.Info("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
 	mapping, ok := c.keyMap[fmt.Sprintf("%d:%d", e.Type, e.Code)]
 	if ok {
 		updatedValue := int(e.Value)
