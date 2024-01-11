@@ -20,9 +20,9 @@ import (
 )
 
 const (
-	DefaultMinPitch = -164 //-180   //traxxas with gyro -164 - 173 (-122-122 without gyro)
-	DefaultMidPitch = -40
-	DefaultMaxPitch = 173 //180
+	DefaultMinPitch = 50 //
+	DefaultMidPitch = 500
+	DefaultMaxPitch = 950 //180
 
 	DefaultMinYaw = -180 //102 / 117
 	DefaultMidYaw = 0
@@ -145,10 +145,10 @@ func (a *App) Start(ctx context.Context) (err error) {
 					// "gyroLevel", a.gyroLevel,
 					// "mappedGyro", a.mappedGyro,
 					// "diffGyro", a.diffGyro,
-					"feedback", a.feedback,
-					"feedbackLevel", a.feedbackLevel,
 					"mappedFeedback", a.mappedFeedback,
 					"diffFeedback", a.diffFeedback,
+					"feedback", a.feedback,
+					"feedbackLevel", a.feedbackLevel,
 					"minPitch", a.setMinPitch,
 					"maxPitch", a.setMaxPitch,
 					// "yaw", a.gyro,
