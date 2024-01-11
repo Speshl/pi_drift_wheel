@@ -36,15 +36,6 @@ type App struct {
 	setMidPitch int
 	setMaxPitch int
 
-	setMinYaw int
-	setMidYaw int
-	setMaxYaw int
-
-	gyro       int
-	mappedGyro int
-	diffGyro   float64
-	gyroLevel  float64
-
 	feedback       int
 	mappedFeedback int
 	diffFeedback   float64
@@ -57,9 +48,6 @@ func NewApp(cfg config.Config) *App {
 		setMinPitch: DefaultMinPitch,
 		setMidPitch: DefaultMidPitch,
 		setMaxPitch: DefaultMaxPitch,
-		setMinYaw:   DefaultMinYaw,
-		setMidYaw:   DefaultMidYaw,
-		setMaxYaw:   DefaultMaxYaw,
 	}
 }
 
@@ -141,19 +129,12 @@ func (a *App) Start(ctx context.Context) (err error) {
 					// "tilt", mergedFrame.Ch[3],
 					// "roll", mergedFrame.Ch[4],
 					// "pan", mergedFrame.Ch[5],
-					// "gyro", a.gyro,
-					// "gyroLevel", a.gyroLevel,
-					// "mappedGyro", a.mappedGyro,
-					// "diffGyro", a.diffGyro,
 					"mappedFeedback", a.mappedFeedback,
 					"diffFeedback", a.diffFeedback,
 					"feedback", a.feedback,
 					"feedbackLevel", a.feedbackLevel,
 					"minPitch", a.setMinPitch,
 					"maxPitch", a.setMaxPitch,
-					// "yaw", a.gyro,
-					// "minYaw", a.setMinYaw,
-					// "maxYaw", a.setMaxYaw,
 				)
 			case <-mergeTicker.C:
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
@@ -207,24 +188,6 @@ func (a *App) Start(ctx context.Context) (err error) {
 				}
 				//end
 
-				//Get a ff level from the gyro
-				a.gyro = int(attitude.YawDegree()) //expect value between -180 and 180
-				a.mappedGyro = controllers.MapToRange(a.gyro, a.setMinYaw, a.setMaxYaw, sbus.MinValue, sbus.MaxValue)
-				diffYaw := int(mergedFrame.Ch[0]) - a.mappedGyro
-				a.diffGyro = float64(diffYaw) / float64(sbus.MaxValue-sbus.MinValue)
-
-				a.gyroLevel = 0.0
-				if a.diffGyro > 0.03 || a.diffGyro < -0.03 {
-					a.gyroLevel = a.diffGyro * 2
-				}
-
-				if a.gyroLevel > 1.0 {
-					a.gyroLevel = 1.0
-				} else if a.gyroLevel < -1.0 {
-					a.gyroLevel = -1.0
-				}
-				//end
-
 				red1 := controlState.Buttons["red1"]
 				lrValue := controlState.Buttons["left/right"]
 				udValue := controlState.Buttons["up/down"]
@@ -233,18 +196,15 @@ func (a *App) Start(ctx context.Context) (err error) {
 					if lrValue > 0 { //Set right end point
 						disableFF = true
 						a.setMaxPitch = a.feedback
-						//a.setMaxYaw = a.gyro
-						slog.Info("setting max (right) ff endpoint", "max_pitch", a.mappedFeedback, "max_yaw", a.gyro)
+						slog.Info("setting max (right) ff endpoint", "max_mapped_pitch", a.mappedFeedback, "max_pitch", a.feedback)
 					} else if lrValue < 0 { //Set left end point
 						disableFF = true
 						a.setMinPitch = a.feedback
-						//a.setMinYaw = a.gyro
-						slog.Info("setting min (left) ff endpoint", "min_pitch", a.mappedFeedback, "min_yaw", a.mappedFeedback)
+						slog.Info("setting min (left) ff endpoint", "min_mapped_pitch", a.mappedFeedback, "min_pitch", a.feedback)
 					} else if udValue > 0 { //Set left end point
 						disableFF = true
 						a.setMidPitch = a.feedback
-						//a.setMinYaw = a.gyro
-						slog.Info("setting mid (center) ff endpoint", "mid_pitch", a.setMidPitch, "mid_yaw", a.setMidYaw)
+						slog.Info("setting mid (center) ff endpoint", "mid_mapped_pitch", a.mappedFeedback, "mid_pitch", a.feedback)
 					} else {
 						disableFF = false
 					}
