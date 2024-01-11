@@ -215,7 +215,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				}
 
 				if !disableFF {
-					controllerManager.SetForceFeedback(int16(a.feedbackLevel * (65535 / 2)))
+					//controllerManager.SetForceFeedback(int16(a.feedbackLevel * (65535 / 2)))
 				}
 
 				//Output
