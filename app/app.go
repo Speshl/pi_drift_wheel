@@ -63,6 +63,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 	}
 	group.Go(func() error {
 		defer cancel()
+		slog.Info("starting controller manager")
+		defer slog.Info("stopping controller manager")
 		return controllerManager.Start(ctx)
 	})
 
@@ -93,6 +95,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				return err
 			}
 			slog.Info("starting sbus", "index", i, "path", a.cfg.SbusCfgs[i].SBusPath)
+			defer slog.Info("stopping sbus", "index", i, "path", a.cfg.SbusCfgs[i].SBusPath)
 			return sBus.Start(ctx)
 		})
 	}
@@ -103,11 +106,16 @@ func (a *App) Start(ctx context.Context) (err error) {
 		BaudRate: 921600,
 	})
 	group.Go(func() error {
+		slog.Info("starting crsf", "path", "/dev/ttyACM0")
+		defer slog.Info("stopping crsf", "path", "/dev/ttyACM0")
 		return crsf.Start(ctx)
 	})
 
 	//Process data
 	group.Go(func() error {
+		slog.Info("start processing")
+		defer slog.Info("stopping processing")
+
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
 		mergeTicker := time.NewTicker(10 * time.Millisecond)
