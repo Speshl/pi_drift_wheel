@@ -29,6 +29,8 @@ type Controller struct {
 	path   string
 	keyMap map[string]Mapping
 
+	deviceLock sync.RWMutex
+
 	inputLock sync.RWMutex
 	rawInputs []Input
 }
@@ -71,10 +73,12 @@ func NewInput(keyMap Mapping) Input {
 }
 
 func (c *Controller) Sync() error {
+	c.deviceLock.Lock()
 	e, err := c.device.ReadOne()
 	if err != nil {
 		return fmt.Errorf("failed reading from device: %w", err)
 	}
+	c.deviceLock.Unlock()
 
 	slog.Debug("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
 	mapping, ok := c.keyMap[fmt.Sprintf("%d:%d", e.Type, e.Code)]
@@ -145,10 +149,14 @@ func (c *Controller) ShowCaps() {
 }
 
 func (c *Controller) SetForceFeedback(level int16) error {
+	c.deviceLock.Lock()
+	defer c.deviceLock.Unlock()
 	err := c.device.UploadEffect(level)
 	if err != nil {
 		return err
 	}
+
+	//c.forceFeedback = level
 
 	return nil
 }
