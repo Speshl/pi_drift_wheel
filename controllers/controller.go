@@ -80,7 +80,7 @@ func (c *Controller) Sync() error {
 	}
 	c.deviceLock.Unlock()
 
-	slog.Info("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
+	slog.Debug("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
 	mapping, ok := c.keyMap[fmt.Sprintf("%d:%d", e.Type, e.Code)]
 	if ok {
 		slog.Debug("mapped event", "label", mapping.Label, "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)

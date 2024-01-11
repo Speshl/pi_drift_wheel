@@ -74,7 +74,7 @@ func (s *SBus) Start(ctx context.Context) error {
 		serial.WithReadTimeout(1000),
 	)
 	if err != nil {
-		return fmt.Errorf("failed opening sbus %s: %w", port, err)
+		return fmt.Errorf("failed opening sbus %s: %w", s.path, err)
 	}
 
 	sbusGroup, ctx := errgroup.WithContext(ctx)
@@ -166,7 +166,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 		s.transmitting = false
 	}()
 
-	slog.Info("start writing to sbus", "path", s.Path)
+	slog.Info("start writing to sbus", "path", s.path)
 	ticker := time.NewTicker(10 * time.Millisecond) //TODO sync with config
 	lastWriteTime := time.Now()
 	var writeBytes []byte
