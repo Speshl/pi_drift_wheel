@@ -114,6 +114,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		//logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
 		logTicker := time.NewTicker(1 * time.Second) //slow logger
+		ffTicker := time.NewTicker(20 * time.Millisecond)
 		mergedFrame := sbus.NewFrame()
 
 		disableFF := false
@@ -138,6 +139,12 @@ func (a *App) Start(ctx context.Context) (err error) {
 					// "minPitch", a.setMinPitch,
 					// "maxPitch", a.setMaxPitch,
 				)
+			case <-ffTicker.C:
+				if !disableFF {
+					ffLevel := int16(a.feedbackLevel * (65535 / 2))
+					controllerManager.SetForceFeedback(ffLevel)
+				}
+
 			case <-mergeTicker.C:
 				framesToMerge = framesToMerge[:0] //clear out frames before next merge
 				//Input
@@ -212,10 +219,6 @@ func (a *App) Start(ctx context.Context) (err error) {
 					}
 				} else {
 					disableFF = false
-				}
-
-				if !disableFF {
-					//controllerManager.SetForceFeedback(int16(a.feedbackLevel * (65535 / 2)))
 				}
 
 				//Output

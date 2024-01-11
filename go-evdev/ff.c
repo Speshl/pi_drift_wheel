@@ -34,7 +34,6 @@ int upload_effect(uintptr_t fd,  int16_t level, bool effectExists){
 
     struct input_event event;
     struct timeval tval;
-    //memset(&event, 0, sizeof(event));
     gettimeofday(&tval, 0);
     event.input_event_usec = tval.tv_usec;
     event.input_event_sec = tval.tv_sec;
@@ -47,27 +46,3 @@ int upload_effect(uintptr_t fd,  int16_t level, bool effectExists){
     }
     return effect.id;
 }
-
-/*
-upload_effect(PyObject *self, PyObject *args)
-{
-    int fd, ret;
-    PyObject* effect_data;
-    ret = PyArg_ParseTuple(args, "iO", &fd, &effect_data);
-    if (!ret) return NULL;
-
-    void* data = PyBytes_AsString(effect_data);
-    struct ff_effect effect = {};
-    memmove(&effect, data, sizeof(struct ff_effect));
-
-    // print_ff_effect(&effect);
-
-    ret = ioctl(fd, EVIOCSFF, &effect);
-    if (ret != 0) {
-        PyErr_SetFromErrno(PyExc_IOError);
-        return NULL;
-    }
-
-    return Py_BuildValue("i", effect.id);
-}
-*/
