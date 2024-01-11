@@ -108,6 +108,7 @@ func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 	buff := make([]byte, 25)
 	frame := make([]byte, 0, 25)
 	midFrame := false
+	timeReceived := time.Now()
 	for {
 		clear(buff)
 		if ctx.Err() != nil {
@@ -129,6 +130,8 @@ func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 						if err != nil {
 							slog.Error("frame should have parsed but failed", "error", err)
 						} else {
+							slog.Info("sbus time since last read", "duration", time.Since(timeReceived))
+							timeReceived = time.Now()
 							s.rxLock.Lock()
 							s.rxFrame = frame //set the latest frame
 							s.rxLock.Unlock()
@@ -166,6 +169,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 
 	slog.Info("start writing to sbus", "path", s.Path)
 	ticker := time.NewTicker(5 * time.Millisecond) //TODO sync with config
+	lastWriteTime := time.Now()
 	var writeBytes []byte
 	for {
 		select {
@@ -175,6 +179,12 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 			s.txLock.RLock()
 			writeBytes = s.txFrame.Marshal()
 			s.txLock.RUnlock()
+
+			if time.Since(lastWriteTime) > (6 * time.Millisecond) {
+				slog.Warn("slow sbus write", "delay", time.Since(lastWriteTime))
+			}
+			lastWriteTime = time.Now()
+
 			n, err := port.Write(writeBytes)
 			if err != nil {
 				return err
