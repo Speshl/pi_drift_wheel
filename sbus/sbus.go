@@ -74,7 +74,7 @@ func (s *SBus) Start(ctx context.Context) error {
 		serial.WithReadTimeout(1000),
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed opening sbus %s: %w", port, err)
 	}
 
 	sbusGroup, ctx := errgroup.WithContext(ctx)

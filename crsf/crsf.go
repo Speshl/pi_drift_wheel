@@ -55,7 +55,7 @@ func (c *CRSF) Start(ctx context.Context) error {
 		serial.WithReadTimeout(1000),
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed opening crsf %s: %w", port, err)
 	}
 
 	crsfGroup, ctx := errgroup.WithContext(ctx)
