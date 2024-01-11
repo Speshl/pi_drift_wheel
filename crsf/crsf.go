@@ -88,6 +88,7 @@ func (c *CRSF) startReader(ctx context.Context, port *serial.Port, readChan chan
 	buff := make([]byte, 128)
 	for {
 		if ctx.Err() != nil {
+			slog.Info("crsf reader context was cancelled", "path", c.path)
 			return ctx.Err()
 		}
 		n, err := port.Read(buff)

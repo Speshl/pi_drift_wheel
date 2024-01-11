@@ -111,6 +111,7 @@ func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 	for {
 		clear(buff)
 		if ctx.Err() != nil {
+			slog.Info("sbus reader context was cancelled", "path", s.path)
 			return ctx.Err()
 		}
 		n, err := port.Read(buff)
@@ -173,6 +174,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 	for {
 		select {
 		case <-ctx.Done():
+			slog.Info("sbus writer context was cancelled", "path", s.path)
 			return ctx.Err()
 		case <-ticker.C:
 			s.txLock.RLock()
