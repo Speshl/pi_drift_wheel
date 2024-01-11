@@ -185,7 +185,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				attitude := crsf.GetAttitude()
 
 				//Get a ff level from the servo feedback
-				a.feedback = int(attitude.PitchDegree()) //expect value between -180 and 180
+				a.feedback = int(attitude.Pitch) //expect value between -180 and 180
 				if a.feedback >= a.setMidPitch {
 					a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMidPitch, a.setMaxPitch, sbus.MidValue, sbus.MaxValue)
 				} else {
