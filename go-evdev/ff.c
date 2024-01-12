@@ -16,7 +16,9 @@ int upload_effect(uintptr_t fd,  int16_t level, bool effectExists){
     if(!effectExists){
         effect.id = -1;           // Unique ID for the effect (use -1 for auto-assignment)
     }else{
-        effect.id = 0;
+        ioctl(fd, EVIOCRMFF, 0);
+        effect.id = -1;
+        //effect.id = 0;
     }
    
     effect.direction = 20000;     // Direction of the effect (0 for omni-directional)
