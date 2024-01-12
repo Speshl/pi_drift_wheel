@@ -198,8 +198,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 				a.diffFeedback = float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
 
 				a.feedbackLevel = 0.0
-				if a.diffFeedback > 0.03 || a.diffFeedback < -0.03 { //deadzone
-					a.feedbackLevel = a.diffFeedback * 2
+				if a.diffFeedback > 0.01 || a.diffFeedback < -0.01 { //deadzone
+					a.feedbackLevel = a.diffFeedback * 4
 				}
 
 				if a.feedbackLevel > 1.0 { //limit
