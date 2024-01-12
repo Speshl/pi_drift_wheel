@@ -80,17 +80,17 @@ func (c *Controller) Sync() error {
 	if err != nil {
 		return fmt.Errorf("failed reading from device: %w", err)
 	}
-	c.ffLock.Lock()
-	ffLevel := c.ffLevel
-	c.ffLock.Unlock()
+	// c.ffLock.Lock()
+	// ffLevel := c.ffLevel
+	// c.ffLock.Unlock()
 
-	if ffLevel != c.lastFFLevel {
-		err = c.device.UploadEffect(ffLevel)
-		if err != nil {
-			return err
-		}
-		c.lastFFLevel = ffLevel
-	}
+	// if ffLevel != c.lastFFLevel {
+	// 	err = c.device.UploadEffect(ffLevel)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	c.lastFFLevel = ffLevel
+	// }
 
 	slog.Debug("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
 	mapping, ok := c.keyMap[fmt.Sprintf("%d:%d", e.Type, e.Code)]
@@ -161,14 +161,14 @@ func (c *Controller) ShowCaps() {
 }
 
 func (c *Controller) SetForceFeedback(level int16) error {
-	c.ffLock.Lock()
-	defer c.ffLock.Unlock()
-	// err := c.device.UploadEffect(level)
-	// if err != nil {
-	// 	return err
-	// }
+	// c.ffLock.Lock()
+	// defer c.ffLock.Unlock()
+	err := c.device.UploadEffect(level)
+	if err != nil {
+		return err
+	}
 
-	c.ffLevel = level
+	// c.ffLevel = level
 
 	return nil
 }
