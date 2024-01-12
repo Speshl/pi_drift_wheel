@@ -20,9 +20,9 @@ import (
 )
 
 const (
-	DefaultMinPitch = 50 //300
+	DefaultMinPitch = 300 //300 //50
 	DefaultMidPitch = 500
-	DefaultMaxPitch = 950 //745
+	DefaultMaxPitch = 750 //750 //950
 
 	DefaultMinYaw = -180 //102 / 117
 	DefaultMidYaw = 0
@@ -268,28 +268,6 @@ func (a *App) Start(ctx context.Context) (err error) {
 			}
 		}
 	})
-
-	// Test Force feedback
-	// group.Go(func() error {
-	// 	time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-	// 	logTicker := time.NewTicker(250 * time.Millisecond)
-	// 	dir := 1
-	// 	for {
-	// 		select {
-	// 		case <-ctx.Done():
-	// 			return ctx.Err()
-	// 		case <-logTicker.C:
-	// 			slog.Info("sending FF")
-	// 			dir = dir * -1
-	// 			err := controllerManager.SetForceFeedback(int16(dir * (65535 / 2)))
-	// 			if err != nil {
-	// 				slog.Error("ff error", "error", err)
-	// 				return err
-	// 			}
-
-	// 		}
-	// 	}
-	// })
 
 	//kill listener
 	group.Go(func() error {
