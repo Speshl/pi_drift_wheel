@@ -122,12 +122,13 @@ func (a *App) Start(ctx context.Context) (err error) {
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
 		//logTicker := time.NewTicker(1 * time.Second) //slow logger
-		ffTicker := time.NewTicker(100 * time.Millisecond)
+		ffTicker := time.NewTicker(30 * time.Millisecond)
 		mergedFrame := sbus.NewFrame()
 
 		disableFF := false
 
 		lastWriteTime := time.Now()
+		lastFFLevel := int16(0)
 		for {
 			select {
 			case <-ctx.Done():
@@ -150,7 +151,10 @@ func (a *App) Start(ctx context.Context) (err error) {
 			case <-ffTicker.C:
 				if !disableFF {
 					ffLevel := int16(a.feedbackLevel * (65535 / 2))
-					controllerManager.SetForceFeedback(ffLevel)
+					if ffLevel != int16(lastFFLevel) {
+						controllerManager.SetForceFeedback(ffLevel)
+					}
+					lastFFLevel = ffLevel
 				}
 
 			case <-mergeTicker.C:
