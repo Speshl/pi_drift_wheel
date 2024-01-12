@@ -13,13 +13,13 @@ int initial_effects(uintptr_t fd){
     struct ff_effect effect1 = {};
     struct ff_effect effect2 = {};
 
-    int error = ioctl(fd, EVIOCSFF, &effect1);
-    if(error != 0){
+    int error1 = ioctl(fd, EVIOCSFF, &effect1);
+    if(error1 != 0){
         return -1;
     }
 
-    int error = ioctl(fd, EVIOCSFF, &effect2);
-    if(error != 0){
+    int error2 = ioctl(fd, EVIOCSFF, &effect2);
+    if(error2 != 0){
         return -2;
     }
 
