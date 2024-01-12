@@ -19,15 +19,12 @@ type InputDevice struct {
 	file          *os.File
 	driverVersion int32
 	firstFF       bool
-	ffEffectId    int16
 }
 
 // Open creates a new InputDevice from the given path. Returns an error if
 // the device node could not be opened or its properties failed to read.
 func Open(path string) (*InputDevice, error) {
-	d := &InputDevice{
-		ffEffectId: -1,
-	}
+	d := &InputDevice{}
 
 	var err error
 	d.file, err = os.OpenFile(path, os.O_RDWR, 0)
@@ -271,22 +268,13 @@ func (d *InputDevice) WriteOne(event *InputEvent) error {
 
 // TESTING forcefeedback
 func (d *InputDevice) UploadEffect(level int16) error {
-	// _, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16_t(level), C.bool(d.firstFF))
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if !d.firstFF {
-	// 	d.firstFF = true
-	// }
-
-	id, err := C.upload_effect_alt(C.uintptr_t(d.file.Fd()), C.int16_t(level), C.int16_t(d.ffEffectId))
+	_, err := C.upload_effect(C.uintptr_t(d.file.Fd()), C.int16_t(level), C.bool(d.firstFF))
 	if err != nil {
 		return err
 	}
 
-	if id >= 0 {
-		d.ffEffectId = int16(id)
+	if !d.firstFF {
+		d.firstFF = true
 	}
 	return err
 }
