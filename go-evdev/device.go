@@ -286,7 +286,7 @@ func (d *InputDevice) UploadEffect(level int16) error {
 	}
 
 	if id >= 0 {
-		d.ffEffectId = id
+		d.ffEffectId = int16(id)
 	}
 	return err
 }
