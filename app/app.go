@@ -122,7 +122,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
 		//logTicker := time.NewTicker(1 * time.Second) //slow logger
-		ffTicker := time.NewTicker(30 * time.Millisecond)
+		ffTicker := time.NewTicker(50 * time.Millisecond)
 		mergedFrame := sbus.NewFrame()
 
 		disableFF := false
