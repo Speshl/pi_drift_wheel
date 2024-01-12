@@ -144,7 +144,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 					// "mappedFeedback", a.mappedFeedback,
 					// "diffFeedback", a.diffFeedback,
 					// "feedback", a.feedback,
-					// "feedbackLevel", a.feedbackLevel,
+					// "feedbackLevel", a.feedbackLevel,1
 					// "minPitch", a.setMinPitch,
 					// "maxPitch", a.setMaxPitch,
 				)
