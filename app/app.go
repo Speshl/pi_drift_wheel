@@ -122,7 +122,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
 		//logTicker := time.NewTicker(1 * time.Second) //slow logger
-		ffTicker := time.NewTicker(1 * time.Second)
+		ffTicker := time.NewTicker(60 * time.Millisecond)
 		mergedFrame := sbus.NewFrame()
 
 		disableFF := false
@@ -141,10 +141,10 @@ func (a *App) Start(ctx context.Context) (err error) {
 					// "tilt", mergedFrame.Ch[3],
 					// "roll", mergedFrame.Ch[4],
 					// "pan", mergedFrame.Ch[5],
-					// "mappedFeedback", a.mappedFeedback,
-					// "diffFeedback", a.diffFeedback,
+					"mappedFeedback", a.mappedFeedback,
+					"diffFeedback", a.diffFeedback,
 					// "feedback", a.feedback,
-					// "feedbackLevel", a.feedbackLevel,1
+					"feedbackLevel", a.feedbackLevel,
 					// "minPitch", a.setMinPitch,
 					// "maxPitch", a.setMaxPitch,
 				)
