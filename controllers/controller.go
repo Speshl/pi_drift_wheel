@@ -29,8 +29,9 @@ type Controller struct {
 	path   string
 	keyMap map[string]Mapping
 
-	ffLock  sync.RWMutex
-	ffLevel int16
+	ffLock      sync.RWMutex
+	ffLevel     int16
+	lastFFLevel int16
 
 	inputLock sync.RWMutex
 	rawInputs []Input
@@ -83,9 +84,12 @@ func (c *Controller) Sync() error {
 	ffLevel := c.ffLevel
 	c.ffLock.Unlock()
 
-	err = c.device.UploadEffect(ffLevel)
-	if err != nil {
-		return err
+	if ffLevel != c.lastFFLevel {
+		err = c.device.UploadEffect(ffLevel)
+		if err != nil {
+			return err
+		}
+		c.lastFFLevel = ffLevel
 	}
 
 	slog.Debug("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
