@@ -33,9 +33,9 @@ func (m *MixState) IsEmpty() bool {
 	return false
 }
 
-func (c *ControllerManager) GetMixedFrame() (sbus.Frame, error) {
+func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
 	if len(c.Controllers) == 0 {
-		return sbus.Frame{}, fmt.Errorf("no controllers loaded")
+		return sbus.NewSBusFrame(), fmt.Errorf("no controllers loaded")
 	}
 
 	mixedInputs := c.Controllers[0].GetRawInputs()

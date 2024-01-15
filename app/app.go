@@ -124,8 +124,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 		//logTicker := time.NewTicker(1 * time.Second) //slow logger
 		ffTicker := time.NewTicker(60 * time.Millisecond)
 
-		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		mergedFrame := sbus.NewFrame()
+		framesToMerge := make([]sbus.SBusFrame, 0, len(controllerManager.Controllers)+len(sBusConns))
+		mergedFrame := sbus.NewSBusFrame()
 		disableFF := false
 
 		lastWriteTime := time.Now()
@@ -136,7 +136,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				return ctx.Err()
 			case <-logTicker.C:
 				slog.Info("details",
-					"steer", mergedFrame.Ch[0],
+					"steer", mergedFrame.Frame.Ch[0],
 					// "esc", mergedFrame.Ch[1],
 					// "gyro_gain", mergedFrame.Ch[2],
 					// "tilt", mergedFrame.Ch[3],
@@ -171,9 +171,9 @@ func (a *App) Start(ctx context.Context) (err error) {
 					if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
 
 						readFrame := sBusConns[i].GetReadFrame()
-						newFrame := sbus.NewFrame()
+						newFrame := sbus.NewSBusFrame()
 						for _, j := range a.cfg.SbusCfgs[i].SBusChannels { //Only pull over values we care about
-							newFrame.Ch[j] = readFrame.Ch[j]
+							newFrame.Frame.Ch[j] = readFrame.Ch[j]
 						}
 						slog.Debug("sbus frame", "port", i, "channels", a.cfg.SbusCfgs[i].SBusChannels, "read", readFrame, "newFrame", newFrame)
 						framesToMerge = append(framesToMerge, newFrame)
@@ -195,7 +195,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 					a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMinPitch, a.setMidPitch, sbus.MinValue, sbus.MidValue)
 				}
 
-				diffPitch := int(mergedFrame.Ch[0]) - a.mappedFeedback
+				diffPitch := int(mergedFrame.Frame.Ch[0]) - a.mappedFeedback
 				a.diffFeedback = float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
 
 				a.feedbackLevel = 0.0
@@ -300,32 +300,32 @@ func (a *App) Start(ctx context.Context) (err error) {
 }
 
 // Merge all provided frames into 1 frame. Use the furthest channel value from the midpoint of each frame
-func MergeFrames(frames []sbus.Frame) sbus.Frame {
+func MergeFrames(frames []sbus.SBusFrame) sbus.SBusFrame {
 	if len(frames) == 0 {
-		return sbus.NewFrame()
+		return sbus.NewSBusFrame()
 	}
 
 	mergedFrame := frames[0]
 	for i := range frames {
-		for j := range frames[i].Ch {
-			mergedDistFromMid := math.Abs(float64(mergedFrame.Ch[j]) - float64(sbus.MidValue))
-			frameDisFromMid := math.Abs(float64(frames[i].Ch[j]) - float64(sbus.MidValue))
+		for j := range frames[i].Frame.Ch {
+			mergedDistFromMid := math.Abs(float64(mergedFrame.Frame.Ch[j]) - float64(sbus.MidValue))
+			frameDisFromMid := math.Abs(float64(frames[i].Frame.Ch[j]) - float64(sbus.MidValue))
 
 			if frameDisFromMid > mergedDistFromMid {
-				mergedFrame.Ch[j] = frames[i].Ch[j]
+				mergedFrame.Frame.Ch[j] = frames[i].Frame.Ch[j]
 			}
 		}
 	}
 	return mergedFrame
 }
 
-func InvertChannels(inputFrame sbus.Frame, invertChannels []bool) sbus.Frame {
+func InvertChannels(inputFrame sbus.SBusFrame, invertChannels []bool) sbus.SBusFrame {
 	returnFrame := inputFrame
 	for i := range invertChannels {
 		if invertChannels[i] {
-			midOffset := returnFrame.Ch[i] - uint16(sbus.MidValue)
+			midOffset := returnFrame.Frame.Ch[i] - uint16(sbus.MidValue)
 			inverted := uint16(sbus.MidValue) - midOffset
-			returnFrame.Ch[i] = inverted
+			returnFrame.Frame.Ch[i] = inverted
 		}
 	}
 	return returnFrame

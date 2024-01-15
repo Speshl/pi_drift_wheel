@@ -228,10 +228,10 @@ func (s *SBus) GetReadFrame() Frame {
 	return s.rxFrame.Frame
 }
 
-func (s *SBus) SetWriteFrame(frame Frame) {
+func (s *SBus) SetWriteFrame(frame SBusFrame) {
 	s.txLock.Lock()
 	defer s.txLock.Unlock()
 	if !s.txFrame.Priority || s.txFrame.Used {
-		s.txFrame = SBusFrame{Frame: frame}
+		s.txFrame = frame
 	}
 }
