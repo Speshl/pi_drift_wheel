@@ -135,25 +135,25 @@ func (a *App) Start(ctx context.Context) (err error) {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-logTicker.C:
-				slog.Info("details",
-					"steer", mergedFrame.Frame.Ch[0],
-					// "esc", mergedFrame.Ch[1],
-					// "gyro_gain", mergedFrame.Ch[2],
-					// "tilt", mergedFrame.Ch[3],
-					// "roll", mergedFrame.Ch[4],
-					// "pan", mergedFrame.Ch[5],
-					"mappedFeedback", a.mappedFeedback,
-					"diffFeedback", a.diffFeedback,
-					// "feedback", a.feedback,
-					"feedbackLevel", a.feedbackLevel,
-					// "minPitch", a.setMinPitch,
-					// "maxPitch", a.setMaxPitch,
-				)
+				// slog.Info("details",
+				// 	"steer", mergedFrame.Frame.Ch[0],
+				// 	// "esc", mergedFrame.Ch[1],
+				// 	// "gyro_gain", mergedFrame.Ch[2],
+				// 	// "tilt", mergedFrame.Ch[3],
+				// 	// "roll", mergedFrame.Ch[4],
+				// 	// "pan", mergedFrame.Ch[5],
+				// 	"mappedFeedback", a.mappedFeedback,
+				// 	"diffFeedback", a.diffFeedback,
+				// 	// "feedback", a.feedback,
+				// 	"feedbackLevel", a.feedbackLevel,
+				// 	// "minPitch", a.setMinPitch,
+				// 	// "maxPitch", a.setMaxPitch,
+				// )
 			case <-ffTicker.C:
 				if !disableFF {
 					ffLevel := int16(a.feedbackLevel * (65535 / 2))
 					if ffLevel != int16(lastFFLevel) {
-						controllerManager.SetForceFeedback(ffLevel)
+						//controllerManager.SetForceFeedback(ffLevel)
 					}
 					lastFFLevel = ffLevel
 				}
