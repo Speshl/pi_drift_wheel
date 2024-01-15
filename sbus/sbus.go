@@ -195,6 +195,10 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 			s.txLock.Lock()
 			writeBytes = s.txFrame.Frame.Marshal()
 			s.txFrame.Used = true
+
+			slog.Info("details",
+				"esc", s.txFrame.Frame.Ch[1],
+			)
 			s.txLock.Unlock()
 
 			if time.Since(lastWriteTime) > (11 * time.Millisecond) {
