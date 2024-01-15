@@ -31,14 +31,20 @@ type SBus struct {
 	read      bool
 	receiving bool
 	rxLock    sync.RWMutex
-	rxFrame   Frame
+	rxFrame   SBusFrame
 
 	write        bool
 	transmitting bool
 	txLock       sync.RWMutex
-	txFrame      Frame
+	txFrame      SBusFrame
 
 	opts SBusCfgOpts
+}
+
+type SBusFrame struct {
+	Frame    Frame
+	Priority bool
+	Used     bool
 }
 
 func NewSBus(path string, read bool, write bool, opts *SBusCfgOpts) (*SBus, error) {
@@ -58,11 +64,19 @@ func NewSBus(path string, read bool, write bool, opts *SBusCfgOpts) (*SBus, erro
 	return &SBus{
 		path:    path,
 		read:    read,
-		rxFrame: NewFrame(),
+		rxFrame: NewSBusFrame(),
 		write:   write,
-		txFrame: NewFrame(),
+		txFrame: NewSBusFrame(),
 		opts:    *opts,
 	}, nil
+}
+
+func NewSBusFrame() SBusFrame {
+	return SBusFrame{
+		Frame:    NewFrame(),
+		Priority: false,
+		Used:     false,
+	}
 }
 
 func (s *SBus) Start(ctx context.Context) error {
@@ -133,7 +147,8 @@ func (s *SBus) startReader(ctx context.Context, port *serial.Port) error {
 							slog.Info("sbus time since last read", "duration", time.Since(timeReceived))
 							timeReceived = time.Now()
 							s.rxLock.Lock()
-							s.rxFrame = frame //set the latest frame
+							s.rxFrame.Frame = frame //set the latest frame
+							s.rxFrame.Used = true
 							s.rxLock.Unlock()
 						}
 					} else {
@@ -168,7 +183,7 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 	}()
 
 	slog.Info("start writing to sbus", "path", s.path)
-	ticker := time.NewTicker(10 * time.Millisecond) //TODO sync with config
+	ticker := time.NewTicker(7 * time.Millisecond) //TODO sync with config
 	lastWriteTime := time.Now()
 	var writeBytes []byte
 	for {
@@ -177,9 +192,10 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 			slog.Info("sbus writer context was cancelled", "path", s.path)
 			return ctx.Err()
 		case <-ticker.C:
-			s.txLock.RLock()
-			writeBytes = s.txFrame.Marshal()
-			s.txLock.RUnlock()
+			s.txLock.Lock()
+			writeBytes = s.txFrame.Frame.Marshal()
+			s.txFrame.Used = true
+			s.txLock.Unlock()
 
 			if time.Since(lastWriteTime) > (11 * time.Millisecond) {
 				slog.Warn("slow sbus write", "delay", time.Since(lastWriteTime))
@@ -209,11 +225,13 @@ func (s *SBus) Type() string {
 func (s *SBus) GetReadFrame() Frame {
 	s.rxLock.RLock()
 	defer s.rxLock.RUnlock()
-	return s.rxFrame
+	return s.rxFrame.Frame
 }
 
 func (s *SBus) SetWriteFrame(frame Frame) {
 	s.txLock.Lock()
 	defer s.txLock.Unlock()
-	s.txFrame = frame
+	if !s.txFrame.Priority || s.txFrame.Used {
+		s.txFrame = SBusFrame{Frame: frame}
+	}
 }

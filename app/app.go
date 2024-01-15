@@ -117,14 +117,15 @@ func (a *App) Start(ctx context.Context) (err error) {
 		defer slog.Info("stopping processing")
 
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		mergeTicker := time.NewTicker(10 * time.Millisecond)
+
+		mergeTicker := time.NewTicker(7 * time.Millisecond)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
 		//logTicker := time.NewTicker(1 * time.Second) //slow logger
 		ffTicker := time.NewTicker(60 * time.Millisecond)
-		mergedFrame := sbus.NewFrame()
 
+		framesToMerge := make([]sbus.Frame, 0, len(controllerManager.Controllers)+len(sBusConns))
+		mergedFrame := sbus.NewFrame()
 		disableFF := false
 
 		lastWriteTime := time.Now()
