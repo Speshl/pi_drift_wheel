@@ -118,7 +118,8 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 
-		mergeTicker := time.NewTicker(25 * time.Millisecond)
+		mergeTime := 25 * time.Millisecond
+		mergeTicker := time.NewTicker(mergeTime)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
 		//logTicker := time.NewTicker(1 * time.Second) //slow logger
@@ -237,7 +238,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 				//Output
 				mergedFrame = InvertChannels(mergedFrame, a.cfg.AppCfg.InvertOutputs)
 
-				if time.Since(lastWriteTime) > (11 * time.Millisecond) {
+				if time.Since(lastWriteTime) > (5*time.Millisecond)+mergeTime {
 					slog.Warn("slow processing", "duration", time.Since(lastWriteTime))
 				}
 				lastWriteTime = time.Now()
