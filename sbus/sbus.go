@@ -43,7 +43,7 @@ type SBus struct {
 
 type SBusFrame struct {
 	Frame    Frame
-	Priority bool
+	Priority int
 	Used     bool
 }
 
@@ -74,7 +74,7 @@ func NewSBus(path string, read bool, write bool, opts *SBusCfgOpts) (*SBus, erro
 func NewSBusFrame() SBusFrame {
 	return SBusFrame{
 		Frame:    NewFrame(),
-		Priority: false,
+		Priority: 0,
 		Used:     false,
 	}
 }
@@ -194,10 +194,12 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 		case <-ticker.C:
 			s.txLock.Lock()
 			writeBytes = s.txFrame.Frame.Marshal()
-			s.txFrame.Used = true
+			//s.txFrame.Used = true
+			s.txFrame.Priority--
 
 			slog.Info("details",
 				"esc", s.txFrame.Frame.Ch[1],
+				"priority", s.txFrame.Priority,
 			)
 			s.txLock.Unlock()
 
@@ -235,7 +237,8 @@ func (s *SBus) GetReadFrame() Frame {
 func (s *SBus) SetWriteFrame(frame SBusFrame) {
 	s.txLock.Lock()
 	defer s.txLock.Unlock()
-	if !s.txFrame.Priority || s.txFrame.Used {
+	//if !s.txFrame.Priority == 0 || s.txFrame.Used {
+	if frame.Priority >= s.txFrame.Priority {
 		s.txFrame = frame
 	}
 }
