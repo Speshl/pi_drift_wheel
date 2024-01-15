@@ -7,7 +7,7 @@ import (
 	"github.com/Speshl/pi_drift_wheel/sbus"
 )
 
-type Mixer func([]Input, MixState, ControllerOptions) (sbus.Frame, MixState)
+type Mixer func([]Input, MixState, ControllerOptions) (sbus.SBusFrame, MixState)
 
 type MixState struct {
 	Buttons map[string]int
