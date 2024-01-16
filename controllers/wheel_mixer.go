@@ -90,6 +90,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		if gasChange > brakeChange && gasChange > 10 { //throttle is pressed more than brake
 			if mixState.Gear == 0 { //Neutral so keep esc at center value
 				frame.Frame.Ch[1] = uint16(sbus.MidValue)
+				slog.Info("neutral")
 			} else if mixState.Gear == -1 { //Reverse
 				switch currentState {
 				case "forward": //Going to reverse from forward needs to turn on brakes first then reverse to get esc into reverse mode
@@ -132,6 +133,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				if frame.Frame.Ch[1] > uint16(sbus.MidValue) {
 					mixState.Esc = "forward"
 				}
+				slog.Info("going forward", "value", frame.Frame.Ch[1])
 			} else {
 				slog.Warn("gear out of bounds")
 			}
@@ -180,7 +182,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			}
 		} else {
 			frame.Frame.Ch[1] = uint16(sbus.MidValue)
-			slog.Info("no peddals")
+			slog.Info("no peddals", "throttle", gasChange, "brake", brakeChange)
 		}
 	} else { //map without using gear selections
 		if gasChange > brakeChange && gasChange > 10 { //throttle is pressed more than brake
@@ -206,7 +208,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			slog.Info("no gear brake")
 		} else {
 			frame.Frame.Ch[1] = uint16(sbus.MidValue)
-			slog.Info("no peddals")
+			slog.Info("no gears no peddals", "throttle", gasChange, "brake", brakeChange)
 		}
 	}
 
