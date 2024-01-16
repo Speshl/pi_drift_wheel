@@ -154,7 +154,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 					frame.Priority = 3
 					slog.Info("to brake from forward", "esc", frame.Frame.Ch[1], "base", inputs[2].Value)
 				} else {
-					slog.Info("braking from forward", "esc", frame.Frame.Ch[1], "base", inputs[2].Value)
+					slog.Info("braking from forward", "esc", frame.Frame.Ch[1], "base", inputs[2].Value, "min", inputs[2].Min, "max", inputs[2].Max)
 				}
 			case "brake":
 				value := MapToRangeWithDeadzoneLow(

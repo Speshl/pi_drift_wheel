@@ -193,7 +193,7 @@ func MapToRangeWithDeadzoneLow(value, min, max, minReturn, maxReturn, deadZone i
 		return maxReturn
 	} else if mappedValue < minReturn {
 		return minReturn
-	} else if minReturn+deadZone > value {
+	} else if minReturn+deadZone > mappedValue {
 		return minReturn
 	} else {
 		return mappedValue
