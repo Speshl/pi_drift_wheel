@@ -214,7 +214,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		sbus.MaxValue,
 	))
 
-	slog.Debug("mixed frame", "gear", mixState.Gear, "esc_state", currentState, "steer", frame.Frame.Ch[0], "esc", frame.Frame.Ch[1])
+	slog.Info("mixed frame", "gear", mixState.Gear, "esc_state", currentState, "steer", frame.Frame.Ch[0], "esc", frame.Frame.Ch[1])
 
 	return frame, mixState
 }
