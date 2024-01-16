@@ -175,7 +175,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 					slog.Info("brakes in brake state", "esc", frame.Frame.Ch[1])
 				}
 			case "reverse":
-				frame.Frame.Ch[1] = uint16(sbus.MidValue + 50) //set enough forward to get the esc out of reverse
+				frame.Frame.Ch[1] = uint16(sbus.MaxValue) //set enough forward to get the esc out of reverse
 				frame.Priority = 3
 				mixState.Esc = "forward"
 				slog.Info("getting esc out of reverse before pressing the brakes", "esc", frame.Frame.Ch[1])
