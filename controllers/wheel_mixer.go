@@ -65,6 +65,9 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		2,
 	))
 
+	gasChange := getInputChangeAmount(inputs[1])
+	brakeChange := getInputChangeAmount(inputs[2])
+
 	//ESC Value
 	currentState := mixState.Esc
 	if opts.UseHPattern {
@@ -84,7 +87,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			}
 		}
 
-		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
+		if gasChange > brakeChange && gasChange > 10 { //throttle is pressed more than brake
 			if mixState.Gear == 0 { //Neutral so keep esc at center value
 				frame.Frame.Ch[1] = uint16(sbus.MidValue)
 			} else if mixState.Gear == -1 { //Reverse
@@ -143,7 +146,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			} else {
 				slog.Warn("gear out of bounds")
 			}
-		} else { //Brake is pressed more than throttle
+		} else if brakeChange > gasChange && brakeChange > 10 { //Brake is pressed more than throttle
 			switch currentState {
 			case "forward":
 				value := MapToRangeWithDeadzoneLow(
@@ -184,10 +187,12 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				mixState.Esc = "forward"
 				slog.Info("getting esc out of reverse before pressing the brakes")
 			}
-
+		} else {
+			frame.Frame.Ch[0] = uint16(sbus.MidValue)
+			slog.Info("not peddale input")
 		}
 	} else { //map without using gear selections
-		if getInputChangeAmount(inputs[1]) > getInputChangeAmount(inputs[2]) { //throttle is pressed more than brake
+		if gasChange > brakeChange && gasChange > 10 { //throttle is pressed more than brake
 			frame.Frame.Ch[1] = uint16(MapToRangeWithDeadzoneLow(
 				inputs[1].Value,
 				inputs[1].Min,
@@ -196,7 +201,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				sbus.MaxValue,
 				2,
 			))
-		} else { //brake pressed more or equal to throttle
+		} else if brakeChange > gasChange && brakeChange > 10 { //brake pressed more or equal to throttle
 			value := MapToRangeWithDeadzoneLow(
 				inputs[2].Value,
 				inputs[2].Min,
@@ -206,6 +211,8 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				2,
 			)
 			frame.Frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
+		} else {
+			frame.Frame.Ch[1] = uint16(sbus.MidValue)
 		}
 	}
 
