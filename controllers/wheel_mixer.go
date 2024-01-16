@@ -178,7 +178,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			}
 		} else {
 			frame.Frame.Ch[1] = uint16(sbus.MidValue)
-			//slog.Info("not peddle input")
+			slog.Info("no peddals")
 		}
 	} else { //map without using gear selections
 		if gasChange > brakeChange && gasChange > 10 { //throttle is pressed more than brake
@@ -202,6 +202,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			frame.Frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 		} else {
 			frame.Frame.Ch[1] = uint16(sbus.MidValue)
+			slog.Info("no peddals")
 		}
 	}
 
@@ -214,7 +215,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 		sbus.MaxValue,
 	))
 
-	slog.Info("mixed frame", "gear", mixState.Gear, "esc_state", currentState, "steer", frame.Frame.Ch[0], "esc", frame.Frame.Ch[1])
+	slog.Debug("mixed frame", "gear", mixState.Gear, "esc_state", currentState, "steer", frame.Frame.Ch[0], "esc", frame.Frame.Ch[1])
 
 	return frame, mixState
 }
