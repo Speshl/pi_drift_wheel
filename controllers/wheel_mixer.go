@@ -141,9 +141,9 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			switch currentState {
 			case "forward":
 				value := MapToRangeWithDeadzoneLow(
-					inputs[1].Value,
-					inputs[1].Min,
-					inputs[1].Max,
+					inputs[2].Value,
+					inputs[2].Min,
+					inputs[2].Max,
 					sbus.MinValue,
 					sbus.MidValue,
 					2,
@@ -158,9 +158,9 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 
 			case "brake":
 				value := MapToRangeWithDeadzoneLow(
-					inputs[1].Value,
-					inputs[1].Min,
-					inputs[1].Max,
+					inputs[2].Value,
+					inputs[2].Min,
+					inputs[2].Max,
 					sbus.MinValue,
 					sbus.MidValue,
 					2,
