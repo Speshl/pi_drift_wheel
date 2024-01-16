@@ -189,7 +189,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 			}
 		} else {
 			frame.Frame.Ch[0] = uint16(sbus.MidValue)
-			slog.Info("not peddale input")
+			//slog.Info("not peddle input")
 		}
 	} else { //map without using gear selections
 		if gasChange > brakeChange && gasChange > 10 { //throttle is pressed more than brake
