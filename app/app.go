@@ -118,7 +118,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 
 		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 
-		mergeTime := 50 * time.Millisecond
+		mergeTime := 7 * time.Millisecond
 		mergeTicker := time.NewTicker(mergeTime)
 		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
 		logTicker := time.NewTicker(100 * time.Millisecond) //fast logger

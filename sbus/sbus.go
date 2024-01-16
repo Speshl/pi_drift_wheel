@@ -33,10 +33,11 @@ type SBus struct {
 	rxLock    sync.RWMutex
 	rxFrame   SBusFrame
 
-	write        bool
-	transmitting bool
-	txLock       sync.RWMutex
-	txFrame      SBusFrame
+	priorityFrames []SBusFrame
+	write          bool
+	transmitting   bool
+	txLock         sync.RWMutex
+	txFrame        SBusFrame
 
 	opts SBusCfgOpts
 }
@@ -62,12 +63,13 @@ func NewSBus(path string, read bool, write bool, opts *SBusCfgOpts) (*SBus, erro
 	}
 
 	return &SBus{
-		path:    path,
-		read:    read,
-		rxFrame: NewSBusFrame(),
-		write:   write,
-		txFrame: NewSBusFrame(),
-		opts:    *opts,
+		path:           path,
+		read:           read,
+		rxFrame:        NewSBusFrame(),
+		priorityFrames: make([]SBusFrame, 0, 1000),
+		write:          write,
+		txFrame:        NewSBusFrame(),
+		opts:           *opts,
 	}, nil
 }
 
@@ -193,8 +195,13 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 			return ctx.Err()
 		case <-ticker.C:
 			s.txLock.Lock()
+			if s.txFrame.Priority == 0 {
+				if len(s.priorityFrames) > 0 {
+					s.txFrame = s.priorityFrames[0]
+					s.priorityFrames = s.priorityFrames[1:]
+				}
+			}
 			writeBytes = s.txFrame.Frame.Marshal()
-			//s.txFrame.Used = true
 			s.txFrame.Priority--
 			s.txLock.Unlock()
 
@@ -233,7 +240,11 @@ func (s *SBus) SetWriteFrame(frame SBusFrame) {
 	s.txLock.Lock()
 	defer s.txLock.Unlock()
 	//if !s.txFrame.Priority == 0 || s.txFrame.Used {
-	if frame.Priority >= s.txFrame.Priority {
+	if s.txFrame.Priority == 0 {
 		s.txFrame = frame
+	} else {
+		if frame.Priority > 0 {
+			s.priorityFrames = append(s.priorityFrames, frame)
+		}
 	}
 }
