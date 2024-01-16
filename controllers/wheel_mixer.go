@@ -149,7 +149,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 					2,
 				)
 				frame.Frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
-				if frame.Frame.Ch[1] < uint16(sbus.MidValue-70) {
+				if frame.Frame.Ch[1] < uint16(sbus.MidValue) {
 
 					mixState.Esc = "brake"
 					frame.Priority = 6
