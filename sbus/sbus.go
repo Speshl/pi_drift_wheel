@@ -240,7 +240,7 @@ func (s *SBus) SetWriteFrame(frame SBusFrame) {
 	s.txLock.Lock()
 	defer s.txLock.Unlock()
 	//if !s.txFrame.Priority == 0 || s.txFrame.Used {
-	if s.txFrame.Priority == 0 {
+	if s.txFrame.Priority <= 0 {
 		s.txFrame = frame
 	} else {
 		if frame.Priority > 0 {
