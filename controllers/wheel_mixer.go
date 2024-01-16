@@ -147,11 +147,12 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 					2,
 				)
 				frame.Frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
-				if frame.Frame.Ch[1] < uint16(sbus.MidValue) {
+				if frame.Frame.Ch[1] < uint16(sbus.MidValue-40) {
 					mixState.Esc = "brake"
 					frame.Priority = 3
-					slog.Info("braking from forward")
+					slog.Info("to brake from forward")
 				}
+				slog.Info("braking from forward")
 
 			case "brake":
 				value := MapToRangeWithDeadzoneLow(
@@ -169,6 +170,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 					mixState.Esc = "forward"
 					slog.Info("keeping brakes from going to reverse, by setting slightly forward")
 				}
+				slog.Info("brakes in brake state")
 
 			case "reverse":
 				frame.Frame.Ch[1] = uint16(sbus.MidValue + 50) //set enough forward to get the esc out of reverse
@@ -190,6 +192,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				sbus.MaxValue,
 				2,
 			))
+			slog.Info("no gear gas")
 		} else if brakeChange > gasChange && brakeChange > 10 { //brake pressed more or equal to throttle
 			value := MapToRangeWithDeadzoneLow(
 				inputs[2].Value,
@@ -200,6 +203,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 				2,
 			)
 			frame.Frame.Ch[1] = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
+			slog.Info("no gear brake")
 		} else {
 			frame.Frame.Ch[1] = uint16(sbus.MidValue)
 			slog.Info("no peddals")
