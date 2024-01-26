@@ -191,7 +191,7 @@ func getEscValueReverse(inputs []Input, mixState MixState) (uint16, int, MixStat
 			mixState.Esc = "reverse"
 			slog.Info("no input in brake, switch to reverse", "esc", returnValue)
 		case "reverse": //do nothing
-			slog.Info("no input in reverse", "esc", returnValue)
+			//slog.Info("no input in reverse", "esc", returnValue)
 		}
 	}
 	return returnValue, returnPriority, mixState
