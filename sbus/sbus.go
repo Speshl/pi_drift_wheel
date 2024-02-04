@@ -195,14 +195,14 @@ func (s *SBus) startWriter(ctx context.Context, port *serial.Port) error {
 			return ctx.Err()
 		case <-ticker.C:
 			s.txLock.Lock()
-			if s.txFrame.Priority == 0 {
-				if len(s.priorityFrames) > 0 {
-					s.txFrame = s.priorityFrames[0]
-					s.priorityFrames = s.priorityFrames[1:]
-				}
+			if s.txFrame.Priority <= 0 && len(s.priorityFrames) > 0 {
+				s.txFrame = s.priorityFrames[0]
+				s.priorityFrames = s.priorityFrames[1:]
 			}
 			writeBytes = s.txFrame.Frame.Marshal()
-			s.txFrame.Priority--
+			if s.txFrame.Priority > 0 {
+				s.txFrame.Priority--
+			}
 			s.txLock.Unlock()
 
 			if time.Since(lastWriteTime) > (11 * time.Millisecond) {
