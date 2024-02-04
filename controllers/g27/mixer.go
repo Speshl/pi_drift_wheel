@@ -173,7 +173,7 @@ func getEscValueReverse(inputs []models.Input, mixState models.MixState) (uint16
 		//put back in reverse esc state since no input to prepare for next input
 		switch mixState.Esc {
 		case "forward":
-			returnValue = uint16(sbus.MidValue) + 50
+			returnValue = uint16(sbus.MidValue) + 10
 			//returnPriority = 3
 			//mixState.Esc = "brake"
 			//slog.Info("no input in forward, switch to brakes", "esc", returnValue, "state", mixState.Esc)
