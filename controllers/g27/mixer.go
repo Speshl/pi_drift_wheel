@@ -183,8 +183,8 @@ func getEscValueReverse(inputs []models.Input, mixState models.MixState) (uint16
 			mixState.Esc = "forward"
 			slog.Info("no input in brake in reverse", "esc", returnValue, "state", mixState.Esc)
 		case "reverse":
-			returnValue = uint16(sbus.MidValue) + 50 //set enough forward to get the esc out of reverse
-			returnPriority = 20                      //needs high priority to get out of reverse
+			returnValue = uint16(sbus.MidValue) + 100 //set enough forward to get the esc out of reverse
+			returnPriority = 20                       //needs high priority to get out of reverse
 			mixState.Esc = "forward"
 			slog.Info("no input in reverse", "esc", returnValue, "state", mixState.Esc)
 		}
