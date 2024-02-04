@@ -124,7 +124,7 @@ func getEscValueReverse(inputs []models.Input, mixState models.MixState) (uint16
 	if gasChange >= brakeChange && gasChange > 5 { //Throttle pressed
 		switch mixState.Esc {
 		case "forward": //go to brakes
-			returnValue = uint16(sbus.MidValue) - 50
+			returnValue = uint16(sbus.MidValue) - 150
 			returnPriority = 5
 			mixState.Esc = "brake"
 			slog.Info("to brake from forward in reverse", "esc", returnValue, "state", mixState.Esc)
@@ -148,7 +148,7 @@ func getEscValueReverse(inputs []models.Input, mixState models.MixState) (uint16
 	} else if brakeChange >= gasChange && brakeChange > 5 { //brake pressed
 		switch mixState.Esc {
 		case "forward": //set value
-			returnValue = uint16(sbus.MidValue) - 50
+			returnValue = uint16(sbus.MidValue) - 150
 			returnPriority = 5
 			mixState.Esc = "brake"
 			slog.Info("to brake from forward in reverse", "esc", returnValue, "state", mixState.Esc)
@@ -164,7 +164,7 @@ func getEscValueReverse(inputs []models.Input, mixState models.MixState) (uint16
 			returnValue = uint16(sbus.MidValue - value + sbus.MinValue) //invert since on bottom half
 			slog.Info("braking in brake in reverse", "esc", returnValue)
 		case "reverse": //go to forward
-			returnValue = uint16(sbus.MidValue) + 50
+			returnValue = uint16(sbus.MidValue) + 150
 			returnPriority = 5
 			mixState.Esc = "forward"
 			slog.Info("to forward from reverse braking in reverse", "esc", returnValue, "state", mixState.Esc)
@@ -173,7 +173,7 @@ func getEscValueReverse(inputs []models.Input, mixState models.MixState) (uint16
 		//put back in reverse esc state since no input to prepare for next input
 		switch mixState.Esc {
 		case "forward":
-			returnValue = uint16(sbus.MidValue) + 10
+			returnValue = uint16(sbus.MidValue) + 50
 			//returnPriority = 3
 			//mixState.Esc = "brake"
 			//slog.Info("no input in forward, switch to brakes", "esc", returnValue, "state", mixState.Esc)
