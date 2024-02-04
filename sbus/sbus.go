@@ -239,12 +239,7 @@ func (s *SBus) GetReadFrame() Frame {
 func (s *SBus) SetWriteFrame(frame SBusFrame) {
 	s.txLock.Lock()
 	defer s.txLock.Unlock()
-	//if !s.txFrame.Priority == 0 || s.txFrame.Used {
-	if s.txFrame.Priority <= 0 {
-		s.txFrame = frame
-	} else {
-		if frame.Priority > 0 {
-			s.priorityFrames = append(s.priorityFrames, frame)
-		}
+	if len(s.priorityFrames) == 0 || frame.Priority > 0 {
+		s.priorityFrames = append(s.priorityFrames, frame)
 	}
 }
