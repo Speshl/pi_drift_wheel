@@ -1,18 +1,19 @@
-package controllers
+package g27
 
 import (
 	"log/slog"
 
+	"github.com/Speshl/pi_drift_wheel/controllers/models"
 	sbus "github.com/Speshl/pi_drift_wheel/sbus"
 )
 
 //Mapping - 0 steer, 1 esc, 2 gyro gain
 
-func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus.SBusFrame, MixState) {
+func Mixer(inputs []models.Input, mixState models.MixState, opts models.ControllerOptions) (sbus.SBusFrame, models.MixState) {
 	frame := sbus.NewSBusFrame()
 
 	if mixState.IsEmpty() {
-		mixState = NewMixState()
+		mixState = models.NewMixState()
 		mixState.Esc = "forward"
 		mixState.Gear = 0
 	}
@@ -56,7 +57,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 	//Build frame values based on current state/buttons
 
 	//Steer Value
-	frame.Frame.Ch[0] = uint16(MapToRangeWithDeadzoneMid(
+	frame.Frame.Ch[0] = uint16(models.MapToRangeWithDeadzoneMid(
 		inputs[0].Value,
 		inputs[0].Min,
 		inputs[0].Max,
@@ -68,7 +69,7 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 	frame.Frame.Ch[1], frame.Priority, mixState = getEscValue(inputs, mixState, opts)
 
 	//Gyro Gain
-	frame.Frame.Ch[2] = uint16(MapToRange(
+	frame.Frame.Ch[2] = uint16(models.MapToRange(
 		mixState.Trims["gyro_gain"],
 		-100,
 		100,
@@ -81,14 +82,14 @@ func WheelMixer(inputs []Input, mixState MixState, opts ControllerOptions) (sbus
 	return frame, mixState
 }
 
-func getEscValue(inputs []Input, mixState MixState, opts ControllerOptions) (uint16, int, MixState) {
+func getEscValue(inputs []models.Input, mixState models.MixState, opts models.ControllerOptions) (uint16, int, models.MixState) {
 	if opts.UseHPattern {
 		return getEscValueWithHPattern(inputs, mixState)
 	}
 	return getEscValueWithoutGears(inputs, mixState)
 }
 
-func getEscValueWithHPattern(inputs []Input, mixState MixState) (uint16, int, MixState) {
+func getEscValueWithHPattern(inputs []models.Input, mixState models.MixState) (uint16, int, models.MixState) {
 	for i := 10; i < 20; i++ {
 		if inputs[i].Value > inputs[i].Min {
 			if i == 19 {
@@ -114,11 +115,11 @@ func getEscValueWithHPattern(inputs []Input, mixState MixState) (uint16, int, Mi
 
 }
 
-func getEscValueReverse(inputs []Input, mixState MixState) (uint16, int, MixState) {
+func getEscValueReverse(inputs []models.Input, mixState models.MixState) (uint16, int, models.MixState) {
 	returnValue := uint16(sbus.MinValue)
 	returnPriority := 0
-	gasChange := getInputChangeAmount(inputs[1])
-	brakeChange := getInputChangeAmount(inputs[2])
+	gasChange := models.GetInputChangeAmount(inputs[1])
+	brakeChange := models.GetInputChangeAmount(inputs[2])
 
 	if gasChange >= brakeChange && gasChange > 5 { //Throttle pressed
 		switch mixState.Esc {
@@ -134,7 +135,7 @@ func getEscValueReverse(inputs []Input, mixState MixState) (uint16, int, MixStat
 			slog.Info("to reverse from brake in reverse", "esc", returnValue, "state", mixState.Esc)
 		case "reverse": //set reverse value
 			value := inputs[1].Value
-			value = MapToRange(
+			value = models.MapToRange(
 				value,
 				inputs[1].Min,
 				inputs[1].Max,
@@ -152,7 +153,7 @@ func getEscValueReverse(inputs []Input, mixState MixState) (uint16, int, MixStat
 			mixState.Esc = "brake"
 			slog.Info("to brake from forward in reverse", "esc", returnValue, "state", mixState.Esc)
 		case "brake": //set value
-			value := MapToRangeWithDeadzoneLow(
+			value := models.MapToRangeWithDeadzoneLow(
 				inputs[2].Value,
 				inputs[2].Min,
 				inputs[2].Max,
@@ -191,11 +192,11 @@ func getEscValueReverse(inputs []Input, mixState MixState) (uint16, int, MixStat
 	return returnValue, returnPriority, mixState
 }
 
-func getEscValueForward(inputs []Input, mixState MixState) (uint16, int, MixState) {
+func getEscValueForward(inputs []models.Input, mixState models.MixState) (uint16, int, models.MixState) {
 	returnValue := uint16(sbus.MinValue)
 	returnPriority := 0
-	gasChange := getInputChangeAmount(inputs[1])
-	brakeChange := getInputChangeAmount(inputs[2])
+	gasChange := models.GetInputChangeAmount(inputs[1])
+	brakeChange := models.GetInputChangeAmount(inputs[2])
 
 	if gasChange >= brakeChange && gasChange > 5 { //Throttle pressed
 		value := int(float64(inputs[1].Value) / float64(6) * float64(mixState.Gear)) //Scale throttle to gear
@@ -203,7 +204,7 @@ func getEscValueForward(inputs []Input, mixState MixState) (uint16, int, MixStat
 			value = inputs[1].Value //let top gear have full range without rounding issues
 		}
 
-		value = MapToRange(
+		value = models.MapToRange(
 			value,
 			inputs[1].Min,
 			inputs[1].Max,
@@ -220,7 +221,7 @@ func getEscValueForward(inputs []Input, mixState MixState) (uint16, int, MixStat
 		switch mixState.Esc {
 		case "forward": //brake in a forward gear when esc is in forward state
 
-			value := MapToRangeWithDeadzoneLow(
+			value := models.MapToRangeWithDeadzoneLow(
 				inputs[2].Value,
 				inputs[2].Min,
 				inputs[2].Max,
@@ -243,7 +244,7 @@ func getEscValueForward(inputs []Input, mixState MixState) (uint16, int, MixStat
 			mixState.Esc = "forward"
 		case "brake":
 
-			value := MapToRangeWithDeadzoneLow(
+			value := models.MapToRangeWithDeadzoneLow(
 				inputs[2].Value,
 				inputs[2].Min,
 				inputs[2].Max,
@@ -273,14 +274,14 @@ func getEscValueForward(inputs []Input, mixState MixState) (uint16, int, MixStat
 	return returnValue, returnPriority, mixState
 }
 
-func getEscValueWithoutGears(inputs []Input, mixState MixState) (uint16, int, MixState) {
+func getEscValueWithoutGears(inputs []models.Input, mixState models.MixState) (uint16, int, models.MixState) {
 	returnValue := uint16(sbus.MinValue)
 	returnPriority := 0
 
-	gasChange := getInputChangeAmount(inputs[1])
-	brakeChange := getInputChangeAmount(inputs[2])
+	gasChange := models.GetInputChangeAmount(inputs[1])
+	brakeChange := models.GetInputChangeAmount(inputs[2])
 	if gasChange > brakeChange && gasChange > 10 { //throttle is pressed more than brake
-		returnValue = uint16(MapToRangeWithDeadzoneLow(
+		returnValue = uint16(models.MapToRangeWithDeadzoneLow(
 			inputs[1].Value,
 			inputs[1].Min,
 			inputs[1].Max,
@@ -290,7 +291,7 @@ func getEscValueWithoutGears(inputs []Input, mixState MixState) (uint16, int, Mi
 		))
 		slog.Debug("gas without gears")
 	} else if brakeChange > gasChange && brakeChange > 10 { //brake pressed more or equal to throttle
-		value := MapToRangeWithDeadzoneLow(
+		value := models.MapToRangeWithDeadzoneLow(
 			inputs[2].Value,
 			inputs[2].Min,
 			inputs[2].Max,
@@ -307,12 +308,12 @@ func getEscValueWithoutGears(inputs []Input, mixState MixState) (uint16, int, Mi
 	return returnValue, returnPriority, mixState
 }
 
-func getEscValueOld(inputs []Input, mixState MixState, opts ControllerOptions) (uint16, int, MixState) {
+func getEscValueOld(inputs []models.Input, mixState models.MixState, opts models.ControllerOptions) (uint16, int, models.MixState) {
 	returnValue := uint16(sbus.MinValue)
 	returnPriority := 0
 
-	gasChange := getInputChangeAmount(inputs[1])
-	brakeChange := getInputChangeAmount(inputs[2])
+	gasChange := models.GetInputChangeAmount(inputs[1])
+	brakeChange := models.GetInputChangeAmount(inputs[2])
 	//ESC Value
 	if opts.UseHPattern {
 		for i := 10; i < 20; i++ {
@@ -349,7 +350,7 @@ func getEscValueOld(inputs []Input, mixState MixState, opts ControllerOptions) (
 					mixState.Esc = "reverse"
 					slog.Info("setting esc center to get out of brake and prepare for reverse")
 				case "reverse":
-					value := MapToRange( //Map throttle to bottom half of esc channel
+					value := models.MapToRange( //Map throttle to bottom half of esc channel
 						inputs[1].Value,
 						inputs[1].Min,
 						inputs[1].Max,
@@ -366,7 +367,7 @@ func getEscValueOld(inputs []Input, mixState MixState, opts ControllerOptions) (
 					value = inputs[1].Value //let top gear have full range without rounding issues
 				}
 
-				value = MapToRange(
+				value = models.MapToRange(
 					value,
 					inputs[1].Min,
 					inputs[1].Max,
@@ -384,7 +385,7 @@ func getEscValueOld(inputs []Input, mixState MixState, opts ControllerOptions) (
 		} else if brakeChange > gasChange && brakeChange > 10 { //Brake is pressed more than throttle
 			switch mixState.Esc {
 			case "forward":
-				value := MapToRangeWithDeadzoneLow(
+				value := models.MapToRangeWithDeadzoneLow(
 					inputs[2].Value,
 					inputs[2].Min,
 					inputs[2].Max,
@@ -402,7 +403,7 @@ func getEscValueOld(inputs []Input, mixState MixState, opts ControllerOptions) (
 					slog.Info("braking from forward", "esc", returnValue, "base", inputs[2].Value)
 				}
 			case "brake":
-				value := MapToRangeWithDeadzoneLow(
+				value := models.MapToRangeWithDeadzoneLow(
 					inputs[2].Value,
 					inputs[2].Min,
 					inputs[2].Max,
@@ -431,7 +432,7 @@ func getEscValueOld(inputs []Input, mixState MixState, opts ControllerOptions) (
 		}
 	} else { //map without using gear selections
 		if gasChange > brakeChange && gasChange > 10 { //throttle is pressed more than brake
-			returnValue = uint16(MapToRangeWithDeadzoneLow(
+			returnValue = uint16(models.MapToRangeWithDeadzoneLow(
 				inputs[1].Value,
 				inputs[1].Min,
 				inputs[1].Max,
@@ -441,7 +442,7 @@ func getEscValueOld(inputs []Input, mixState MixState, opts ControllerOptions) (
 			))
 			slog.Info("no gear gas")
 		} else if brakeChange > gasChange && brakeChange > 10 { //brake pressed more or equal to throttle
-			value := MapToRangeWithDeadzoneLow(
+			value := models.MapToRangeWithDeadzoneLow(
 				inputs[2].Value,
 				inputs[2].Min,
 				inputs[2].Max,

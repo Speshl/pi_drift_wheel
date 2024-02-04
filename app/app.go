@@ -13,6 +13,7 @@ import (
 
 	"github.com/Speshl/pi_drift_wheel/config"
 	"github.com/Speshl/pi_drift_wheel/controllers"
+	"github.com/Speshl/pi_drift_wheel/controllers/models"
 	"github.com/Speshl/pi_drift_wheel/crsf"
 	sbus "github.com/Speshl/pi_drift_wheel/sbus"
 	"github.com/albenik/go-serial/v2"
@@ -56,7 +57,7 @@ func (a *App) Start(ctx context.Context) (err error) {
 	group, ctx := errgroup.WithContext(ctx)
 
 	//Start Getting controller inputs
-	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg, controllers.WheelMixer, controllers.ControllerOptions{UseHPattern: true})
+	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg, models.ControllerOptions{UseHPattern: true})
 	err = controllerManager.LoadControllers()
 	if err != nil {
 		return fmt.Errorf("failed loading controllers: %w", err)
@@ -191,9 +192,9 @@ func (a *App) Start(ctx context.Context) (err error) {
 				//Get a ff level from the servo feedback
 				a.feedback = int(attitude.Pitch)
 				if a.feedback >= a.setMidPitch {
-					a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMidPitch, a.setMaxPitch, sbus.MidValue, sbus.MaxValue)
+					a.mappedFeedback = models.MapToRange(a.feedback, a.setMidPitch, a.setMaxPitch, sbus.MidValue, sbus.MaxValue)
 				} else {
-					a.mappedFeedback = controllers.MapToRange(a.feedback, a.setMinPitch, a.setMidPitch, sbus.MinValue, sbus.MidValue)
+					a.mappedFeedback = models.MapToRange(a.feedback, a.setMinPitch, a.setMidPitch, sbus.MinValue, sbus.MidValue)
 				}
 
 				diffPitch := int(mergedFrame.Frame.Ch[0]) - a.mappedFeedback

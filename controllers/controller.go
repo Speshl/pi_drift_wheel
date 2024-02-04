@@ -6,40 +6,27 @@ import (
 	"log/slog"
 	"sync"
 
+	"github.com/Speshl/pi_drift_wheel/controllers/models"
 	"github.com/Speshl/pi_drift_wheel/go-evdev"
 )
-
-type Mapping struct {
-	Label    string
-	CodeName string
-	Code     int
-	Type     int
-	Channel  int
-	RawInput int
-	MapType  string
-	Min      int
-	Max      int
-	Rests    string
-	Inverted bool
-}
 
 type Controller struct {
 	device *evdev.InputDevice
 	Name   string
 	path   string
-	keyMap map[string]Mapping
+	keyMap map[string]models.Mapping
 
 	ffLock      sync.RWMutex
 	ffLevel     int16
 	lastFFLevel int16
 
 	inputLock sync.RWMutex
-	rawInputs []Input
+	rawInputs []models.Input
 }
 
-func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]Mapping) *Controller {
+func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap map[string]models.Mapping) *Controller {
 
-	rawInputs := make([]Input, 64)
+	rawInputs := make([]models.Input, 64)
 	for i := range keyMap {
 		rawInputs[keyMap[i].RawInput] = NewInput(keyMap[i])
 	}
@@ -53,7 +40,7 @@ func NewController(inputPath evdev.InputPath, device *evdev.InputDevice, keyMap 
 	}
 }
 
-func NewInput(keyMap Mapping) Input {
+func NewInput(keyMap models.Mapping) models.Input {
 	value := 0
 	switch keyMap.Rests {
 	case "high":
@@ -66,7 +53,7 @@ func NewInput(keyMap Mapping) Input {
 		value = keyMap.Min
 	}
 
-	return Input{
+	return models.Input{
 		Value: value,
 		Min:   keyMap.Min,
 		Max:   keyMap.Max,
@@ -103,7 +90,7 @@ func (c *Controller) Sync() error {
 
 		//update raw input
 		c.inputLock.Lock()
-		c.rawInputs[mapping.RawInput] = Input{
+		c.rawInputs[mapping.RawInput] = models.Input{
 			Label: mapping.Label,
 			Value: updatedValue,
 			Min:   mapping.Min,
@@ -115,7 +102,7 @@ func (c *Controller) Sync() error {
 	return nil
 }
 
-func (c *Controller) GetRawInputs() []Input {
+func (c *Controller) GetRawInputs() []models.Input {
 	c.inputLock.RLock()
 	defer c.inputLock.RUnlock()
 	return c.rawInputs
@@ -171,43 +158,4 @@ func (c *Controller) SetForceFeedback(level int16) error {
 	// c.ffLevel = level
 
 	return nil
-}
-
-func MapToRangeWithDeadzoneMid(value, min, max, minReturn, maxReturn, deadzone int) int {
-	midValue := (maxReturn + minReturn) / 2
-
-	mappedValue := MapToRange(value, min, max, minReturn, maxReturn)
-	if midValue+deadzone > mappedValue && mappedValue > midValue {
-		return midValue
-	} else if midValue-deadzone < mappedValue && mappedValue < midValue {
-		return midValue
-	} else {
-		return mappedValue
-	}
-}
-
-func MapToRangeWithDeadzoneLow(value, min, max, minReturn, maxReturn, deadZone int) int {
-	mappedValue := MapToRange(value, min, max, minReturn, maxReturn)
-
-	if mappedValue > maxReturn {
-		return maxReturn
-	} else if mappedValue < minReturn {
-		return minReturn
-	} else if minReturn+deadZone > mappedValue {
-		return minReturn
-	} else {
-		return mappedValue
-	}
-}
-
-func MapToRange(value, min, max, minReturn, maxReturn int) int {
-	mappedValue := (maxReturn-minReturn)*(value-min)/(max-min) + minReturn
-
-	if mappedValue > maxReturn {
-		return maxReturn
-	} else if mappedValue < minReturn {
-		return minReturn
-	} else {
-		return mappedValue
-	}
 }

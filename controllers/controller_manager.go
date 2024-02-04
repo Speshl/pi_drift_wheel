@@ -6,7 +6,11 @@ import (
 	"log/slog"
 
 	"github.com/Speshl/pi_drift_wheel/config"
+	"github.com/Speshl/pi_drift_wheel/controllers/g27"
+	"github.com/Speshl/pi_drift_wheel/controllers/handbrake_diy"
+	"github.com/Speshl/pi_drift_wheel/controllers/models"
 	"github.com/Speshl/pi_drift_wheel/go-evdev"
+	"github.com/Speshl/pi_drift_wheel/sbus"
 
 	//"github.com/holoplot/go-evdev"
 	"golang.org/x/sync/errgroup"
@@ -16,30 +20,17 @@ const (
 	MaxControllers = 128
 )
 
-type Input struct {
-	Value int
-	Min   int
-	Max   int
-	Rests string
-	Label string
-}
-
 type ControllerManager struct {
 	Controllers []*Controller
-	mixer       Mixer
-	mixState    MixState
+	mixer       models.Mixer
+	mixState    models.MixState
 
-	ControllerOptions
+	models.ControllerOptions
 }
 
-type ControllerOptions struct {
-	UseHPattern bool
-}
-
-func NewControllerManager(cfg config.ControllerManagerConfig, mixer Mixer, opts ControllerOptions) *ControllerManager {
+func NewControllerManager(cfg config.ControllerManagerConfig, opts models.ControllerOptions) *ControllerManager {
 	return &ControllerManager{
 		Controllers:       make([]*Controller, 0, MaxControllers),
-		mixer:             mixer,
 		ControllerOptions: opts,
 	}
 }
@@ -90,17 +81,22 @@ func (c *ControllerManager) LoadControllers() error {
 
 		device, err := evdev.Open(inputPath.Path)
 		if err != nil {
-			return fmt.Errorf("failed reading %s: %w\n", inputPath.Path, err)
+			//return fmt.Errorf("failed reading %s: %w\n", inputPath.Path, err)
+			slog.Warn("failed opening device", "path", inputPath.Path, "name", inputPath.Name, "err", err)
+			continue
 		}
 
 		inputId, err := device.InputID()
 		if err != nil {
-			return fmt.Errorf("failed getting input id: %w", err)
+			//return fmt.Errorf("failed getting input id: %w", err)
+			slog.Warn("failed getting input id", "path", inputPath.Path, "name", inputPath.Name, "err", err)
+			continue
 		}
 
 		uniqueId, err := device.UniqueID()
 		if err != nil {
-			return fmt.Errorf("failed getting unique id: %w", err)
+			//return fmt.Errorf("failed getting unique id: %w", err)
+			slog.Warn("failed getting unique id", "path", inputPath.Path, "name", inputPath.Name, "err", err)
 		}
 
 		slog.Info("loaded device",
@@ -133,16 +129,17 @@ func (c *ControllerManager) isSupported(name string) bool {
 	return true
 }
 
-func (c *ControllerManager) GetMixState() MixState {
+func (c *ControllerManager) GetMixState() models.MixState {
 	return c.mixState
 }
 
-func (c *ControllerManager) GetKeyMap(name string) (map[string]Mapping, error) {
+func (c *ControllerManager) GetKeyMap(name string) (map[string]models.Mapping, error) {
 	switch name {
 	case "G27 Racing Wheel":
-		return GetG27KeyMap(), nil
-	// case "Arduino LLC Arduino Micro":
-	// 	return GetDIYHandBrakeKeyMap(), nil
+		c.mixer = g27.Mixer
+		return g27.GetKeyMap(), nil
+	case "Arduino LLC Arduino Micro":
+		return handbrake_diy.GetKeyMap(), nil
 	default:
 		return nil, fmt.Errorf("no keymap found")
 	}
@@ -154,4 +151,28 @@ func (c *ControllerManager) SetForceFeedback(level int16) error {
 		return err
 	}
 	return err
+}
+
+func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
+	if len(c.Controllers) == 0 {
+		return sbus.NewSBusFrame(), fmt.Errorf("no controllers loaded")
+	}
+
+	mixedInputs := c.Controllers[0].GetRawInputs()
+
+	for i := 1; i < len(c.Controllers); i++ {
+		inputs := c.Controllers[i].GetRawInputs()
+
+		for j := range inputs {
+			currInputChange := models.GetInputChangeAmount(mixedInputs[j])
+			newInputChange := models.GetInputChangeAmount(inputs[j])
+			if newInputChange > currInputChange {
+				mixedInputs[j] = inputs[j]
+			}
+		}
+	}
+
+	frame, state := c.mixer(mixedInputs, c.mixState, c.ControllerOptions)
+	c.mixState = state
+	return frame, nil
 }
