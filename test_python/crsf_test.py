@@ -84,7 +84,7 @@ def handleCrsfPacket(ptype, data):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-P', '--port', default='/dev/ttyAMA0', required=False)  #ttyACM0 for USB, ttyAMA0for pins
-parser.add_argument('-b', '--baud', default=921600, required=False)
+parser.add_argument('-b', '--baud', default=420000, required=False) #921600 for CRSF
 args = parser.parse_args()
 
 with serial.Serial(args.port, args.baud, timeout=2) as ser:
