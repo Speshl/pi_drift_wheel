@@ -39,14 +39,14 @@ def crsf_validate_frame(frame) -> bool:
 
 def handleCrsfPacket(ptype, data):
     if ptype == PacketsTypes.RADIO_ID and data[5] == 0x10:
-        #print(f"OTX sync")
+        print(f"OTX sync")
         pass
     elif ptype == PacketsTypes.LINK_STATISTICS:
         rssi1 = int.from_bytes(data[3:4], byteorder='big', signed=True)
         rssi2 = int.from_bytes(data[4:5], byteorder='big', signed=True)
         lq = data[5]
         mode = data[8]
-        #print(f"RSSI={rssi1}/{rssi2}dBm LQ={lq:03} mode={mode}")
+        print(f"RSSI={rssi1}/{rssi2}dBm LQ={lq:03} mode={mode}")
     elif ptype == PacketsTypes.ATTITUDE:
         pitch = data[3] << 8 | data[4]
         roll = data[5] << 8 | data[6]
@@ -54,13 +54,13 @@ def handleCrsfPacket(ptype, data):
         print(f"Attitude: Pitch={pitch} Roll={roll} Yaw={yaw}")
     elif ptype == PacketsTypes.FLIGHT_MODE:
         packet = ''.join(map(chr, data[3:-2]))
-        #print(f"Flight Mode: {packet}")
+        print(f"Flight Mode: {packet}")
     elif ptype == PacketsTypes.BATTERY_SENSOR:
         vbat = data[3] << 8 | data[4]
         curr = data[5] << 8 | data[6]
         pct = data[7]
         mah = data[8] << 16 | data[9] << 7 | data[10]
-        #print(f"Battery: {vbat/10.0}V {curr}A {pct}% {mah}mAh")
+        print(f"Battery: {vbat/10.0}V {curr}A {pct}% {mah}mAh")
     elif ptype == PacketsTypes.DEVICE_INFO:
         packet = ' '.join(map(hex, data))
         print(f"Device Info: {packet}")
@@ -71,16 +71,16 @@ def handleCrsfPacket(ptype, data):
         hdg =  (data[13] << 8 | data[14]) / 100.0
         alt = (data[15] << 8 | data[16]) - 1000
         sats = data[17]
-        #print(f"GPS: Pos={lat} {lon} GSpd={gspd:0.1f}m/s Hdg={hdg:0.1f} Alt={alt}m Sats={sats}")
+        print(f"GPS: Pos={lat} {lon} GSpd={gspd:0.1f}m/s Hdg={hdg:0.1f} Alt={alt}m Sats={sats}")
     elif ptype == PacketsTypes.VARIO:
         vspd = int.from_bytes(data[3:5], byteorder='big', signed=True) / 10.0
-        #print(f"VSpd: {vspd:0.1f}m/s")
+        print(f"VSpd: {vspd:0.1f}m/s")
     elif ptype == PacketsTypes.RC_CHANNELS_PACKED:
-        #print(f"Channels: (data)")
+        print(f"Channels: (data)")
         pass
     else:
         packet = ' '.join(map(hex, data))
-        #print(f"Unknown 0x{ptype:02x}{PacketsTypes.LINK_STATISTICS:02x}: {packet}")
+        print(f"Unknown 0x{ptype:02x}{PacketsTypes.LINK_STATISTICS:02x}: {packet}")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-P', '--port', default='/dev/ttyAMA0', required=False)  #ttyACM0 for USB, ttyAMA0for pins
