@@ -104,6 +104,7 @@ with serial.Serial(args.port, args.baud, timeout=2) as ser:
                         packet = ' '.join(map(hex, single))
                         print(f"crc error: {packet}")
                     else:
+                        print(f"packet: {packet}")
                         handleCrsfPacket(single[2], single)
         else:
             time.sleep(0.020)
