@@ -4,6 +4,8 @@ import time
 import argparse
 from enum import IntEnum
 
+ChannelsMask = 0x07ff
+
 class PacketsTypes(IntEnum):
     GPS = 0x02
     VARIO = 0x07
@@ -77,6 +79,9 @@ def handleCrsfPacket(ptype, data):
         print(f"VSpd: {vspd:0.1f}m/s")
     elif ptype == PacketsTypes.RC_CHANNELS_PACKED:
         print(f"Channels: (data)")
+        ch1 = ((data[3] | data[4] << 8) & ChannelsMask)
+        ch2 = ((data[4]>>3 | data[5] << 5) & ChannelsMask)
+        print(f"Channels: {ch1} {ch2}")
         pass
     else:
         packet = ' '.join(map(hex, data))
@@ -84,7 +89,7 @@ def handleCrsfPacket(ptype, data):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-P', '--port', default='/dev/ttyAMA0', required=False)  #ttyACM0 for USB, ttyAMA0for pins
-parser.add_argument('-b', '--baud', default=420000, required=False) #921600 for CRSF
+parser.add_argument('-b', '--baud', default=420000, required=False) #921600 for CRSF telemetry from MT12 (TX), 420000 for CRSF channels from Crossfire RX
 args = parser.parse_args()
 
 with serial.Serial(args.port, args.baud, timeout=2) as ser:
