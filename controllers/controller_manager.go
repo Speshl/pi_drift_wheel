@@ -162,17 +162,17 @@ func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
 
 	mixedInputs := c.Controllers[0].GetRawInputs()
 
-	// for i := 1; i < len(c.Controllers); i++ {
-	// 	inputs := c.Controllers[i].GetRawInputs()
-	// 	for j := range inputs {
-	// 		currInputChange := models.GetScaledInputChange(mixedInputs[j])
-	// 		newInputChange := models.GetScaledInputChange(inputs[j])
+	for i := 1; i < len(c.Controllers); i++ {
+		inputs := c.Controllers[i].GetRawInputs()
+		for j := range inputs {
+			currInputChange := models.GetScaledInputChange(mixedInputs[j])
+			newInputChange := models.GetScaledInputChange(inputs[j])
 
-	// 		if newInputChange > currInputChange {
-	// 			mixedInputs[j] = inputs[j]
-	// 		}
-	// 	}
-	// }
+			if newInputChange > currInputChange {
+				mixedInputs[j] = inputs[j]
+			}
+		}
+	}
 
 	frame, state := c.mixer(mixedInputs, c.mixState, c.ControllerOptions)
 	c.mixState = state
