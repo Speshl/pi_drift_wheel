@@ -40,9 +40,9 @@ func (c *ControllerManager) Start(ctx context.Context) error {
 	doneChan := make(chan error)
 
 	for i := range c.Controllers {
+		i := i //it got me
 		group.Go(func() error {
 			for {
-				i := i //it got me
 				if ctx.Err() != nil {
 					return ctx.Err()
 				}
