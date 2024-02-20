@@ -168,10 +168,11 @@ func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
 		for j := range inputs {
 			currInputChange := models.GetScaledInputChange(mixedInputs[j])
 			newInputChange := models.GetScaledInputChange(inputs[j])
-			if j == 2 {
-				//slog.Info("brake", "currInputChange", currInputChange, "newInputChange", newInputChange, "mixedInputs", mixedInputs[j], "inputs", inputs[j])
-			}
+
 			if newInputChange > currInputChange {
+				if j == 2 {
+					slog.Info("brake updated", "currInputChange", currInputChange, "newInputChange", newInputChange, "mixedInputs", mixedInputs[j], "inputs", inputs[j])
+				}
 				mixedInputs[j] = inputs[j]
 			}
 		}

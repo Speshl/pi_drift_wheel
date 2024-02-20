@@ -269,7 +269,7 @@ func getEscValueForward(inputs []models.Input, mixState models.MixState) (uint16
 			slog.Info("no input and not in forward, putting back to forward")
 		} else {
 			returnValue = uint16(sbus.MidValue)
-			slog.Info("no input and in forward")
+			slog.Debug("no input and in forward")
 		}
 	}
 
