@@ -3,7 +3,7 @@ package models
 import "math"
 
 func GetScaledInputChange(input Input) int {
-	if input.Value == 0 && input.Min == 0 && input.Max == 0 {
+	if input.Value == 0 || (input.Min == 0 && input.Max == 0) {
 		return 0
 	}
 
