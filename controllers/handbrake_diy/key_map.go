@@ -16,6 +16,7 @@ func GetKeyMap() map[string]models.Mapping {
 		Min:      -127,
 		Max:      127,
 		Inverted: false,
+		Label:    "handbrake",
 	}
 
 	return keyMap
