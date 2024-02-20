@@ -46,7 +46,7 @@ func (c *ControllerManager) Start(ctx context.Context) error {
 				if ctx.Err() != nil {
 					return ctx.Err()
 				}
-				slog.Info("syncing event for", "controller", c.Controllers[i].Name)
+				slog.Debug("syncing event for", "controller", c.Controllers[i].Name)
 				err := c.Controllers[i].Sync()
 				if err != nil {
 					return fmt.Errorf("failed syncing event for %s: %w", c.Controllers[i].Name, err)
