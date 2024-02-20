@@ -2,6 +2,19 @@ package models
 
 import "math"
 
+func GetScaledInputChange(input Input) int {
+	inputChangeAmt := MapToRange(input.Value, input.Min, input.Max, 0, 100)
+	switch input.Rests {
+	case "low":
+		inputChangeAmt = input.Value
+	case "middle":
+		inputChangeAmt = int(math.Abs(float64(inputChangeAmt - 50)))
+	case "high":
+		inputChangeAmt = 100 - input.Value
+	}
+	return inputChangeAmt
+}
+
 func GetInputChangeAmount(input Input) int {
 	inputChangeAmt := 0
 	switch input.Rests {
