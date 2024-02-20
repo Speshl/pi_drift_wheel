@@ -71,6 +71,11 @@ func (a *App) startCRSF(ctx context.Context, group *errgroup.Group, cancel conte
 	a.crsfConns = make([]*crsf.CRSF, 0, config.MaxCRSF)
 	for i := 0; i < config.MaxCRSF; i++ {
 		i := i
+
+		if a.cfg.CRSFCfgs[i].CRSFPath == "" {
+			continue
+		}
+
 		crsf := crsf.NewCRSF(
 			a.cfg.CRSFCfgs[i].CRSFPath,
 			&crsf.CRSFOptions{
