@@ -1,11 +1,18 @@
 package config
 
 const (
+	CRSFBaudRate  = 921600
 	MaxSbus       = 2
+	MaxCRSF       = 2
 	AppUpdateRate = 6
 )
 
 var (
+	DefaultCRSFPaths = []string{
+		"/dev/ttyACM0",
+		"",
+	}
+
 	DefaultSBusPaths = []string{
 		"/dev/ttyAMA0",
 		"",
@@ -55,6 +62,7 @@ type Config struct {
 	AppCfg               AppConfig
 	ControllerManagerCfg ControllerManagerConfig
 	SbusCfgs             []SBusConfig
+	CRSFCfgs             []CRSFConfig
 }
 
 type AppConfig struct {
@@ -71,4 +79,8 @@ type SBusConfig struct {
 	SBusRx       bool
 	SBusTx       bool
 	SBusChannels []int
+}
+
+type CRSFConfig struct {
+	CRSFPath string
 }

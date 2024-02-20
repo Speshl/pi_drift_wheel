@@ -5,10 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"math"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/Speshl/pi_drift_wheel/config"
@@ -16,7 +12,6 @@ import (
 	"github.com/Speshl/pi_drift_wheel/controllers/models"
 	"github.com/Speshl/pi_drift_wheel/crsf"
 	sbus "github.com/Speshl/pi_drift_wheel/sbus"
-	"github.com/albenik/go-serial/v2"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -33,14 +28,19 @@ const (
 type App struct {
 	cfg config.Config
 
+	controllerManager *controllers.ControllerManager
+	sBusConns         []*sbus.SBus
+	crsfConns         []*crsf.CRSF
+
 	setMinPitch int
 	setMidPitch int
 	setMaxPitch int
 
-	feedback       int
-	mappedFeedback int
-	diffFeedback   float64
-	feedbackLevel  float64
+	// feedback       int
+	// mappedFeedback int
+	// diffFeedback   float64
+	ffLevel   float64
+	ffEnabled bool
 }
 
 func NewApp(cfg config.Config) *App {
@@ -56,237 +56,16 @@ func (a *App) Start(ctx context.Context) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	group, ctx := errgroup.WithContext(ctx)
 
-	//Start Getting controller inputs
-	controllerManager := controllers.NewControllerManager(a.cfg.ControllerManagerCfg, models.ControllerOptions{UseHPattern: true})
-	err = controllerManager.LoadControllers()
-	if err != nil {
-		return fmt.Errorf("failed loading controllers: %w", err)
-	}
+	a.startControllers(ctx, group, cancel)
+
+	a.startSbus(ctx, group, cancel)
+
+	a.startCRSF(ctx, group, cancel)
+
+	a.startKillListener(ctx, group, cancel)
+
 	group.Go(func() error {
-		defer cancel()
-		slog.Info("starting controller manager")
-		defer slog.Info("stopping controller manager")
-		return controllerManager.Start(ctx)
-	})
-
-	//Start Sbus read/write
-	sBusConns := make([]*sbus.SBus, 0, config.MaxSbus)
-	for i := 0; i < config.MaxSbus; i++ {
-		i := i
-		sBus, err := sbus.NewSBus(
-			a.cfg.SbusCfgs[i].SBusPath,
-			a.cfg.SbusCfgs[i].SBusRx,
-			a.cfg.SbusCfgs[i].SBusTx,
-			&sbus.SBusCfgOpts{
-				Type: sbus.RxTypeControl,
-			},
-		)
-		if err != nil { //TODO: Remove when more channels supported
-			if !errors.Is(err, sbus.ErrNoPath) {
-				slog.Error("failed starting sbus conn", "index", i, "error", err)
-			}
-			continue
-		}
-
-		sBusConns = append(sBusConns, sBus)
-		group.Go(func() error {
-			defer cancel()
-			err := ListPorts()
-			if err != nil {
-				return err
-			}
-			slog.Info("starting sbus", "index", i, "path", a.cfg.SbusCfgs[i].SBusPath)
-			defer slog.Info("stopping sbus", "index", i, "path", a.cfg.SbusCfgs[i].SBusPath)
-			return sBus.Start(ctx)
-		})
-	}
-
-	// Start CRSF read/write
-	// dmesg | grep "tty"
-	crsf := crsf.NewCRSF("/dev/ttyACM0", &crsf.CRSFOptions{ //controller = /dev/ttyACM0 //module = /dev/ttyUSB0
-		BaudRate: 921600,
-	})
-	group.Go(func() error {
-		slog.Info("starting crsf", "path", "/dev/ttyACM0")
-		defer slog.Info("stopping crsf", "path", "/dev/ttyACM0")
-		return crsf.Start(ctx)
-	})
-
-	//Process data
-	group.Go(func() error {
-		slog.Info("start processing")
-		defer slog.Info("stopping processing")
-
-		time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
-
-		mergeTime := 7 * time.Millisecond
-		mergeTicker := time.NewTicker(mergeTime)
-		//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
-		logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
-		//logTicker := time.NewTicker(1 * time.Second) //slow logger
-		ffTicker := time.NewTicker(60 * time.Millisecond)
-
-		framesToMerge := make([]sbus.SBusFrame, 0, len(controllerManager.Controllers)+len(sBusConns))
-		mergedFrame := sbus.NewSBusFrame()
-		disableFF := false
-
-		lastWriteTime := time.Now()
-		lastFFLevel := int16(0)
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-logTicker.C:
-				// slog.Info("details",
-				// 	"steer", mergedFrame.Frame.Ch[0],
-				// 	// "esc", mergedFrame.Ch[1],
-				// 	// "gyro_gain", mergedFrame.Ch[2],
-				// 	// "tilt", mergedFrame.Ch[3],
-				// 	// "roll", mergedFrame.Ch[4],
-				// 	// "pan", mergedFrame.Ch[5],
-				// 	"mappedFeedback", a.mappedFeedback,
-				// 	"diffFeedback", a.diffFeedback,
-				// 	// "feedback", a.feedback,
-				// 	"feedbackLevel", a.feedbackLevel,
-				// 	// "minPitch", a.setMinPitch,
-				// 	// "maxPitch", a.setMaxPitch,
-				// )
-			case <-ffTicker.C:
-				if !disableFF {
-					ffLevel := int16(a.feedbackLevel * (65535 / 2))
-					if ffLevel != int16(lastFFLevel) {
-						//controllerManager.SetForceFeedback(ffLevel)
-					}
-					lastFFLevel = ffLevel
-				}
-
-			case <-mergeTicker.C:
-				framesToMerge = framesToMerge[:0] //clear out frames before next merge
-				//Input
-				controllerFrame, err := controllerManager.GetMixedFrame()
-				if err != nil {
-					return err
-				}
-				framesToMerge = append(framesToMerge, controllerFrame)
-
-				for i := range sBusConns {
-					if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeControl {
-
-						readFrame := sBusConns[i].GetReadFrame()
-						newFrame := sbus.NewSBusFrame()
-						for _, j := range a.cfg.SbusCfgs[i].SBusChannels { //Only pull over values we care about
-							newFrame.Frame.Ch[j] = readFrame.Ch[j]
-						}
-						slog.Debug("sbus frame", "port", i, "channels", a.cfg.SbusCfgs[i].SBusChannels, "read", readFrame, "newFrame", newFrame)
-						framesToMerge = append(framesToMerge, newFrame)
-					} else if sBusConns[i].IsReceiving() && sBusConns[i].Type() == sbus.RxTypeTelemetry {
-						slog.Info("sbus telemetry", "frame", sBusConns[i].GetReadFrame())
-					}
-				}
-				mergedFrame = MergeFrames(framesToMerge)
-				controlState := controllerManager.GetMixState()
-
-				//Process
-				attitude := crsf.GetAttitude()
-
-				//Get a ff level from the servo feedback
-				a.feedback = int(attitude.Pitch)
-				if a.feedback >= a.setMidPitch {
-					a.mappedFeedback = models.MapToRange(a.feedback, a.setMidPitch, a.setMaxPitch, sbus.MidValue, sbus.MaxValue)
-				} else {
-					a.mappedFeedback = models.MapToRange(a.feedback, a.setMinPitch, a.setMidPitch, sbus.MinValue, sbus.MidValue)
-				}
-
-				diffPitch := int(mergedFrame.Frame.Ch[0]) - a.mappedFeedback
-				a.diffFeedback = float64(diffPitch) / float64(sbus.MaxValue-sbus.MinValue)
-
-				a.feedbackLevel = 0.0
-				if a.diffFeedback > 0.01 || a.diffFeedback < -0.01 { //deadzone
-					a.feedbackLevel = a.diffFeedback * 2
-				}
-
-				if a.feedbackLevel > 1.0 { //limit
-					a.feedbackLevel = 1.0
-				} else if a.feedbackLevel < -1.0 {
-					a.feedbackLevel = -1.0
-				}
-				//end
-
-				red1 := controlState.Buttons["red1"]
-				lrValue := controlState.Buttons["left/right"]
-				udValue := controlState.Buttons["up/down"]
-
-				if red1 == 1 {
-					if lrValue > 0 { //Set right end point
-						disableFF = true
-						a.setMaxPitch = a.feedback
-						slog.Info("setting max (right) ff endpoint", "max_mapped_pitch", a.mappedFeedback, "max_pitch", a.feedback)
-					} else if lrValue < 0 { //Set left end point
-						disableFF = true
-						a.setMinPitch = a.feedback
-						slog.Info("setting min (left) ff endpoint", "min_mapped_pitch", a.mappedFeedback, "min_pitch", a.feedback)
-					} else if udValue > 0 { //Set left end point
-						disableFF = true
-						a.setMidPitch = a.feedback
-						slog.Info("setting mid (center) ff endpoint", "mid_mapped_pitch", a.mappedFeedback, "mid_pitch", a.feedback)
-					} else {
-						disableFF = false
-					}
-				} else {
-					disableFF = false
-				}
-
-				//Output
-				mergedFrame = InvertChannels(mergedFrame, a.cfg.AppCfg.InvertOutputs)
-
-				if time.Since(lastWriteTime) > (5*time.Millisecond)+mergeTime {
-					slog.Warn("slow processing", "duration", time.Since(lastWriteTime))
-				}
-				lastWriteTime = time.Now()
-
-				for i := range sBusConns {
-					if sBusConns[i].IsTransmitting() {
-						sBusConns[i].SetWriteFrame(mergedFrame)
-					}
-				}
-
-				// slog.Info("details",
-				// 	"steer", mergedFrame.Ch[0],
-				// 	"esc", mergedFrame.Ch[1],
-				// 	"gyro_gain", mergedFrame.Ch[2],
-				// 	"tilt", mergedFrame.Ch[3],
-				// 	"roll", mergedFrame.Ch[4],
-				// 	"pan", mergedFrame.Ch[5],
-				// 	"levelFromGyro", a.gyroLevel,
-				// 	"levelFromFeedback", a.feedbackLevel,
-				// 	"pitch", pitch,
-				// 	"mappedPitch", mappedPitch,
-				// 	"minPitch", a.setMinPitch,
-				// 	"maxPitch", a.setMaxPitch,
-				// 	"yaw", yaw,
-				// 	"mappedYaw", mappedYaw,
-				// 	"minYaw", a.setMinYaw,
-				// 	"maxYaw", a.setMaxYaw,
-				// )
-			}
-		}
-	})
-
-	//kill listener
-	group.Go(func() error {
-		signalChannel := make(chan os.Signal, 1)
-		signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-		for {
-			select {
-			case sig := <-signalChannel:
-				slog.Info("received signal", "value", sig)
-				cancel()
-				return fmt.Errorf("received signal: %s", sig)
-			case <-ctx.Done():
-				slog.Info("closing signal goroutine", "error", ctx.Err().Error())
-				return ctx.Err()
-			}
-		}
+		return a.processData(ctx)
 	})
 
 	err = group.Wait()
@@ -301,48 +80,134 @@ func (a *App) Start(ctx context.Context) (err error) {
 	return nil
 }
 
-// Merge all provided frames into 1 frame. Use the furthest channel value from the midpoint of each frame
-func MergeFrames(frames []sbus.SBusFrame) sbus.SBusFrame {
-	if len(frames) == 0 {
-		return sbus.NewSBusFrame()
-	}
+/*
+Reads Sbus RX and Controller Inputs to merge into a single sbus frame to be sent to all Sbus Tx.  Also reads CRSF telemetry to get feedback for force feedback.
+*/
+func (a *App) processData(ctx context.Context) error {
+	slog.Info("start processing")
+	defer slog.Info("stopping processing")
 
-	mergedFrame := frames[0]
-	for i := range frames {
-		for j := range frames[i].Frame.Ch {
-			mergedDistFromMid := math.Abs(float64(mergedFrame.Frame.Ch[j]) - float64(sbus.MidValue))
-			frameDisFromMid := math.Abs(float64(frames[i].Frame.Ch[j]) - float64(sbus.MidValue))
+	time.Sleep(500 * time.Millisecond) //give some time for signals to warm up
 
-			if frameDisFromMid > mergedDistFromMid {
-				mergedFrame.Frame.Ch[j] = frames[i].Frame.Ch[j]
+	mergeTime := 7 * time.Millisecond
+	mergeTicker := time.NewTicker(mergeTime)
+	//mergeTicker := time.NewTicker(1 * time.Second) //Slow ticker
+
+	// logTicker := time.NewTicker(100 * time.Millisecond) //fast logger
+	//logTicker := time.NewTicker(1 * time.Second) //slow logger
+
+	// ffTicker := time.NewTicker(60 * time.Millisecond)
+
+	lastWriteTime := time.Now()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		// case <-ffTicker.C: //TODO: might not need own ticket, needs testing with another wheel
+		// 	if a.ffEnabled {
+		// 		ffLevel := int16(a.ffLevel * (65535 / 2))
+		// 		if ffLevel != int16(lastFFLevel) {
+		// 			//controllerManager.SetForceFeedback(ffLevel)
+		// 		}
+		// 		lastFFLevel = ffLevel
+		// 	}
+
+		case <-mergeTicker.C:
+			//gather inputs and combine all into a single frame
+			mixedFrame, mixedController, err := a.gatherInputs()
+			if err != nil {
+				slog.Error("error gathering inputs", "error", err)
+				continue //Might need return here
 			}
+
+			//do anything we need to at this point with the comibined input frame
+			a.utilizeInputs(mixedFrame, mixedController)
+
+			//finally send the combined frame to all sbus tx
+			a.sendOutputs(mixedFrame)
+
+			if time.Since(lastWriteTime) > (5*time.Millisecond)+mergeTime {
+				slog.Warn("slow processing", "duration", time.Since(lastWriteTime))
+			}
+			lastWriteTime = time.Now()
+
+			slog.Info("details",
+				"steer", mixedFrame.Frame.Ch[0],
+				"esc", mixedFrame.Frame.Ch[1],
+				"gyro_gain", mixedFrame.Frame.Ch[2],
+				"tilt", mixedFrame.Frame.Ch[3],
+				"roll", mixedFrame.Frame.Ch[4],
+				"pan", mixedFrame.Frame.Ch[5],
+				"levelFromFeedback", a.ffLevel,
+			)
 		}
 	}
-	return mergedFrame
 }
 
-func InvertChannels(inputFrame sbus.SBusFrame, invertChannels []bool) sbus.SBusFrame {
-	returnFrame := inputFrame
-	for i := range invertChannels {
-		if invertChannels[i] {
-			midOffset := returnFrame.Frame.Ch[i] - uint16(sbus.MidValue)
-			inverted := uint16(sbus.MidValue) - midOffset
-			returnFrame.Frame.Ch[i] = inverted
-		}
-	}
-	return returnFrame
-}
+func (a *App) gatherInputs() (sbus.SBusFrame, models.MixState, error) {
+	framesToMerge := make([]sbus.SBusFrame, 0, len(a.controllerManager.Controllers)+len(a.sBusConns))
 
-func ListPorts() error {
-	ports, err := serial.GetPortsList()
+	controllerFrame, err := a.controllerManager.GetMixedFrame() //Get one frame that has been pre-mixed from all connected controllers
 	if err != nil {
-		return err
+		return sbus.NewSBusFrame(), a.controllerManager.GetMixState(), fmt.Errorf("error getting mixed frame - %w", err)
 	}
-	if len(ports) == 0 {
-		return fmt.Errorf("no serial ports found")
+	framesToMerge = append(framesToMerge, controllerFrame)
+
+	for i := range a.sBusConns { //Get a frame from each sbus connection that is labeled as a control device
+		if a.sBusConns[i].IsReceiving() && a.sBusConns[i].Type() == sbus.RxTypeControl {
+
+			readFrame := a.sBusConns[i].GetReadFrame()
+			newFrame := sbus.NewSBusFrame()
+			for _, j := range a.cfg.SbusCfgs[i].SBusChannels { //Only pull over values we care about
+				newFrame.Frame.Ch[j] = readFrame.Ch[j]
+			}
+			slog.Debug("sbus frame", "port", i, "channels", a.cfg.SbusCfgs[i].SBusChannels, "read", readFrame, "newFrame", newFrame)
+			framesToMerge = append(framesToMerge, newFrame)
+		} else if a.sBusConns[i].IsReceiving() && a.sBusConns[i].Type() == sbus.RxTypeTelemetry {
+			slog.Info("sbus telemetry", "frame", a.sBusConns[i].GetReadFrame())
+		}
 	}
-	for _, port := range ports {
-		slog.Info("found port", "port", port)
+
+	return MergeFrames(framesToMerge), a.controllerManager.GetMixState(), nil
+}
+
+func (a *App) utilizeInputs(inputFrame sbus.SBusFrame, controlState models.MixState) {
+	//Do anything we need to do with the input frame here
+	//crsf device 0 attitude telemetry is used for feedback
+	attitude := a.crsfConns[0].GetAttitude() //Todo: always using first crsf
+	a.ffLevel = calculateFFLevel(a.setMinPitch, a.setMidPitch, a.setMaxPitch, int(attitude.Pitch), int(inputFrame.Frame.Ch[0]))
+
+	red1 := controlState.Buttons["red1"]
+	lrValue := controlState.Buttons["left/right"]
+	udValue := controlState.Buttons["up/down"]
+
+	if red1 == 1 {
+		if lrValue > 0 { //Set right end point
+			a.ffEnabled = true
+			a.setMaxPitch = int(attitude.Pitch)
+			slog.Info("setting max (right) ff endpoint", "max_pitch", a.setMaxPitch)
+		} else if lrValue < 0 { //Set left end point
+			a.ffEnabled = true
+			a.setMinPitch = int(attitude.Pitch)
+			slog.Info("setting min (left) ff endpoint", "min_pitch", a.setMinPitch)
+		} else if udValue > 0 { //Set left end point
+			a.ffEnabled = true
+			a.setMidPitch = int(attitude.Pitch)
+			slog.Info("setting mid (center) ff endpoint", "mid_pitch", a.setMidPitch)
+		} else {
+			a.ffEnabled = false
+		}
+	} else {
+		a.ffEnabled = false
 	}
-	return nil
+
+}
+
+func (a *App) sendOutputs(mixedFrame sbus.SBusFrame) {
+	mixedFrame = InvertChannels(mixedFrame, a.cfg.AppCfg.InvertOutputs)
+	for i := range a.sBusConns {
+		if a.sBusConns[i].IsTransmitting() {
+			a.sBusConns[i].SetWriteFrame(mixedFrame)
+		}
+	}
 }
