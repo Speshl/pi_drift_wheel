@@ -42,6 +42,7 @@ func (c *ControllerManager) Start(ctx context.Context) error {
 	for i := range c.Controllers {
 		group.Go(func() error {
 			for {
+				i := i //it got me
 				if ctx.Err() != nil {
 					return ctx.Err()
 				}
@@ -160,7 +161,7 @@ func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
 	}
 
 	mixedInputs := c.Controllers[0].GetRawInputs()
-	slog.Info("initial inputs", "brake", mixedInputs[2])
+	//slog.Info("initial inputs", "brake", mixedInputs[2])
 
 	for i := 1; i < len(c.Controllers); i++ {
 		inputs := c.Controllers[i].GetRawInputs()
