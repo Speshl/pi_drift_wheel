@@ -159,10 +159,10 @@ func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
 	}
 
 	mixedInputs := c.Controllers[0].GetRawInputs()
+	slog.Info("initial inputs", "brake", mixedInputs[2])
 
 	for i := 1; i < len(c.Controllers); i++ {
 		inputs := c.Controllers[i].GetRawInputs()
-
 		for j := range inputs {
 			currInputChange := models.GetScaledInputChange(mixedInputs[j])
 			newInputChange := models.GetScaledInputChange(inputs[j])
