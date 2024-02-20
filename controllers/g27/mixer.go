@@ -12,74 +12,72 @@ import (
 func Mixer(inputs []models.Input, mixState models.MixState, opts models.ControllerOptions) (sbus.SBusFrame, models.MixState) {
 	frame := sbus.NewSBusFrame()
 
-	//slog.Info("brake value", "brake", inputs[2].Value)
-
 	if mixState.IsEmpty() {
 		mixState = models.NewMixState()
 		mixState.Esc = "forward"
 		mixState.Gear = 0
 	}
 
-	//Check for button state changes
-	// for i := range inputs {
-	// 	if inputs[i].Value == mixState.Buttons[inputs[i].Label] {
-	// 		continue
-	// 	}
+	Check for button state changes
+	for i := range inputs {
+		if inputs[i].Value == mixState.Buttons[inputs[i].Label] {
+			continue
+		}
 
-	// 	mixState.Buttons[inputs[i].Label] = inputs[i].Value
+		mixState.Buttons[inputs[i].Label] = inputs[i].Value
 
-	// 	if inputs[i].Value == inputs[i].Min && inputs[i].Rests == "low" ||
-	// 		inputs[i].Value == inputs[i].Max && inputs[i].Rests == "high" ||
-	// 		inputs[i].Value == 0 && inputs[i].Rests == "mid" {
-	// 		continue //input is at its resting value (not pressed)
-	// 	}
+		if inputs[i].Value == inputs[i].Min && inputs[i].Rests == "low" ||
+			inputs[i].Value == inputs[i].Max && inputs[i].Rests == "high" ||
+			inputs[i].Value == 0 && inputs[i].Rests == "mid" {
+			continue //input is at its resting value (not pressed)
+		}
 
-	// 	switch inputs[i].Label {
-	// 	case "upshift":
-	// 		slog.Info("mixing upshift")
-	// 		if mixState.Gear >= -1 {
-	// 			mixState.Gear++
-	// 		}
-	// 	case "downshift":
-	// 		slog.Info("mixing downshift")
-	// 		if mixState.Gear <= 6 {
-	// 			mixState.Gear--
-	// 		}
-	// 	case "top_left":
-	// 		if mixState.Trims["gyro_gain"] > -100 {
-	// 			mixState.Trims["gyro_gain"]--
-	// 		}
-	// 	case "top_right":
-	// 		if mixState.Trims["gyro_gain"] < 100 {
-	// 			mixState.Trims["gyro_gain"]++
-	// 		}
-	// 	}
-	// }
+		switch inputs[i].Label {
+		case "upshift":
+			slog.Info("mixing upshift")
+			if mixState.Gear >= -1 {
+				mixState.Gear++
+			}
+		case "downshift":
+			slog.Info("mixing downshift")
+			if mixState.Gear <= 6 {
+				mixState.Gear--
+			}
+		case "top_left":
+			if mixState.Trims["gyro_gain"] > -100 {
+				mixState.Trims["gyro_gain"]--
+			}
+		case "top_right":
+			if mixState.Trims["gyro_gain"] < 100 {
+				mixState.Trims["gyro_gain"]++
+			}
+		}
+	}
 
-	// //Build frame values based on current state/buttons
+	//Build frame values based on current state/buttons
 
-	// //Steer Value
-	// frame.Frame.Ch[0] = uint16(models.MapToRangeWithDeadzoneMid(
-	// 	inputs[0].Value,
-	// 	inputs[0].Min,
-	// 	inputs[0].Max,
-	// 	sbus.MinValue,
-	// 	sbus.MaxValue,
-	// 	2,
-	// ))
+	//Steer Value
+	frame.Frame.Ch[0] = uint16(models.MapToRangeWithDeadzoneMid(
+		inputs[0].Value,
+		inputs[0].Min,
+		inputs[0].Max,
+		sbus.MinValue,
+		sbus.MaxValue,
+		2,
+	))
 
-	// frame.Frame.Ch[1], frame.Priority, mixState = getEscValue(inputs, mixState, opts)
+	frame.Frame.Ch[1], frame.Priority, mixState = getEscValue(inputs, mixState, opts)
 
-	// //Gyro Gain
-	// frame.Frame.Ch[2] = uint16(models.MapToRange(
-	// 	mixState.Trims["gyro_gain"],
-	// 	-100,
-	// 	100,
-	// 	sbus.MinValue,
-	// 	sbus.MaxValue,
-	// ))
+	//Gyro Gain
+	frame.Frame.Ch[2] = uint16(models.MapToRange(
+		mixState.Trims["gyro_gain"],
+		-100,
+		100,
+		sbus.MinValue,
+		sbus.MaxValue,
+	))
 
-	// slog.Debug("mixed frame", "gear", mixState.Gear, "esc_state", mixState.Esc, "steer", frame.Frame.Ch[0], "esc", frame.Frame.Ch[1])
+	slog.Debug("mixed frame", "gear", mixState.Gear, "esc_state", mixState.Esc, "steer", frame.Frame.Ch[0], "esc", frame.Frame.Ch[1])
 
 	return frame, mixState
 }
