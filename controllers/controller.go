@@ -91,6 +91,8 @@ func (c *Controller) Sync() error {
 
 		if mapping.Label == "handbrake" && name == "G27 Racing Wheel" {
 			slog.Warn("handbrake on g27!!!")
+		} else if mapping.Label == "handbrake" {
+			slog.Info("got handbrake event", "device", name, "controller", c.Name)
 		}
 
 		//update raw input
