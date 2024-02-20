@@ -170,15 +170,15 @@ func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
 			newInputChange := models.GetScaledInputChange(inputs[j])
 
 			if newInputChange > currInputChange {
-				if j == 2 {
-					slog.Info("brake updated", "currInputChange", currInputChange, "newInputChange", newInputChange, "mixedInputs", mixedInputs[j], "inputs", inputs[j])
-				}
+				// if j == 2 {
+				// 	slog.Info("brake updated", "currInputChange", currInputChange, "newInputChange", newInputChange, "mixedInputs", mixedInputs[j], "inputs", inputs[j])
+				// }
 				mixedInputs[j] = inputs[j]
-			} else {
-				if j == 2 {
-					slog.Info("brake not updated", "currInputChange", currInputChange, "newInputChange", newInputChange, "mixedInputs", mixedInputs[j], "inputs", inputs[j])
-				}
-			}
+			// } else {
+			// 	if j == 2 {
+			// 		slog.Info("brake not updated", "currInputChange", currInputChange, "newInputChange", newInputChange, "mixedInputs", mixedInputs[j], "inputs", inputs[j])
+			// 	}
+			// }
 		}
 	}
 
