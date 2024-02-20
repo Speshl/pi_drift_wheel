@@ -12,6 +12,8 @@ import (
 func Mixer(inputs []models.Input, mixState models.MixState, opts models.ControllerOptions) (sbus.SBusFrame, models.MixState) {
 	frame := sbus.NewSBusFrame()
 
+	slog.Info("brake value", "brake", inputs[2].Value)
+
 	if mixState.IsEmpty() {
 		mixState = models.NewMixState()
 		mixState.Esc = "forward"
