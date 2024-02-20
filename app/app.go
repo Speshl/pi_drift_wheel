@@ -131,7 +131,7 @@ func (a *App) processData(ctx context.Context) error {
 			}
 			lastWriteTime = time.Now()
 
-			slog.Info("details",
+			slog.Debug("details",
 				"steer", mixedFrame.Frame.Ch[0],
 				"esc", mixedFrame.Frame.Ch[1],
 				"gyro_gain", mixedFrame.Frame.Ch[2],
