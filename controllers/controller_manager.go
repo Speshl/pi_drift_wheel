@@ -174,6 +174,10 @@ func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
 					slog.Info("brake updated", "currInputChange", currInputChange, "newInputChange", newInputChange, "mixedInputs", mixedInputs[j], "inputs", inputs[j])
 				}
 				mixedInputs[j] = inputs[j]
+			} else {
+				if j == 2 {
+					slog.Info("brake not updated", "currInputChange", currInputChange, "newInputChange", newInputChange, "mixedInputs", mixedInputs[j], "inputs", inputs[j])
+				}
 			}
 		}
 	}
