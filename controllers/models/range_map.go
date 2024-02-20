@@ -3,6 +3,10 @@ package models
 import "math"
 
 func GetScaledInputChange(input Input) int {
+	if input.Value == 0 && input.Min == 0 && input.Max == 0 {
+		return 0
+	}
+
 	inputChangeAmt := MapToRange(input.Value, input.Min, input.Max, 0, 100)
 	switch input.Rests {
 	case "low":
