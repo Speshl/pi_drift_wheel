@@ -18,7 +18,7 @@ func Mixer(inputs []models.Input, mixState models.MixState, opts models.Controll
 		mixState.Gear = 0
 	}
 
-	Check for button state changes
+	//Check for button state changes
 	for i := range inputs {
 		if inputs[i].Value == mixState.Buttons[inputs[i].Label] {
 			continue
