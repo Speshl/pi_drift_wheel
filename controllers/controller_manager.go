@@ -161,7 +161,6 @@ func (c *ControllerManager) GetMixedFrame() (sbus.SBusFrame, error) {
 	}
 
 	mixedInputs := c.Controllers[0].GetRawInputs()
-	slog.Info("initial inputs device", "name", c.Controllers[0].Name, "brake", mixedInputs[2])
 
 	for i := 1; i < len(c.Controllers); i++ {
 		i := i

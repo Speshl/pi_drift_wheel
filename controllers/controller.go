@@ -89,6 +89,10 @@ func (c *Controller) Sync() error {
 			updatedValue = mapping.Max - updatedValue + mapping.Min
 		}
 
+		if mapping.Label == "handbrake" && name == "Logitech G27 Racing Wheel" {
+			slog.Warn("handbrake on g27!!!")
+		}
+
 		//update raw input
 		c.inputLock.Lock()
 		c.rawInputs[mapping.RawInput] = models.Input{
@@ -106,6 +110,7 @@ func (c *Controller) Sync() error {
 func (c *Controller) GetRawInputs() []models.Input {
 	c.inputLock.RLock()
 	defer c.inputLock.RUnlock()
+	slog.Info("initial inputs device", "name", c.Name, "brake", c.rawInputs[2])
 	return c.rawInputs
 }
 
