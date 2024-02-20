@@ -82,7 +82,8 @@ func (c *Controller) Sync() error {
 	slog.Debug("event", "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
 	mapping, ok := c.keyMap[fmt.Sprintf("%d:%d", e.Type, e.Code)]
 	if ok {
-		slog.Debug("mapped event", "label", mapping.Label, "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value)
+		name, _ := c.device.Name()
+		slog.Info("mapped event", "label", mapping.Label, "type", e.Type, "code", e.Code, "code_name", e.CodeName(), "value", e.Value, "device", name)
 		updatedValue := int(e.Value)
 		if mapping.Inverted {
 			updatedValue = mapping.Max - updatedValue + mapping.Min
