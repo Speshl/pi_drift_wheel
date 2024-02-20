@@ -10,13 +10,14 @@ func GetScaledInputChange(input Input) int {
 	inputChangeAmt := MapToRange(input.Value, input.Min, input.Max, 0, 100)
 	switch input.Rests {
 	case "low":
-		inputChangeAmt = input.Value
+		return inputChangeAmt
 	case "middle":
-		inputChangeAmt = int(math.Abs(float64(inputChangeAmt - 50)))
+		return int(math.Abs(float64(inputChangeAmt - 50)))
 	case "high":
-		inputChangeAmt = 100 - input.Value
+		return 100 - inputChangeAmt
+	default:
+		return 0
 	}
-	return inputChangeAmt
 }
 
 func GetInputChangeAmount(input Input) int {
