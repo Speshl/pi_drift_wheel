@@ -112,8 +112,8 @@ func (c *Controller) Sync() error {
 func (c *Controller) GetRawInputs() []models.Input {
 	c.inputLock.RLock()
 	defer c.inputLock.RUnlock()
-	slog.Info("raw inputs", "name", c.Name, "gas", c.rawInputs[1], "brake", c.rawInputs[2])
-	return c.rawInputs
+	returnSlice := make([]models.Input, len(c.rawInputs))
+	return returnSlice
 }
 
 func (c *Controller) ShowCaps() {
