@@ -113,6 +113,7 @@ func (c *Controller) GetRawInputs() []models.Input {
 	c.inputLock.RLock()
 	defer c.inputLock.RUnlock()
 	returnSlice := make([]models.Input, len(c.rawInputs))
+	copy(returnSlice, c.rawInputs)
 	return returnSlice
 }
 
